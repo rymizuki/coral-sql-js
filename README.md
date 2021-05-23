@@ -1,5 +1,6 @@
 # coral-sql
 
+[![npm version](https://badge.fury.io/js/coral-sql.svg)](https://badge.fury.io/js/coral-sql)
 [![CI](https://github.com/rymizuki/coral-sql-js/actions/workflows/main.yml/badge.svg)](https://github.com/rymizuki/coral-sql-js/actions/workflows/main.yml)
 
 The nodejs module for building SQL by complec and related like coral.
@@ -7,11 +8,11 @@ The nodejs module for building SQL by complec and related like coral.
 ## Installation
 
 ```shell:npm
-
+> npm install coral-sql
 ```
 
 ```shell:yarn
-
+> yarn add coral-sql
 ```
 
 ## Usage
