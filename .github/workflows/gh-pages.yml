@@ -1,10 +1,11 @@
 name: GitBub pages
 
 on:
+  worflows: ['Test']
   push:
-    branches:
-      - main
-    pull_request:
+    branch: ['main']
+  types:
+    - completed
 
 jobs:
   deploy:
