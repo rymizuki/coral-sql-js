@@ -1,11 +1,12 @@
 name: GitBub pages
 
 on:
-  worflows: ['Test']
-  push:
-    branch: ['main']
-  types:
-    - completed
+  workflow_run:
+    workflows: ['Test']
+    push:
+      branch: ['main']
+    types:
+      - completed
 
 jobs:
   deploy:
