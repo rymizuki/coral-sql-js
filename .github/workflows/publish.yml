@@ -23,17 +23,26 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: fregante/setup-git-user@v1
 
       - uses: actions/setup-node@v1
         with:
           node-version: '15.x'
           registry-url: 'https://registry.npmjs.org'
 
-      - run: npm ci
-      - run: npm run build
-      - run: npm version ${{ github.event.inputs.version }}
+      - run: |
+          npm ci
+          npm run build
+
+      - name: Setup git
+        run: |
+          git config --global user.name "${GITHUB_ACTOR}"
+          git config --global user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git
+          git remote show origin
+          npm version ${{ github.event.inputs.version }}
+
+          git push --tags origin main
+
       - run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - run: git push --tags
