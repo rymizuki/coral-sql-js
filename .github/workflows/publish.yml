@@ -6,9 +6,8 @@ name: publish
 on:
   workflow_run:
     workflows: ['Test']
-    create:
-      tags:
-        - 'v*'
+    tags:
+      - 'v*'
     types:
       - completed
 

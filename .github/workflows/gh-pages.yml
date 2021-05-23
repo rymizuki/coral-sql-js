@@ -3,8 +3,7 @@ name: GitBub pages
 on:
   workflow_run:
     workflows: ['Test']
-    push:
-      branch: ['main']
+    branches: ['main']
     types:
       - completed
 
