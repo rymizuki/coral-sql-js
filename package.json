@@ -6,6 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc --build ./tsconfig.build.json",
+    "build:docs": "typedoc --excludePrivate --out docs --tsconfig ./tsconfig.build.json --entryPoints src/index.ts",
     "lint": "eslint src/**/*.ts",
     "test": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' mocha"
   },
@@ -24,6 +25,7 @@
     "eslint": "^7.27.0",
     "mocha": "^8.4.0",
     "ts-node": "^9.1.1",
+    "typedoc": "^0.20.36",
     "typescript": "^4.2.4"
   }
 }
