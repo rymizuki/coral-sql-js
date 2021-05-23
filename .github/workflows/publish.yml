@@ -4,13 +4,9 @@ name: Publish
 
 # Controls when the action will run.
 on:
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-    inputs:
-      version:
-        descriptions: input update to version command. 'major' 'minor' 'patch' 'premajor' 'preminor' 'prepatch' 'prerelease'
-        required: true
-        default: 'prerelease'
+  push:
+    tags:
+      - 'v*'
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -32,16 +28,6 @@ jobs:
       - run: |
           npm ci
           npm run build
-
-      - name: Setup git
-        run: |
-          git config --global user.name "${GITHUB_ACTOR}"
-          git config --global user.email "${GITHUB_ACTOR}@users.noreply.github.com"
-          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git
-          git remote show origin
-          npm version ${{ github.event.inputs.version }}
-
-          git push --tags origin main
 
       - run: npm publish --access public
         env:
