@@ -7,11 +7,11 @@ The nodejs module for building SQL by complec and related like coral.
 ## Installation
 
 ```shell:npm
-
+> npm install coral-sql
 ```
 
 ```shell:yarn
-
+> yarn add coral-sql
 ```
 
 ## Usage
