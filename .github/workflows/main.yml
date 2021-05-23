@@ -15,8 +15,6 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  setup:
-
   # This workflow contains a single job called "build"
   test:
     # The type of runner that the job will run on
@@ -46,11 +44,14 @@ jobs:
       - run: npm test
 
   publish:
-    runs-on: ubuntu-latest
     needs: test
+
+    runs-on: ubuntu-latest
+
     permissions:
       contents: read
       packages: write
+
     steps:
       - uses: actions/checkout@v2
 
