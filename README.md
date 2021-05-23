@@ -33,3 +33,7 @@ const query = await connection.query(sql, bindings)
 // SELECT `age`, COUNT(*) AS `value` FROM `users` WHERE `enabled` = ? GROUP BY `age` HAVING `value` >= ? ORDER BY `value` DESC
 // [1, 10]
 ```
+
+## Documentation
+
+Document is [here](https://rymizuki.github.io/coral-sql-js/).
