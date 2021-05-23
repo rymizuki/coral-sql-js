@@ -1,6 +1,6 @@
 {
   "name": "coral-sql",
-  "version": "0.0.2-2",
+  "version": "0.0.2-3",
   "description": "The nodejs module for building SQL by complec and related like coral.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
