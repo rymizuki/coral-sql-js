@@ -1,5 +1,7 @@
 # coral-sql
 
+[![CI](https://github.com/rymizuki/coral-sql-js/actions/workflows/main.yml/badge.svg)](https://github.com/rymizuki/coral-sql-js/actions/workflows/main.yml)
+
 The nodejs module for building SQL by complec and related like coral.
 
 ## Installation
