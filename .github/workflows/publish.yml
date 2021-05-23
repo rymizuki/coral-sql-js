@@ -6,7 +6,7 @@ name: publish
 on:
   workflow_run:
     workflows: ['Test']
-    push:
+    create:
       tags:
         - 'v*'
     types:
