@@ -1,0 +1,21 @@
+{
+  "name": "coral-sql",
+  "version": "0.0.0",
+  "description": "The nodejs module for building SQL by complec and related like coral.",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "sql",
+    "builder"
+  ],
+  "author": "mizuki_r <ry.mizuki@gmail.com>",
+  "license": "ISC",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.24.0",
+    "@typescript-eslint/parser": "^4.24.0",
+    "eslint": "^7.27.0",
+    "typescript": "^4.2.4"
+  }
+}
