@@ -96,6 +96,8 @@
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="sqlbuilder.html#from" class="tsd-kind-icon">from</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="sqlbuilder.html#groupby" class="tsd-kind-icon">group<wbr>By</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="sqlbuilder.html#having" class="tsd-kind-icon">having</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="sqlbuilder.html#join" class="tsd-kind-icon">join</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="sqlbuilder.html#leftjoin" class="tsd-kind-icon">left<wbr>Join</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="sqlbuilder.html#limit" class="tsd-kind-icon">limit</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="sqlbuilder.html#offset" class="tsd-kind-icon">offset</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="sqlbuilder.html#orderby" class="tsd-kind-icon">order<wbr>By</a></li>
@@ -118,7 +120,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/66fc238/src/builder.ts#L25">builder.ts:25</a></li>
+									<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/bd913c5/src/builder.ts#L28">builder.ts:28</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="sqlbuilder.html" class="tsd-signature-type" data-tsd-kind="Class">SQLBuilder</a></h4>
@@ -139,7 +141,7 @@
 							<aside class="tsd-sources">
 								<p>Implementation of <a href="../interfaces/sqlbuilderport.html">SQLBuilderPort</a>.<a href="../interfaces/sqlbuilderport.html#column">column</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/66fc238/src/builder.ts#L36">builder.ts:36</a></li>
+									<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/bd913c5/src/builder.ts#L40">builder.ts:40</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -174,7 +176,7 @@
 							<aside class="tsd-sources">
 								<p>Implementation of <a href="../interfaces/sqlbuilderport.html">SQLBuilderPort</a>.<a href="../interfaces/sqlbuilderport.html#from">from</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/66fc238/src/builder.ts#L41">builder.ts:41</a></li>
+									<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/bd913c5/src/builder.ts#L45">builder.ts:45</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -209,7 +211,7 @@
 							<aside class="tsd-sources">
 								<p>Implementation of <a href="../interfaces/sqlbuilderport.html">SQLBuilderPort</a>.<a href="../interfaces/sqlbuilderport.html#groupby">groupBy</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/66fc238/src/builder.ts#L56">builder.ts:56</a></li>
+									<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/bd913c5/src/builder.ts#L73">builder.ts:73</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -240,7 +242,7 @@
 							<aside class="tsd-sources">
 								<p>Implementation of <a href="../interfaces/sqlbuilderport.html">SQLBuilderPort</a>.<a href="../interfaces/sqlbuilderport.html#having">having</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/66fc238/src/builder.ts#L51">builder.ts:51</a></li>
+									<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/bd913c5/src/builder.ts#L68">builder.ts:68</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -262,6 +264,70 @@
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="join" class="tsd-anchor"></a>
+					<h3>join</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">join<span class="tsd-signature-symbol">(</span>direction<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">SQLBuilderJoinDirection</span>, <span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="sqlbuilder.html" class="tsd-signature-type" data-tsd-kind="Class">SQLBuilder</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Implementation of <a href="../interfaces/sqlbuilderport.html">SQLBuilderPort</a>.<a href="../interfaces/sqlbuilderport.html#join">join</a></p>
+								<ul>
+									<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/bd913c5/src/builder.ts#L55">builder.ts:55</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Specified join.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>direction: <span class="tsd-signature-type">SQLBuilderJoinDirection</span></h5>
+								</li>
+								<li>
+									<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>args: <span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="sqlbuilder.html" class="tsd-signature-type" data-tsd-kind="Class">SQLBuilder</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="leftjoin" class="tsd-anchor"></a>
+					<h3>left<wbr>Join</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">left<wbr>Join<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="sqlbuilder.html" class="tsd-signature-type" data-tsd-kind="Class">SQLBuilder</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Implementation of <a href="../interfaces/sqlbuilderport.html">SQLBuilderPort</a>.<a href="../interfaces/sqlbuilderport.html#leftjoin">leftJoin</a></p>
+								<ul>
+									<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/bd913c5/src/builder.ts#L50">builder.ts:50</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Sepcified left join</p>
+								</div>
+								<pre><code class="language-typescript"><span style="color: #001080">builder</span><span style="color: #000000">.</span><span style="color: #795E26">leftJoin</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;passport&#039;</span><span style="color: #000000">, </span><span style="color: #A31515">&#039;passport.id = user.passport_id&#039;</span><span style="color: #000000">)</span>
+<span style="color: #008000">// LEFT JOIN `passport` ON passport.id = user.passport_id</span>
+</code></pre>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>args: <span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="sqlbuilder.html" class="tsd-signature-type" data-tsd-kind="Class">SQLBuilder</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
 					<a name="limit" class="tsd-anchor"></a>
 					<h3>limit</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -272,7 +338,7 @@
 							<aside class="tsd-sources">
 								<p>Implementation of <a href="../interfaces/sqlbuilderport.html">SQLBuilderPort</a>.<a href="../interfaces/sqlbuilderport.html#limit">limit</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/66fc238/src/builder.ts#L66">builder.ts:66</a></li>
+									<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/bd913c5/src/builder.ts#L83">builder.ts:83</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -303,7 +369,7 @@
 							<aside class="tsd-sources">
 								<p>Implementation of <a href="../interfaces/sqlbuilderport.html">SQLBuilderPort</a>.<a href="../interfaces/sqlbuilderport.html#offset">offset</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/66fc238/src/builder.ts#L71">builder.ts:71</a></li>
+									<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/bd913c5/src/builder.ts#L88">builder.ts:88</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -334,7 +400,7 @@
 							<aside class="tsd-sources">
 								<p>Implementation of <a href="../interfaces/sqlbuilderport.html">SQLBuilderPort</a>.<a href="../interfaces/sqlbuilderport.html#orderby">orderBy</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/66fc238/src/builder.ts#L61">builder.ts:61</a></li>
+									<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/bd913c5/src/builder.ts#L78">builder.ts:78</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -369,7 +435,7 @@
 							<aside class="tsd-sources">
 								<p>Implementation of <a href="../interfaces/sqlbuilderport.html">SQLBuilderPort</a>.<a href="../interfaces/sqlbuilderport.html#tosql">toSQL</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/66fc238/src/builder.ts#L76">builder.ts:76</a></li>
+									<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/bd913c5/src/builder.ts#L93">builder.ts:93</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -400,7 +466,7 @@
 							<aside class="tsd-sources">
 								<p>Implementation of <a href="../interfaces/sqlbuilderport.html">SQLBuilderPort</a>.<a href="../interfaces/sqlbuilderport.html#where">where</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/66fc238/src/builder.ts#L46">builder.ts:46</a></li>
+									<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/bd913c5/src/builder.ts#L63">builder.ts:63</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -452,6 +518,12 @@
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="sqlbuilder.html#having" class="tsd-kind-icon">having</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="sqlbuilder.html#join" class="tsd-kind-icon">join</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="sqlbuilder.html#leftjoin" class="tsd-kind-icon">left<wbr>Join</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="sqlbuilder.html#limit" class="tsd-kind-icon">limit</a>
