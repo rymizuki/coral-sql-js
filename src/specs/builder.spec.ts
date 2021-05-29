@@ -52,6 +52,48 @@ describe('builder', () => {
     })
   })
 
+  describe('.leftJoin', () => {
+    describe('single', () => {
+      it('"SELECT * FROM users LEFT JOIN user_names ON users.id = user_names.user_id", []', () => {
+        const [sql, bindings] = builder
+          .from('users')
+          .leftJoin('user_names', 'users.id = user_names.user_id')
+          .toSQL()
+        expect(sql).to.be.eql(
+          'SELECT\n  *\nFROM\n  `users`\nLEFT JOIN `user_names` ON users.id = user_names.user_id'
+        )
+        expect(bindings).to.be.eql([])
+      })
+    })
+
+    describe('multiple', () => {
+      it('"SELECT * FROM users LEFT JOIN user_names ON users.id = user_names.user_id LEFT JOIN passport ON passport.id = users.passport_id", []', () => {
+        const [sql, bindings] = builder
+          .from('users')
+          .leftJoin('user_names', 'users.id = user_names.user_id')
+          .leftJoin('passport', 'passport.id = users.passport_id')
+          .toSQL()
+        expect(sql).to.be.eql(
+          'SELECT\n  *\nFROM\n  `users`\nLEFT JOIN `user_names` ON users.id = user_names.user_id\nLEFT JOIN `passport` ON passport.id = users.passport_id'
+        )
+        expect(bindings).to.be.eql([])
+      })
+    })
+
+    describe('use alias', () => {
+      it('"SELECT * FROM users LEFT JOIN user_names ON users.id = user_names.user_id", []', () => {
+        const [sql, bindings] = builder
+          .from('users')
+          .leftJoin('user_names', 'un', 'users.id = un.user_id')
+          .toSQL()
+        expect(sql).to.be.eql(
+          'SELECT\n  *\nFROM\n  `users`\nLEFT JOIN `user_names` AS `un` ON users.id = un.user_id'
+        )
+        expect(bindings).to.be.eql([])
+      })
+    })
+  })
+
   describe('.where', () => {
     describe('single', () => {
       it('"SELECT * FROM users WHERE id = ?", [1]', () => {

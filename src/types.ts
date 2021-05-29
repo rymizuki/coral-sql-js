@@ -26,6 +26,12 @@ export type SQLBuilderOperator =
   //  | 'is not null'
   | 'between'
   | 'regexp'
+export type SQLBuilderJoinDirection =
+  | 'left'
+  | 'right'
+  | 'inner'
+  | 'outer'
+  | null
 
 export type SQLBuilderOrderDirection = 'asc' | 'desc'
 export type SQLBuilderToSQLInputOptions = {
@@ -180,6 +186,58 @@ export interface SQLBuilderPort {
    * @param as
    */
   from(name: string, as: string): this
+  /**
+   * Sepcified left join
+   *
+   * ```typescript
+   * builder.leftJoin('passport', 'passport.id = user.passport_id')
+   * // LEFT JOIN `passport` ON passport.id = user.passport_id
+   * ```
+   *
+   * @param table_name
+   * @param condition
+   */
+  leftJoin(table_name: string, condition: string): this
+  /**
+   * Specified left join with table alias.
+   *
+   * ```typescript
+   * builder.leftJoin('passport', 'p', 'p.id = user.passport_id')
+   * // LEFT JOIN `passport` AS `p` ON p.id = user.passport_id
+   * ```
+   *
+   * @param table_name
+   * @param as
+   * @param condition
+   */
+  leftJoin(table_name: string, as: string, condition: string): this
+  /**
+   * Specified join.
+   *
+   * @param direction
+   * @param table_name
+   * @param condition
+   */
+  join(
+    direction: SQLBuilderJoinDirection,
+    table_name: string,
+    condition: string
+  ): this
+  /**
+   * Specified join with direction.
+   *
+   * @param direction
+   * @param table_name
+   * @param as
+   * @param condition
+   */
+  join(
+    direction: SQLBuilderJoinDirection,
+    table_name: string,
+    as: string,
+    condition: string
+  ): this
+
   /**
    * Specified search condition.
    *

@@ -1,6 +1,7 @@
 import { Columns } from './builder/columns'
 import { Conditions } from './builder/conditions'
 import { Groups } from './builder/groups'
+import { Join } from './builder/join'
 import { Orders } from './builder/orders'
 import { Table } from './builder/table'
 import { ensureToSQL } from './options'
@@ -11,12 +12,14 @@ import {
   SQLBuilderToSQLInputOptions,
   SQLBuilderToSQLOptions,
   SQLBuilderConditionInputPattern,
-  SQLBuilderBindingValue
+  SQLBuilderBindingValue,
+  SQLBuilderJoinDirection
 } from './types'
 
 export class SQLBuilder implements SQLBuilderPort {
   private columns: Columns
   private table: Table | null
+  private joins: Join[]
   private conditions_where: Conditions
   private conditions_having: Conditions
   private groups: Groups
@@ -27,6 +30,7 @@ export class SQLBuilder implements SQLBuilderPort {
   constructor() {
     this.columns = new Columns()
     this.table = null
+    this.joins = []
     this.conditions_where = new Conditions()
     this.conditions_having = new Conditions()
     this.groups = new Groups()
@@ -40,6 +44,19 @@ export class SQLBuilder implements SQLBuilderPort {
 
   from(name: string, as?: string): this {
     this.table = new Table(name, as)
+    return this
+  }
+
+  leftJoin(...args: [string, string] | [string, string, string]): this {
+    this.join('left', ...args)
+    return this
+  }
+
+  join(
+    direction: SQLBuilderJoinDirection,
+    ...args: [string, string] | [string, string, string]
+  ): this {
+    this.joins.push(new Join(direction, ...args))
     return this
   }
 
@@ -79,6 +96,7 @@ export class SQLBuilder implements SQLBuilderPort {
     const options = ensureToSQL(input)
     const sql = [
       this.getSelect(options),
+      this.getJoin(options),
       this.getWhere(options),
       this.getGroupBy(options),
       this.getHaving(options),
@@ -102,6 +120,17 @@ export class SQLBuilder implements SQLBuilderPort {
       'FROM',
       `${indent}${this.table.toSQL()}`
     ].join('\n')
+  }
+
+  private getJoin(options: SQLBuilderToSQLOptions) {
+    if (!this.joins.length) {
+      return null
+    }
+    return this.joins
+      .map((join) => {
+        return join.toSQL(options)[0]
+      })
+      .join('\n')
   }
 
   private getWhere(options: SQLBuilderToSQLOptions) {
