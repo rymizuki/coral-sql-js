@@ -23,3 +23,16 @@ import { FieldPort } from '../types'
 export const unescape = (field: string): FieldPort => {
   return new Field(field, true)
 }
+
+export const escape = (field: string): string => {
+  const fragments = field.split('.')
+  const output = fragments
+    .map((fragment) => {
+      if (/(?:"(?:.+?)")|(?:'(?:.+?)')|(?:`(?:.+?)`)/.test(fragment)) {
+        return fragment
+      }
+      return '`' + fragment + '`'
+    })
+    .join('.')
+  return output
+}
