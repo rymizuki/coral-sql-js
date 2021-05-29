@@ -1,4 +1,5 @@
 import { FieldPort } from '../types'
+import { escape } from '../utils/escape'
 
 export class Field implements FieldPort {
   private content: string
@@ -10,16 +11,7 @@ export class Field implements FieldPort {
     if (this.unescape) {
       this.content = field
     } else {
-      const fragments = field.split('.')
-      const output = fragments
-        .map((fragment) => {
-          if (/(?:"(?:.+?)")|(?:'(?:.+?)')|(?:`(?:.+?)`)/.test(fragment)) {
-            return fragment
-          }
-          return '`' + fragment + '`'
-        })
-        .join('.')
-      this.content = output
+      this.content = escape(field)
     }
   }
 
