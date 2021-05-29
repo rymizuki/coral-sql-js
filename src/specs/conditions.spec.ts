@@ -31,6 +31,16 @@ describe('conditions', () => {
         expect(bindings).to.be.eql([10, 20])
       })
     })
+
+    describe('use conditions instance', () => {
+      it('"a = ? OR a = ?", [1, 10]', () => {
+        const [sql, bindings] = builder
+          .add('and', createConditions().and('a', 1).or('a', 10))
+          .toSQL()
+        expect(sql).to.be.eql('((`a` = ?)\n  OR (`a` = ?))')
+        expect(bindings).to.be.eql([1, 10])
+      })
+    })
   })
 
   describe('.and', () => {

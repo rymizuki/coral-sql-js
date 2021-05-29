@@ -211,6 +211,16 @@ export interface SQLBuilderPort {
     value: SQLBuilderConditionValue
   ): this
   /**
+   * Specified where condition.
+   *
+   * ```
+   * builder.where(createConditions().and('value', 1).or('value', 2))
+   * ```
+   *
+   * @param conditions
+   */
+  where(conditions: SQLBuilderConditionsPort): this
+  /**
    * Specified having condition.
    *
    * ```typescript
