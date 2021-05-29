@@ -199,7 +199,7 @@ describe('builder', () => {
           .orderBy('age', 'desc')
           .toSQL()
         expect(sql).to.be.eql(
-          'SELECT\n  *\nFROM\n  `users`\nORDER BY\n  `id` ASC\n  `age` DESC'
+          'SELECT\n  *\nFROM\n  `users`\nORDER BY\n  `id` ASC,\n  `age` DESC'
         )
         expect(bindings).to.be.eql([])
       })
