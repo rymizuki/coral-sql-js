@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import { expect } from 'chai'
-import { createConditions } from '../../dist'
+import { createConditions, is_not_null, is_null } from '../../dist'
 
 describe('operators', () => {
   describe('comparison', () => {
@@ -100,8 +100,16 @@ describe('operators', () => {
   })
 
   describe('is null', () => {
-    it('"a IS NULL", []')
-    it('"a IS NOT NULL", []')
+    it('"a IS NULL", []', () => {
+      const [sql, bindings] = createConditions().and('a', is_null()).toSQL()
+      expect(sql).to.be.eql('(`a` IS NULL)')
+      expect(bindings).to.be.eql([])
+    })
+    it('"a IS NOT NULL", []', () => {
+      const [sql, bindings] = createConditions().and('a', is_not_null()).toSQL()
+      expect(sql).to.be.eql('(`a` IS NOT NULL)')
+      expect(bindings).to.be.eql([])
+    })
   })
 
   describe('between', () => {

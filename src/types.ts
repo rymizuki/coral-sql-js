@@ -8,7 +8,9 @@ export type SQLBuilderConditionInputPattern =
   | [SQLBuilderConditionsPort]
   | [SQLBuilderConditionPort]
   | [SQLBuilderField, SQLBuilderConditionValue]
+  | [SQLBuilderField, SQLBuilderConditionExpressionPort]
   | [SQLBuilderField, SQLBuilderOperator, SQLBuilderConditionValue]
+  | [SQLBuilderField, SQLBuilderOperator, SQLBuilderConditionExpressionPort]
 export type SQLBuilderOperator =
   | '='
   | '!='
@@ -251,6 +253,20 @@ export interface SQLBuilderPort {
    */
   where(field: SQLBuilderField, value: SQLBuilderConditionValue): this
   /**
+   * Specified search condition with expression.
+   * Example for `IS NULL`
+   *
+   * ```typescript
+   * import { is_null } from 'coral-sql'
+   *
+   * builder.where('id`, is_null()) // `id` IS NULL
+   * ```
+   *
+   * @param field
+   * @param value
+   */
+  where(field: SQLBuilderField, value: SQLBuilderConditionExpressionPort): this
+  /**
    * Specified search condition with operator.
    *
    * ```typescript
@@ -267,6 +283,11 @@ export interface SQLBuilderPort {
     field: SQLBuilderField,
     operator: SQLBuilderOperator,
     value: SQLBuilderConditionValue
+  ): this
+  where(
+    field: SQLBuilderField,
+    operator: SQLBuilderOperator,
+    value: SQLBuilderConditionExpressionPort
   ): this
   /**
    * Specified where condition.

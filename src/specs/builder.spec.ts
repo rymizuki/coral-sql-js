@@ -1,6 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import { expect } from 'chai'
-import { createConditions, SQLBuilder, SQLBuilderPort, unescape } from '../../'
+import {
+  createConditions,
+  is_null,
+  SQLBuilder,
+  SQLBuilderPort,
+  unescape
+} from '../../'
 
 describe('builder', () => {
   let builder: SQLBuilderPort
@@ -127,6 +133,19 @@ describe('builder', () => {
           'SELECT\n  *\nFROM\n  `users`\nWHERE\n  ((`age` = ?)\n  OR (`age` <= ?))'
         )
         expect(bindings).to.be.eql([10, 20])
+      })
+    })
+
+    describe('is_null', () => {
+      it('"SELECT * FROM users WHERE age IS NULL", []', () => {
+        const [sql, bindings] = builder
+          .from('users')
+          .where('age', is_null())
+          .toSQL()
+        expect(sql).to.be.eql(
+          'SELECT\n  *\nFROM\n  `users`\nWHERE\n  (`age` IS NULL)'
+        )
+        expect(bindings).to.be.eql([])
       })
     })
   })

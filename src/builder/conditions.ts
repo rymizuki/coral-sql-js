@@ -9,7 +9,7 @@ import {
   SQLBuilderToSQLOptions
 } from '../types'
 import { Condition } from './condition'
-import { ConditionExpression } from './condition-expression'
+import { ConditionExpression, isExpression } from './condition-expression'
 
 export class Conditions implements SQLBuilderConditionsPort {
   private rows: {
@@ -74,10 +74,16 @@ export class Conditions implements SQLBuilderConditionsPort {
     }
     if (args.length === 2) {
       const operator = Array.isArray(args[1]) ? 'in' : '='
-      return new Condition(args[0], new ConditionExpression(operator, args[1]))
+      const expr = isExpression(args[1])
+        ? args[1]
+        : new ConditionExpression(operator, args[1])
+      return new Condition(args[0], expr)
     }
     if (args.length === 3) {
-      return new Condition(args[0], new ConditionExpression(args[1], args[2]))
+      const expr = isExpression(args[2])
+        ? args[2]
+        : new ConditionExpression(args[1], args[2])
+      return new Condition(args[0], expr)
     }
 
     // unsupported method input.

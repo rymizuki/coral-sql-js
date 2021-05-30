@@ -8,11 +8,20 @@ import {
   SQLBuilderToSQLInputOptions
 } from '../types'
 
-export class ConditionExpression implements SQLBuilderConditionExpressionPort {
+export abstract class AbstractConditionExpression
+  implements SQLBuilderConditionExpressionPort
+{
+  abstract toSQL(
+    options?: SQLBuilderToSQLInputOptions
+  ): [string, SQLBuilderBindingValue[]]
+}
+
+export class ConditionExpression extends AbstractConditionExpression {
   private operator: SQLBuilderOperator
   private value: SQLBuilderConditionValue
 
   constructor(operator: SQLBuilderOperator, value: SQLBuilderConditionValue) {
+    super()
     this.operator = operator
     this.value = value
   }
@@ -70,4 +79,36 @@ export class ConditionExpression implements SQLBuilderConditionExpressionPort {
         return operator
     }
   }
+}
+
+export class ConditionExpressionNull extends AbstractConditionExpression {
+  private value: 'is null' | 'is not null'
+  constructor(value: 'is null' | 'is not null') {
+    super()
+    this.value = value
+  }
+
+  toSQL(
+    options?: SQLBuilderToSQLInputOptions
+  ): [string, SQLBuilderBindingValue[]] {
+    const { bindings } = ensureToSQL(options)
+    const sql = this.generate()
+    return [sql, bindings.getBindParameters()]
+  }
+
+  private generate() {
+    if (this.value === 'is null') {
+      return 'IS NULL'
+    }
+    if (this.value === 'is not null') {
+      return 'IS NOT NULL'
+    }
+    throw new Error('must be specified "is not? null"')
+  }
+}
+
+export const isExpression = (
+  value: unknown
+): value is SQLBuilderConditionExpressionPort => {
+  return value instanceof AbstractConditionExpression
 }
