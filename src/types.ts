@@ -1,4 +1,4 @@
-export type SQLBuilderPrimitiveValue = string | number | boolean
+export type SQLBuilderPrimitiveValue = string | number | boolean | Date
 export type SQLBuilderConditionValue =
   | SQLBuilderPrimitiveValue
   | SQLBuilderPrimitiveValue[]
@@ -42,7 +42,7 @@ export type SQLBuilderToSQLOptions = {
   indent: string
   bindings: BindingsPort
 }
-export type SQLBuilderBindingValue = string | number
+export type SQLBuilderBindingValue = string | number | Date
 
 export interface FieldPort {
   /**
