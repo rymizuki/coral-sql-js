@@ -13,6 +13,7 @@ import {
 } from './types'
 import { SQLBuilder } from './builder'
 import { unescape } from './utils/escape'
+import { is_null, is_not_null } from './utils/null'
 import { Conditions as SQLBuilderConditions } from './builder/conditions'
 import { Condition as SQLBuilderCondition } from './builder/condition'
 
@@ -24,6 +25,8 @@ export {
   SQLBuilderConditionsPort,
   SQLBuilderConditions,
   unescape,
+  is_null,
+  is_not_null,
   SQLBuilderBindingValue,
   SQLBuilderConditionConjunction,
   SQLBuilderConditionInputPattern,

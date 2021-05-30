@@ -2,18 +2,18 @@ import { ensureToSQL } from '../options'
 import {
   FieldPort,
   SQLBuilderBindingValue,
+  SQLBuilderConditionExpressionPort,
   SQLBuilderConditionPort,
   SQLBuilderField,
   SQLBuilderToSQLInputOptions
 } from '../types'
-import { ConditionExpression } from './condition-expression'
 import { Field } from './field'
 
 export class Condition implements SQLBuilderConditionPort {
   private field: FieldPort
-  private expr: ConditionExpression
+  private expr: SQLBuilderConditionExpressionPort
 
-  constructor(field: SQLBuilderField, expr: ConditionExpression) {
+  constructor(field: SQLBuilderField, expr: SQLBuilderConditionExpressionPort) {
     this.field = typeof field === 'string' ? new Field(field) : field
     this.expr = expr
   }
