@@ -95,6 +95,8 @@
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-function"><a href="modules.html#createbuilder" class="tsd-kind-icon">create<wbr>Builder</a></li>
 								<li class="tsd-kind-function"><a href="modules.html#createconditions" class="tsd-kind-icon">create<wbr>Conditions</a></li>
+								<li class="tsd-kind-function"><a href="modules.html#is_not_null" class="tsd-kind-icon">is_<wbr>not_<wbr>null</a></li>
+								<li class="tsd-kind-function"><a href="modules.html#is_null" class="tsd-kind-icon">is_<wbr>null</a></li>
 								<li class="tsd-kind-function"><a href="modules.html#unescape" class="tsd-kind-icon">unescape</a></li>
 							</ul>
 						</section>
@@ -109,7 +111,7 @@
 					<div class="tsd-signature tsd-kind-icon">SQLBuilder<wbr>Binding<wbr>Value<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Date</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/5594243/src/types.ts#L45">types.ts:45</a></li>
+							<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/1a25474/src/types.ts#L47">types.ts:47</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -119,17 +121,17 @@
 					<div class="tsd-signature tsd-kind-icon">SQLBuilder<wbr>Condition<wbr>Conjunction<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;and&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;or&quot;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/5594243/src/types.ts#L6">types.ts:6</a></li>
+							<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/1a25474/src/types.ts#L6">types.ts:6</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-type-alias">
 					<a name="sqlbuilderconditioninputpattern" class="tsd-anchor"></a>
 					<h3>SQLBuilder<wbr>Condition<wbr>Input<wbr>Pattern</h3>
-					<div class="tsd-signature tsd-kind-icon">SQLBuilder<wbr>Condition<wbr>Input<wbr>Pattern<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">[</span><a href="interfaces/sqlbuilderconditionsport.html" class="tsd-signature-type" data-tsd-kind="Interface">SQLBuilderConditionsPort</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">[</span><a href="interfaces/sqlbuilderconditionport.html" class="tsd-signature-type" data-tsd-kind="Interface">SQLBuilderConditionPort</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">[</span><a href="modules.html#sqlbuilderfield" class="tsd-signature-type" data-tsd-kind="Type alias">SQLBuilderField</a><span class="tsd-signature-symbol">, </span><a href="modules.html#sqlbuilderconditionvalue" class="tsd-signature-type" data-tsd-kind="Type alias">SQLBuilderConditionValue</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">[</span><a href="modules.html#sqlbuilderfield" class="tsd-signature-type" data-tsd-kind="Type alias">SQLBuilderField</a><span class="tsd-signature-symbol">, </span><a href="modules.html#sqlbuilderoperator" class="tsd-signature-type" data-tsd-kind="Type alias">SQLBuilderOperator</a><span class="tsd-signature-symbol">, </span><a href="modules.html#sqlbuilderconditionvalue" class="tsd-signature-type" data-tsd-kind="Type alias">SQLBuilderConditionValue</a><span class="tsd-signature-symbol">]</span></div>
+					<div class="tsd-signature tsd-kind-icon">SQLBuilder<wbr>Condition<wbr>Input<wbr>Pattern<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">[</span><a href="interfaces/sqlbuilderconditionsport.html" class="tsd-signature-type" data-tsd-kind="Interface">SQLBuilderConditionsPort</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">[</span><a href="interfaces/sqlbuilderconditionport.html" class="tsd-signature-type" data-tsd-kind="Interface">SQLBuilderConditionPort</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">[</span><a href="modules.html#sqlbuilderfield" class="tsd-signature-type" data-tsd-kind="Type alias">SQLBuilderField</a><span class="tsd-signature-symbol">, </span><a href="modules.html#sqlbuilderconditionvalue" class="tsd-signature-type" data-tsd-kind="Type alias">SQLBuilderConditionValue</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">[</span><a href="modules.html#sqlbuilderfield" class="tsd-signature-type" data-tsd-kind="Type alias">SQLBuilderField</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">SQLBuilderConditionExpressionPort</span><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">[</span><a href="modules.html#sqlbuilderfield" class="tsd-signature-type" data-tsd-kind="Type alias">SQLBuilderField</a><span class="tsd-signature-symbol">, </span><a href="modules.html#sqlbuilderoperator" class="tsd-signature-type" data-tsd-kind="Type alias">SQLBuilderOperator</a><span class="tsd-signature-symbol">, </span><a href="modules.html#sqlbuilderconditionvalue" class="tsd-signature-type" data-tsd-kind="Type alias">SQLBuilderConditionValue</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">[</span><a href="modules.html#sqlbuilderfield" class="tsd-signature-type" data-tsd-kind="Type alias">SQLBuilderField</a><span class="tsd-signature-symbol">, </span><a href="modules.html#sqlbuilderoperator" class="tsd-signature-type" data-tsd-kind="Type alias">SQLBuilderOperator</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">SQLBuilderConditionExpressionPort</span><span class="tsd-signature-symbol">]</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/5594243/src/types.ts#L7">types.ts:7</a></li>
+							<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/1a25474/src/types.ts#L7">types.ts:7</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -139,7 +141,7 @@
 					<div class="tsd-signature tsd-kind-icon">SQLBuilder<wbr>Condition<wbr>Value<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">SQLBuilderPrimitiveValue</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">SQLBuilderPrimitiveValue</span><span class="tsd-signature-symbol">[]</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/5594243/src/types.ts#L2">types.ts:2</a></li>
+							<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/1a25474/src/types.ts#L2">types.ts:2</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -149,7 +151,7 @@
 					<div class="tsd-signature tsd-kind-icon">SQLBuilder<wbr>Field<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">FieldPort</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/5594243/src/types.ts#L5">types.ts:5</a></li>
+							<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/1a25474/src/types.ts#L5">types.ts:5</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -159,7 +161,7 @@
 					<div class="tsd-signature tsd-kind-icon">SQLBuilder<wbr>Operator<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;&#x3D;&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;!&#x3D;&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;&lt;&gt;&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;&lt;&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;&lt;&#x3D;&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;&gt;&#x3D;&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;&gt;&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;in&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;not in&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;like&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;not like&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;between&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;regexp&quot;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/5594243/src/types.ts#L12">types.ts:12</a></li>
+							<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/1a25474/src/types.ts#L14">types.ts:14</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -169,7 +171,7 @@
 					<div class="tsd-signature tsd-kind-icon">SQLBuilder<wbr>Order<wbr>Direction<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;asc&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;desc&quot;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/5594243/src/types.ts#L36">types.ts:36</a></li>
+							<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/1a25474/src/types.ts#L38">types.ts:38</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -179,7 +181,7 @@
 					<div class="tsd-signature tsd-kind-icon">SQLBuilder<wbr>ToSQLInput<wbr>Options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>bindings<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">BindingsPort</span><span class="tsd-signature-symbol">; </span>indent<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> }</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/5594243/src/types.ts#L37">types.ts:37</a></li>
+							<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/1a25474/src/types.ts#L39">types.ts:39</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-type-declaration">
@@ -207,7 +209,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/5594243/src/index.ts#L54">index.ts:54</a></li>
+									<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/1a25474/src/index.ts#L57">index.ts:57</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -240,7 +242,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/5594243/src/index.ts#L72">index.ts:72</a></li>
+									<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/1a25474/src/index.ts#L75">index.ts:75</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -261,6 +263,40 @@
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-function">
+					<a name="is_not_null" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagConst">Const</span> is_<wbr>not_<wbr>null</h3>
+					<ul class="tsd-signatures tsd-kind-function">
+						<li class="tsd-signature tsd-kind-icon">is_<wbr>not_<wbr>null<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">SQLBuilderConditionExpressionPort</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/1a25474/src/utils/null.ts#L8">utils/null.ts:8</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">SQLBuilderConditionExpressionPort</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function">
+					<a name="is_null" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagConst">Const</span> is_<wbr>null</h3>
+					<ul class="tsd-signatures tsd-kind-function">
+						<li class="tsd-signature tsd-kind-icon">is_<wbr>null<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">SQLBuilderConditionExpressionPort</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/1a25474/src/utils/null.ts#L4">utils/null.ts:4</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">SQLBuilderConditionExpressionPort</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function">
 					<a name="unescape" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagConst">Const</span> unescape</h3>
 					<ul class="tsd-signatures tsd-kind-function">
@@ -270,7 +306,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/5594243/src/utils/escape.ts#L23">utils/escape.ts:23</a></li>
+									<li>Defined in <a href="https://github.com/rymizuki/coral-sql-js/blob/1a25474/src/utils/escape.ts#L23">utils/escape.ts:23</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -362,6 +398,12 @@
 					</li>
 					<li class=" tsd-kind-function">
 						<a href="modules.html#createconditions" class="tsd-kind-icon">create<wbr>Conditions</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="modules.html#is_not_null" class="tsd-kind-icon">is_<wbr>not_<wbr>null</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="modules.html#is_null" class="tsd-kind-icon">is_<wbr>null</a>
 					</li>
 					<li class=" tsd-kind-function">
 						<a href="modules.html#unescape" class="tsd-kind-icon">unescape</a>
