@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { expect } from 'chai'
 import { createConditions, is_not_null, is_null } from '../../dist'
 
