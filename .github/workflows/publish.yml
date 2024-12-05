@@ -1,34 +1,18 @@
-# This is a basic workflow to help you get started with Actions
-
-name: Publish
-
-# Controls when the action will run.
+name: publish
 on:
-  push:
-    tags:
-      - 'v*'
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+  release:
+    types: [published]
 jobs:
   publish:
     runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
-      packages: write
-
     steps:
-      - uses: actions/checkout@v2
-
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
-          node-version: '15.x'
+          node-version: 20
           registry-url: 'https://registry.npmjs.org'
-
-      - run: |
-          npm ci
-          npm run build
-
-      - run: npm publish --access public
+      - run: npm ci
+      - run: npm run build
+      - run: npm run publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
