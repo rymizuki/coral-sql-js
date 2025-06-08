@@ -5,7 +5,7 @@ import {
   SQLBuilder,
   SQLBuilderPort,
   unescape
-} from '../../'
+} from '../../dist'
 
 describe('builder', () => {
   let builder: SQLBuilderPort

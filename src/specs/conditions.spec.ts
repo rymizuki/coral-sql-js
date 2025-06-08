@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { createConditions, SQLBuilderConditionsPort } from '../../'
+import { createConditions, SQLBuilderConditionsPort } from '../../dist'
 
 describe('conditions', () => {
   let builder: SQLBuilderConditionsPort
