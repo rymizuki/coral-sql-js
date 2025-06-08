@@ -1,5 +1,11 @@
 # coral-sql
 
+## 1.0.3
+
+### Patch Changes
+
+- fix build
+
 ## 1.0.2
 
 ### Patch Changes
