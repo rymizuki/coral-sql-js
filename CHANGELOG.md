@@ -1,5 +1,11 @@
 # coral-sql
 
+## 1.1.0
+
+### Minor Changes
+
+- add feature for escape option
+
 ## 1.0.3
 
 ### Patch Changes
