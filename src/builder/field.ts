@@ -1,21 +1,20 @@
-import { FieldPort } from '../types'
+import { FieldPort, SQLBuilderToSQLInputOptions } from '../types'
 import { escape } from '../utils/escape'
 
 export class Field implements FieldPort {
-  private content: string
+  private field: string
   private unescape: boolean
 
   constructor(field: string, unescape?: boolean) {
+    this.field = field
     this.unescape = !!unescape
-
-    if (this.unescape) {
-      this.content = field
-    } else {
-      this.content = escape(field)
-    }
   }
 
-  getContent(): string {
-    return this.content
+  getContent(options?: SQLBuilderToSQLInputOptions): string {
+    if (this.unescape) {
+      return this.field
+    } else {
+      return escape(this.field, options)
+    }
   }
 }

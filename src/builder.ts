@@ -26,8 +26,10 @@ export class SQLBuilder implements SQLBuilderPort {
   private orders: Orders
   private limit_value?: number
   private offset_value?: number
+  private options: SQLBuilderToSQLInputOptions
 
-  constructor() {
+  constructor(options: SQLBuilderToSQLInputOptions = {}) {
+    this.options = options
     this.columns = new Columns()
     this.table = null
     this.joins = []
@@ -93,7 +95,7 @@ export class SQLBuilder implements SQLBuilderPort {
   toSQL(
     input?: SQLBuilderToSQLInputOptions
   ): [string, SQLBuilderBindingValue[]] {
-    const options = ensureToSQL(input)
+    const options = ensureToSQL({ ...this.options, ...input })
     const sql = [
       this.getSelect(options),
       this.getJoin(options),
@@ -109,16 +111,16 @@ export class SQLBuilder implements SQLBuilderPort {
     return [sql, options.bindings.getBindParameters()]
   }
 
-  private getSelect({ indent }: SQLBuilderToSQLOptions) {
+  private getSelect(options: SQLBuilderToSQLOptions) {
     if (this.table == null) {
       throw new Error('table does not setted.')
     }
 
     return [
       'SELECT',
-      this.columns.toSQL({ indent }),
+      this.columns.toSQL(options),
       'FROM',
-      `${indent}${this.table.toSQL()}`
+      `${options.indent}${this.table.toSQL(options)}`
     ].join('\n')
   }
 
@@ -157,11 +159,11 @@ export class SQLBuilder implements SQLBuilderPort {
     return `HAVING\n${indent}${sql}`
   }
 
-  private getGroupBy({ indent }: SQLBuilderToSQLOptions) {
-    const sql = this.groups.toSQL()
+  private getGroupBy(options: SQLBuilderToSQLOptions) {
+    const sql = this.groups.toSQL(options)
     if (!sql) {
       return null
     }
-    return `GROUP BY\n${indent}${sql}`
+    return `GROUP BY\n${options.indent}${sql}`
   }
 }

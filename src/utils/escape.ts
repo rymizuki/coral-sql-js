@@ -24,14 +24,23 @@ export const unescape = (field: string): FieldPort => {
   return new Field(field, true)
 }
 
-export const escape = (field: string): string => {
+export const escape = (
+  field: string,
+  options: { quote?: string | null } = {}
+): string => {
   const fragments = field.split('.')
+  const quote =
+    options.quote === null
+      ? ''
+      : options.quote !== undefined
+      ? options.quote
+      : '`'
   const output = fragments
     .map((fragment) => {
       if (/(?:"(?:.+?)")|(?:'(?:.+?)')|(?:`(?:.+?)`)/.test(fragment)) {
         return fragment
       }
-      return '`' + fragment + '`'
+      return quote + fragment + quote
     })
     .join('.')
   return output

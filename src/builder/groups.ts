@@ -1,4 +1,8 @@
-import { FieldPort, SQLBuilderField } from '../types'
+import {
+  FieldPort,
+  SQLBuilderField,
+  SQLBuilderToSQLInputOptions
+} from '../types'
 import { Field } from './field'
 
 export class Groups {
@@ -8,11 +12,11 @@ export class Groups {
     this.rows.push(typeof field === 'string' ? new Field(field) : field)
   }
 
-  toSQL(): string | null {
+  toSQL(options: SQLBuilderToSQLInputOptions): string | null {
     if (!this.rows.length) {
       return null
     }
 
-    return this.rows.map((field) => field.getContent()).join(',')
+    return this.rows.map((field) => field.getContent(options)).join(',')
   }
 }

@@ -1,4 +1,9 @@
-import { FieldPort, SQLBuilderField, SQLBuilderOrderDirection } from '../types'
+import {
+  FieldPort,
+  SQLBuilderField,
+  SQLBuilderOrderDirection,
+  SQLBuilderToSQLInputOptions
+} from '../types'
 import { Field } from './field'
 
 export class Order {
@@ -10,8 +15,8 @@ export class Order {
     this.direction = direction
   }
 
-  toSQL(): string {
-    return `${this.field.getContent()} ${this.createDirectionValue()}`
+  toSQL(options?: SQLBuilderToSQLInputOptions): string {
+    return `${this.field.getContent(options)} ${this.createDirectionValue()}`
   }
 
   private createDirectionValue() {

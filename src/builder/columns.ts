@@ -4,6 +4,7 @@ import {
   SQLBuilderField,
   SQLBuilderToSQLInputOptions
 } from '../types'
+import { escape } from '../utils/escape'
 import { Field } from './field'
 
 export class Columns {
@@ -21,7 +22,9 @@ export class Columns {
     }
     return this.rows
       .map(({ field, as }) => {
-        return `${indent}${field.getContent()}${as ? ' AS `' + as + '`' : ''}`
+        return `${indent}${field.getContent(options)}${
+          as ? ' AS ' + escape(as, { quote: options?.quote }) : ''
+        }`
       })
       .join(',\n')
   }

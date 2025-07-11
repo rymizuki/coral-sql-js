@@ -39,10 +39,12 @@ export type SQLBuilderOrderDirection = 'asc' | 'desc'
 export type SQLBuilderToSQLInputOptions = {
   indent?: string
   bindings?: BindingsPort
+  quote?: string | null
 }
 export type SQLBuilderToSQLOptions = {
   indent: string
   bindings: BindingsPort
+  quote: string | null
 }
 export type SQLBuilderBindingValue = string | number | Date
 
@@ -52,7 +54,7 @@ export interface FieldPort {
    *
    * @return string
    */
-  getContent(): string
+  getContent(options?: SQLBuilderToSQLInputOptions): string
 }
 
 export interface BindingsPort {

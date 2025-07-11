@@ -19,7 +19,7 @@ export class Orders {
       return null
     }
     const orders = this.rows
-      .map((order) => `${indent}${order.toSQL()}`)
+      .map((order) => `${indent}${order.toSQL(options)}`)
       .join(',\n')
 
     return `ORDER BY\n${orders}`

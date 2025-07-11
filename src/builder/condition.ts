@@ -23,7 +23,7 @@ export class Condition implements SQLBuilderConditionPort {
   ): [string, SQLBuilderBindingValue[]] {
     const options = ensureToSQL(input)
     const [expr_sql] = this.expr.toSQL(options)
-    const sql = `(${this.field.getContent()} ${expr_sql})`
+    const sql = `(${this.field.getContent(options)} ${expr_sql})`
     return [sql, options.bindings.getBindParameters()]
   }
 }

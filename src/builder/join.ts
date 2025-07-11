@@ -27,7 +27,7 @@ export class Join {
   toSQL(
     options: SQLBuilderToSQLInputOptions
   ): [string, SQLBuilderBindingValue[]] {
-    const table_sql = this.table.toSQL()
+    const table_sql = this.table.toSQL(options)
     const sql = [
       this.createDirection(this.direction),
       'JOIN',

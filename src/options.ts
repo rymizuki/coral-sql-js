@@ -8,7 +8,8 @@ export const ensureToSQL = (
     {},
     {
       indent: '  ',
-      bindings: new Bindings()
+      bindings: new Bindings(),
+      quote: '`'
     },
     input
   )
