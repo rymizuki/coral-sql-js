@@ -54,8 +54,10 @@ export {
  *
  * @returns SQLBuilderPort
  */
-export const createBuilder = (): SQLBuilderPort => {
-  return new SQLBuilder()
+export const createBuilder = (
+  options?: SQLBuilderToSQLInputOptions
+): SQLBuilderPort => {
+  return new SQLBuilder(options)
 }
 
 /**
