@@ -37,11 +37,13 @@ export type SQLBuilderJoinDirection =
 
 export type SQLBuilderOrderDirection = 'asc' | 'desc'
 export type SQLBuilderToSQLInputOptions = {
+  placeholder?: '?' | '$'
   indent?: string
   bindings?: BindingsPort
   quote?: string | null
 }
 export type SQLBuilderToSQLOptions = {
+  placeholder: '?' | '$'
   indent: string
   bindings: BindingsPort
   quote: string | null
