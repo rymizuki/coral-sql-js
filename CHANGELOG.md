@@ -1,5 +1,11 @@
 # coral-sql
 
+## 1.3.0
+
+### Minor Changes
+
+- change placeholder
+
 ## 1.2.0
 
 ### Minor Changes
