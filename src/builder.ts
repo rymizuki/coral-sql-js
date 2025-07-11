@@ -92,6 +92,11 @@ export class SQLBuilder implements SQLBuilderPort {
     return this
   }
 
+  setOptions(options: SQLBuilderToSQLInputOptions) {
+    this.options = options
+    return this
+  }
+
   toSQL(
     input?: SQLBuilderToSQLInputOptions
   ): [string, SQLBuilderBindingValue[]] {

@@ -373,7 +373,17 @@ export interface SQLBuilderPort {
    */
   offset(value: number): this
   /**
-   * Returnes SQL and Binding values.
+   * Override builder options.
+   *
+   * ```typescript
+   * builder.setOptions({quote: '`'})
+   * ```
+   *
+   * @param options
+   */
+  setOptions(options: SQLBuilderToSQLInputOptions): this
+  /**
+   * Returns SQL and Binding values.
    *
    * ```typescript
    * const [sql, bindings] = builder.toSQL()
