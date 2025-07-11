@@ -1,7 +1,7 @@
 {
   "name": "coral-sql",
   "module": "commonjs",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "description": "The nodejs module for building SQL by complec and related like coral.",
   "exports": {
     ".": {

@@ -1,5 +1,11 @@
 # coral-sql
 
+## 1.2.0
+
+### Minor Changes
+
+- add builder.setOptions(options)
+
 ## 1.1.2
 
 ### Patch Changes
