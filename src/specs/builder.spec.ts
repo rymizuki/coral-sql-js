@@ -1,13 +1,126 @@
 import { expect } from 'chai'
 import {
+  createBuilder,
   createConditions,
   is_null,
+  is_not_null,
   SQLBuilder,
   SQLBuilderPort,
+  SQLBuilderConditionsPort,
   unescape
 } from '../../dist'
 
+
+
 describe('builder', () => {
+  describe('select() method', () => {
+    describe('basic usage', () => {
+      it('allows custom SELECT statement', () => {
+        const [sql, bindings] = createBuilder()
+          .select('SELECT COUNT(*) AS total')
+          .from('users')
+          .toSQL()
+        expect(sql).to.be.eql('SELECT COUNT(*) AS total\nFROM\n  `users`')
+        expect(bindings).to.be.eql([])
+      })
+
+      it('works with complex SELECT statements', () => {
+        const [sql, bindings] = createBuilder()
+          .select('SELECT DISTINCT user_id, MAX(created_at) AS last_login')
+          .from('sessions')
+          .toSQL()
+        expect(sql).to.be.eql(
+          'SELECT DISTINCT user_id, MAX(created_at) AS last_login\nFROM\n  `sessions`'
+        )
+        expect(bindings).to.be.eql([])
+      })
+
+      it('overrides column() calls when select() is used', () => {
+        const [sql, bindings] = createBuilder()
+          .column('id')
+          .column('name')
+          .select('SELECT COUNT(*)')
+          .from('users')
+          .toSQL()
+        expect(sql).to.be.eql('SELECT COUNT(*)\nFROM\n  `users`')
+        expect(bindings).to.be.eql([])
+      })
+    })
+
+    describe('with other clauses', () => {
+      it('works with WHERE clause', () => {
+        const [sql, bindings] = createBuilder()
+          .select('SELECT COUNT(*) AS count')
+          .from('users')
+          .where('active', true)
+          .toSQL()
+        expect(sql).to.be.eql(
+          'SELECT COUNT(*) AS count\nFROM\n  `users`\nWHERE\n  (`active` = ?)'
+        )
+        expect(bindings).to.be.eql([1])
+      })
+
+      it('works with GROUP BY and HAVING', () => {
+        const [sql, bindings] = createBuilder()
+          .select('SELECT department, COUNT(*) AS emp_count')
+          .from('employees')
+          .groupBy('department')
+          .having('emp_count', '>', 10)
+          .toSQL()
+        expect(sql).to.be.eql(
+          'SELECT department, COUNT(*) AS emp_count\nFROM\n  `employees`\nGROUP BY\n  `department`\nHAVING\n  (`emp_count` > ?)'
+        )
+        expect(bindings).to.be.eql([10])
+      })
+
+      it('works with JOIN clause', () => {
+        const [sql, bindings] = createBuilder()
+          .select('SELECT u.name, COUNT(o.id) AS order_count')
+          .from('users', 'u')
+          .leftJoin('orders', 'o', 'o.user_id = u.id')
+          .groupBy('u.id')
+          .toSQL()
+        expect(sql).to.be.eql(
+          'SELECT u.name, COUNT(o.id) AS order_count\nFROM\n  `users` AS `u`\nLEFT JOIN `orders` AS `o` ON o.user_id = u.id\nGROUP BY\n  `u`.`id`'
+        )
+        expect(bindings).to.be.eql([])
+      })
+
+      it('works with ORDER BY and LIMIT', () => {
+        const [sql, bindings] = createBuilder()
+          .select('SELECT id, name, created_at')
+          .from('users')
+          .orderBy('created_at', 'desc')
+          .limit(10)
+          .toSQL()
+        expect(sql).to.be.eql(
+          'SELECT id, name, created_at\nFROM\n  `users`\nORDER BY\n  `created_at` DESC\nLIMIT 10'
+        )
+        expect(bindings).to.be.eql([])
+      })
+    })
+
+    describe('with different quote options', () => {
+      it('respects quote option when set to null', () => {
+        const [sql, bindings] = createBuilder({ quote: null })
+          .select('SELECT COUNT(*) AS total')
+          .from('users')
+          .toSQL()
+        expect(sql).to.be.eql('SELECT COUNT(*) AS total\nFROM\n  users')
+        expect(bindings).to.be.eql([])
+      })
+
+      it('respects custom quote character', () => {
+        const [sql, bindings] = createBuilder({ quote: '"' })
+          .select('SELECT COUNT(*) AS total')
+          .from('users')
+          .toSQL()
+        expect(sql).to.be.eql('SELECT COUNT(*) AS total\nFROM\n  "users"')
+        expect(bindings).to.be.eql([])
+      })
+    })
+  })
+
   describe('no options', () => {
     let builder: SQLBuilderPort
     beforeEach(() => {
@@ -719,6 +832,195 @@ describe('builder', () => {
         const [sql, bindings] = builder.from('users').offset(10).toSQL()
         expect(sql).to.be.eql('SELECT\n  *\nFROM\n  `users`\nOFFSET 10')
         expect(bindings).to.be.eql([])
+      })
+    })
+  })
+
+  describe('conditions', () => {
+    let builder: SQLBuilderConditionsPort
+
+    beforeEach(() => {
+      builder = createConditions()
+    })
+
+    describe('.add', () => {
+      describe('conjunction: and', () => {
+        it('"a = ? AND b = ?", [10, 20]', () => {
+          const [sql, bindings] = builder
+            .add('and', 'a', 10)
+            .add('and', 'b', 20)
+            .toSQL()
+          expect(sql).to.be.eql('(`a` = ?)\n  AND (`b` = ?)')
+          expect(bindings).to.be.eql([10, 20])
+        })
+      })
+
+      describe('conjunction: or', () => {
+        it('"a = ? OR b = ?", [10, 20]', () => {
+          const [sql, bindings] = builder
+            .add('and', 'a', 10)
+            .add('or', 'b', 20)
+            .toSQL()
+          expect(sql).to.be.eql('(`a` = ?)\n  OR (`b` = ?)')
+          expect(bindings).to.be.eql([10, 20])
+        })
+      })
+
+      describe('use conditions instance', () => {
+        it('"a = ? OR a = ?", [1, 10]', () => {
+          const [sql, bindings] = builder
+            .add('and', createConditions().and('a', 1).or('a', 10))
+            .toSQL()
+          expect(sql).to.be.eql('((`a` = ?)\n  OR (`a` = ?))')
+          expect(bindings).to.be.eql([1, 10])
+        })
+      })
+    })
+
+    describe('.and', () => {
+      it('"a = ? AND b = ?", [10, 20]', () => {
+        const [sql, bindings] = builder.and('a', 10).and('b', 20).toSQL()
+        expect(sql).to.be.eql('(`a` = ?)\n  AND (`b` = ?)')
+        expect(bindings).to.be.eql([10, 20])
+      })
+    })
+
+    describe('.or', () => {
+      it('"a = ? OR b = ?", [10, 20]', () => {
+        const [sql, bindings] = builder.and('a', 10).or('b', 20).toSQL()
+        expect(sql).to.be.eql('(`a` = ?)\n  OR (`b` = ?)')
+        expect(bindings).to.be.eql([10, 20])
+      })
+    })
+  })
+
+  describe('operators', () => {
+    describe('comparison', () => {
+      it('"a = ?", [1]', () => {
+        const [sql, bindings] = createConditions().and('a', 1).toSQL()
+        expect(sql).to.be.eql('(`a` = ?)')
+        expect(bindings).to.be.eql([1])
+      })
+
+      it('"a != ?", [1]', () => {
+        const [sql, bindings] = createConditions().and('a', '!=', 1).toSQL()
+        expect(sql).to.be.eql('(`a` != ?)')
+        expect(bindings).to.be.eql([1])
+      })
+
+      it('"a <> ?" [1]', () => {
+        const [sql, bindings] = createConditions().and('a', '<>', 1).toSQL()
+        expect(sql).to.be.eql('(`a` <> ?)')
+        expect(bindings).to.be.eql([1])
+      })
+
+      it('"a <> ?" [1]', () => {
+        const [sql, bindings] = createConditions().and('a', '<>', 1).toSQL()
+        expect(sql).to.be.eql('(`a` <> ?)')
+        expect(bindings).to.be.eql([1])
+      })
+
+      it('"a < ?" [1]', () => {
+        const [sql, bindings] = createConditions().and('a', '<', 1).toSQL()
+        expect(sql).to.be.eql('(`a` < ?)')
+        expect(bindings).to.be.eql([1])
+      })
+
+      it('"a <= ?" [1]', () => {
+        const [sql, bindings] = createConditions().and('a', '<=', 1).toSQL()
+        expect(sql).to.be.eql('(`a` <= ?)')
+        expect(bindings).to.be.eql([1])
+      })
+
+      it('"a >= ?" [1]', () => {
+        const [sql, bindings] = createConditions().and('a', '>=', 1).toSQL()
+        expect(sql).to.be.eql('(`a` >= ?)')
+        expect(bindings).to.be.eql([1])
+      })
+
+      it('"a > ?" [1]', () => {
+        const [sql, bindings] = createConditions().and('a', '>', 1).toSQL()
+        expect(sql).to.be.eql('(`a` > ?)')
+        expect(bindings).to.be.eql([1])
+      })
+    })
+
+    describe('in', () => {
+      describe('specified operator', () => {
+        it('"a IN (?,?)" [1, 2]', () => {
+          const [sql, bindings] = createConditions()
+            .and('a', 'in', [1, 2])
+            .toSQL()
+          expect(sql).to.be.eql('(`a` IN (?,?))')
+          expect(bindings).to.be.eql([1, 2])
+        })
+      })
+
+      describe('omitted operator', () => {
+        it('"a IN (?,?)" [1, 2]', () => {
+          const [sql, bindings] = createConditions().and('a', [1, 2]).toSQL()
+          expect(sql).to.be.eql('(`a` IN (?,?))')
+          expect(bindings).to.be.eql([1, 2])
+        })
+      })
+
+      describe('denied', () => {
+        it('"a NOT IN (?,?)" [1, 2]', () => {
+          const [sql, bindings] = createConditions()
+            .and('a', 'not in', [1, 2])
+            .toSQL()
+          expect(sql).to.be.eql('(`a` NOT IN (?,?))')
+          expect(bindings).to.be.eql([1, 2])
+        })
+      })
+    })
+
+    describe('like', () => {
+      it('"a LIKE ?" ["a%"]', () => {
+        const [sql, bindings] = createConditions().and('a', 'like', 'a%').toSQL()
+        expect(sql).to.be.eql('(`a` LIKE ?)')
+        expect(bindings).to.be.eql(['a%'])
+      })
+
+      it('"a NOT LIKE ?" ["a%"]', () => {
+        const [sql, bindings] = createConditions()
+          .and('a', 'not like', 'a%')
+          .toSQL()
+        expect(sql).to.be.eql('(`a` NOT LIKE ?)')
+        expect(bindings).to.be.eql(['a%'])
+      })
+    })
+
+    describe('is null', () => {
+      it('"a IS NULL", []', () => {
+        const [sql, bindings] = createConditions().and('a', is_null()).toSQL()
+        expect(sql).to.be.eql('(`a` IS NULL)')
+        expect(bindings).to.be.eql([])
+      })
+      it('"a IS NOT NULL", []', () => {
+        const [sql, bindings] = createConditions().and('a', is_not_null()).toSQL()
+        expect(sql).to.be.eql('(`a` IS NOT NULL)')
+        expect(bindings).to.be.eql([])
+      })
+    })
+
+    describe('between', () => {
+      it('"a BETWEEN ? AND ?", [1, 10]', () => {
+        const [sql, bindings] = createConditions()
+          .and('a', 'between', [1, 10])
+          .toSQL()
+        expect(sql).to.be.eql('(`a` BETWEEN ? AND ?)')
+        expect(bindings).to.be.eql([1, 10])
+      })
+    })
+
+    describe('regexp', () => {
+      it('"a REGEXP ?", ["^a"]', () => {
+        const [sql, bindings] = createConditions()
+          .and('a', 'regexp', '^a')
+          .toSQL()
+        expect(sql).to.be.eql('(`a` REGEXP ?)')
+        expect(bindings).to.be.eql(['^a'])
       })
     })
   })
