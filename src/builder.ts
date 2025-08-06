@@ -27,6 +27,7 @@ export class SQLBuilder implements SQLBuilderPort {
   private limit_value?: number
   private offset_value?: number
   private options: SQLBuilderToSQLInputOptions
+  private custom_select?: string
 
   constructor(options: SQLBuilderToSQLInputOptions = {}) {
     this.options = options
@@ -41,6 +42,11 @@ export class SQLBuilder implements SQLBuilderPort {
 
   column(name: SQLBuilderField, as?: string): this {
     this.columns.add(name, as)
+    return this
+  }
+
+  select(statement: string): this {
+    this.custom_select = statement
     return this
   }
 
@@ -119,6 +125,15 @@ export class SQLBuilder implements SQLBuilderPort {
   private getSelect(options: SQLBuilderToSQLOptions) {
     if (this.table == null) {
       throw new Error('table does not setted.')
+    }
+
+    // Use custom select statement if provided
+    if (this.custom_select) {
+      return [
+        this.custom_select,
+        'FROM',
+        `${options.indent}${this.table.toSQL(options)}`
+      ].join('\n')
     }
 
     return [

@@ -147,6 +147,17 @@ export interface SQLBuilderConditionsPort {
 
 export interface SQLBuilderPort {
   /**
+   * Set a custom SELECT statement.
+   *
+   * ```typescript
+   * builder.select('COUNT(*) AS total')
+   * // SELECT COUNT(*) AS total
+   * ```
+   *
+   * @param statement Custom SELECT statement
+   */
+  select(statement: string): this
+  /**
    * Specified select column.
    *
    * ```typescript
