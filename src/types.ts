@@ -216,6 +216,23 @@ export interface SQLBuilderPort {
    */
   leftJoin(table_name: string, condition: string): this
   /**
+   * Specified left join with SQLBuilder subquery
+   *
+   * ```typescript
+   * builder.leftJoin(
+   *   createBuilder().from('user_logged').column('MAX(logged_at)', 'last_logged_at').where('user_id', 'u.id').groupBy('user_id'),
+   *   'ul',
+   *   'ul.user_id = u.id'
+   * )
+   * // LEFT JOIN (SELECT MAX(logged_at) AS `last_logged_at` FROM `user_logged` WHERE `user_id` = u.id GROUP BY `user_id`) AS `ul` ON ul.user_id = u.id
+   * ```
+   *
+   * @param subquery
+   * @param as
+   * @param condition
+   */
+  leftJoin(subquery: SQLBuilderPort, as: string, condition: string): this
+  /**
    * Specified left join with table alias.
    *
    * ```typescript
@@ -251,6 +268,20 @@ export interface SQLBuilderPort {
   join(
     direction: SQLBuilderJoinDirection,
     table_name: string,
+    as: string,
+    condition: string
+  ): this
+  /**
+   * Specified join with SQLBuilder subquery.
+   *
+   * @param direction
+   * @param subquery
+   * @param as
+   * @param condition
+   */
+  join(
+    direction: SQLBuilderJoinDirection,
+    subquery: SQLBuilderPort,
     as: string,
     condition: string
   ): this

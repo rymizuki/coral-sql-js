@@ -55,14 +55,14 @@ export class SQLBuilder implements SQLBuilderPort {
     return this
   }
 
-  leftJoin(...args: [string, string] | [string, string, string]): this {
+  leftJoin(...args: [string, string] | [string, string, string] | [SQLBuilderPort, string, string]): this {
     this.join('left', ...args)
     return this
   }
 
   join(
     direction: SQLBuilderJoinDirection,
-    ...args: [string, string] | [string, string, string]
+    ...args: [string, string] | [string, string, string] | [SQLBuilderPort, string, string]
   ): this {
     this.joins.push(new Join(direction, ...args))
     return this
