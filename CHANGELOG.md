@@ -1,5 +1,16 @@
 # coral-sql
 
+## 1.4.0
+
+### Minor Changes
+
+- Add support for SQLBuilder instances in leftJoin method
+
+  - Enhanced leftJoin to accept SQLBuilder instances as table parameter
+  - Improved type safety with better TypeScript support for subqueries
+  - Added comprehensive test coverage for the new functionality
+    EOF < /dev/null
+
 ## 1.3.0
 
 ### Minor Changes
