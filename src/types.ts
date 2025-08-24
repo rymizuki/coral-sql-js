@@ -7,6 +7,7 @@ export type SQLBuilderConditionConjunction = 'and' | 'or'
 export type SQLBuilderConditionInputPattern =
   | [SQLBuilderConditionsPort]
   | [SQLBuilderConditionPort]
+  | [SQLBuilderConditionExpressionPort]
   | [SQLBuilderField, SQLBuilderConditionValue]
   | [SQLBuilderField, FieldPort]
   | [SQLBuilderField, SQLBuilderConditionExpressionPort]
@@ -367,6 +368,17 @@ export interface SQLBuilderPort {
    * @param conditions
    */
   where(conditions: SQLBuilderConditionsPort): this
+  /**
+   * WHERE condition with standalone expression
+   *
+   * ```typescript
+   * builder.where(exists(subquery))
+   * // WHERE EXISTS(...)
+   * ```
+   *
+   * @param expression
+   */
+  where(expression: SQLBuilderConditionExpressionPort): this
   /**
    * WHERE condition with expression and value
    *
