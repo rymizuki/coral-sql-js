@@ -4,6 +4,7 @@ import {
   createConditions,
   exists,
   not_exists,
+  unescape,
   SQLBuilder,
   SQLBuilderPort
 } from '../../dist'
@@ -126,6 +127,64 @@ describe('exists', () => {
         'SELECT\n  *\nFROM\n  `users`\nWHERE\n  ((`active` = ?)\n  OR (`id` EXISTS (SELECT\n  *\nFROM\n  `orders`\nWHERE\n  (`orders`.`user_id` = ?)\n  AND (`orders`.`status` = ?))))'
       )
       expect(bindings).to.be.eql([1, 'users.id', 'completed'])
+    })
+  })
+
+  describe('exists with FieldPort support', () => {
+    it('exists subquery with unescape in conditions', () => {
+      const subquery = createBuilder()
+        .from('patient_telephone', 'pt')
+        .column(unescape('1'))
+        .where(
+          createConditions()
+            .and('pt.patient_id', unescape('p.id'))
+            .and('pt.value', 'test_value'),
+        )
+
+      const [sql, bindings] = builder
+        .from('patients', 'p')
+        .where('p.active', true)
+        .where('p.id', exists(subquery))
+        .toSQL()
+
+      expect(sql).to.be.eql(
+        'SELECT\n  *\nFROM\n  `patients` AS `p`\nWHERE\n  (`p`.`active` = ?)\n  AND (`p`.`id` EXISTS (SELECT\n  1\nFROM\n  `patient_telephone` AS `pt`\nWHERE\n  ((`pt`.`patient_id` = p.id)\n  AND (`pt`.`value` = ?))))'
+      )
+      expect(bindings).to.be.eql([1, 'test_value'])
+    })
+
+    it('exists with mixed escaped and unescaped field comparisons', () => {
+      const subquery = createBuilder()
+        .from('user_roles', 'ur')
+        .where('ur.user_id', unescape('u.id'))
+        .where('ur.role_name', 'admin')
+
+      const [sql, bindings] = builder
+        .from('users', 'u')
+        .where('u.status', 'active')
+        .where('u.id', exists(subquery))
+        .toSQL()
+
+      expect(sql).to.be.eql(
+        'SELECT\n  *\nFROM\n  `users` AS `u`\nWHERE\n  (`u`.`status` = ?)\n  AND (`u`.`id` EXISTS (SELECT\n  *\nFROM\n  `user_roles` AS `ur`\nWHERE\n  (`ur`.`user_id` = u.id)\n  AND (`ur`.`role_name` = ?)))'
+      )
+      expect(bindings).to.be.eql(['active', 'admin'])
+    })
+
+    it('not exists with unescape condition value', () => {
+      const subquery = createBuilder()
+        .from('deleted_users', 'du')
+        .where('du.original_id', unescape('u.id'))
+
+      const [sql, bindings] = builder
+        .from('users', 'u')
+        .where('u.id', not_exists(subquery))
+        .toSQL()
+
+      expect(sql).to.be.eql(
+        'SELECT\n  *\nFROM\n  `users` AS `u`\nWHERE\n  (`u`.`id` NOT EXISTS (SELECT\n  *\nFROM\n  `deleted_users` AS `du`\nWHERE\n  (`du`.`original_id` = u.id)))'
+      )
+      expect(bindings).to.be.eql([])
     })
   })
 })
