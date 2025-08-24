@@ -187,4 +187,79 @@ describe('exists', () => {
       expect(bindings).to.be.eql([])
     })
   })
+
+  
+  describe('standard EXISTS syntax', () => {
+    it('supports standalone EXISTS without field binding', () => {
+      const subquery = createBuilder()
+        .column(unescape('1'))
+        .from('user_telephone', 't')
+        .where('user.id', unescape('t.user_id'))
+        .where('t.value', 'phone_number')
+
+      const [sql, bindings] = builder
+        .from('user')
+        .where(exists(subquery))
+        .toSQL()
+
+      expect(sql).to.be.eql(
+        'SELECT\n  *\nFROM\n  `user`\nWHERE\n  EXISTS (SELECT\n  1\nFROM\n  `user_telephone` AS `t`\nWHERE\n  (`user`.`id` = t.user_id)\n  AND (`t`.`value` = ?))'
+      )
+      expect(bindings).to.be.eql(['phone_number'])
+    })
+
+    it('supports complex standalone EXISTS with multiple conditions', () => {
+      const subquery = createBuilder()
+        .column(unescape('1'))
+        .from('orders', 'o')
+        .where('o.user_id', unescape('users.id'))
+        .where('o.status', 'completed')
+        .where('o.amount', '>', 100)
+
+      const [sql, bindings] = builder
+        .from('users')
+        .where('active', true)
+        .where(exists(subquery))
+        .toSQL()
+
+      expect(sql).to.be.eql(
+        'SELECT\n  *\nFROM\n  `users`\nWHERE\n  (`active` = ?)\n  AND EXISTS (SELECT\n  1\nFROM\n  `orders` AS `o`\nWHERE\n  (`o`.`user_id` = users.id)\n  AND (`o`.`status` = ?)\n  AND (`o`.`amount` > ?))'
+      )
+      expect(bindings).to.be.eql([1, 'completed', 100])
+    })
+
+    it('supports standalone NOT EXISTS', () => {
+      const subquery = createBuilder()
+        .from('deleted_users', 'du')
+        .where('du.original_id', unescape('u.id'))
+
+      const [sql, bindings] = builder
+        .from('users', 'u')
+        .where(not_exists(subquery))
+        .toSQL()
+
+      expect(sql).to.be.eql(
+        'SELECT\n  *\nFROM\n  `users` AS `u`\nWHERE\n  NOT EXISTS (SELECT\n  *\nFROM\n  `deleted_users` AS `du`\nWHERE\n  (`du`.`original_id` = u.id))'
+      )
+      expect(bindings).to.be.eql([])
+    })
+
+    it('supports mixed conditions with standalone EXISTS', () => {
+      const subquery = createBuilder()
+        .from('user_roles', 'ur')
+        .where('ur.user_id', unescape('u.id'))
+        .where('ur.role', 'admin')
+
+      const [sql, bindings] = createConditions()
+        .and('u.status', 'active')
+        .and(exists(subquery))
+        .or('u.is_superuser', true)
+        .toSQL()
+
+      expect(sql).to.be.eql(
+        '(`u`.`status` = ?)\n  AND EXISTS (SELECT\n  *\nFROM\n  `user_roles` AS `ur`\nWHERE\n  (`ur`.`user_id` = u.id)\n  AND (`ur`.`role` = ?))\n  OR (`u`.`is_superuser` = ?)'
+      )
+      expect(bindings).to.be.eql(['active', 'admin', 1])
+    })
+  })
 })

@@ -74,6 +74,10 @@ export class Conditions implements SQLBuilderConditionsPort {
     ) {
       return args[0]
     }
+    if (args.length === 1 && isExpression(args[0])) {
+      // Handle standalone expressions like EXISTS(...) without field binding
+      return new Condition(args[0], null)
+    }
     if (args.length === 2) {
       // Check if the first argument is an expression (like exists(...))
       if (isExpression(args[0])) {
