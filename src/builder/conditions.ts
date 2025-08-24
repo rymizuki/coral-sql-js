@@ -5,6 +5,7 @@ import {
   SQLBuilderConditionInputPattern,
   SQLBuilderConditionPort,
   SQLBuilderConditionsPort,
+  SQLBuilderConditionValue,
   SQLBuilderToSQLInputOptions,
   SQLBuilderToSQLOptions
 } from '../types'
@@ -73,6 +74,16 @@ export class Conditions implements SQLBuilderConditionsPort {
       return args[0]
     }
     if (args.length === 2) {
+      // Check if the first argument is an expression (like exists(...))
+      if (isExpression(args[0])) {
+        // args[1] should be SQLBuilderConditionValue in this context
+        if (isExpression(args[1])) {
+          throw new Error('Second argument cannot be an expression when first argument is an expression')
+        }
+        const expr = new ConditionExpression('=', args[1] as SQLBuilderConditionValue)
+        return new Condition(args[0], expr)
+      }
+      
       const operator = Array.isArray(args[1]) ? 'in' : '='
       const expr = isExpression(args[1])
         ? args[1]

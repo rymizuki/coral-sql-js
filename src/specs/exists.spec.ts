@@ -53,6 +53,39 @@ describe('exists', () => {
       )
       expect(bindings).to.be.eql([1, 'users.id', 1000, '2024-01-01'])
     })
+
+    it('exists(..., true) syntax', () => {
+      const subquery = createBuilder()
+        .from('orders')
+        .where('orders.user_id', 'users.id')
+        .where('orders.status', 'completed')
+
+      const [sql, bindings] = builder
+        .from('users')
+        .where(exists(subquery), true)
+        .toSQL()
+
+      expect(sql).to.be.eql(
+        'SELECT\n  *\nFROM\n  `users`\nWHERE\n  (EXISTS (SELECT\n  *\nFROM\n  `orders`\nWHERE\n  (`orders`.`user_id` = ?)\n  AND (`orders`.`status` = ?)) = ?)'
+      )
+      expect(bindings).to.be.eql([1, 'users.id', 'completed'])
+    })
+
+    it('exists(..., false) syntax', () => {
+      const subquery = createBuilder()
+        .from('orders')
+        .where('orders.user_id', 'users.id')
+
+      const [sql, bindings] = builder
+        .from('users')
+        .where(exists(subquery), false)
+        .toSQL()
+
+      expect(sql).to.be.eql(
+        'SELECT\n  *\nFROM\n  `users`\nWHERE\n  (EXISTS (SELECT\n  *\nFROM\n  `orders`\nWHERE\n  (`orders`.`user_id` = ?)) = ?)'
+      )
+      expect(bindings).to.be.eql([0, 'users.id'])
+    })
   })
 
   describe('.not_exists', () => {
