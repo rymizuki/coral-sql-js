@@ -1,5 +1,11 @@
 # coral-sql
 
+## 1.4.4
+
+### Patch Changes
+
+- a few fixes
+
 ## 1.4.3
 
 ### Patch Changes
