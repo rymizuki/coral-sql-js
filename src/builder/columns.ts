@@ -11,7 +11,17 @@ export class Columns {
   private rows: { field: FieldPort; as?: string }[] = []
 
   add(name: SQLBuilderField, as?: string): void {
-    const field = typeof name === 'string' ? new Field(name) : name
+    let field: FieldPort
+    if (typeof name === 'string') {
+      field = new Field(name)
+    } else if ('getContent' in name) {
+      field = name
+    } else {
+      // SQLBuilderPort の場合、サブクエリとして処理
+      field = {
+        getContent: (options) => `(${name.toSQL(options)[0]})`
+      }
+    }
     this.rows.push({ field, as })
   }
 

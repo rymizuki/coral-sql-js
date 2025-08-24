@@ -2,7 +2,7 @@ export type SQLBuilderPrimitiveValue = string | number | boolean | Date
 export type SQLBuilderConditionValue =
   | SQLBuilderPrimitiveValue
   | SQLBuilderPrimitiveValue[]
-export type SQLBuilderField = string | FieldPort
+export type SQLBuilderField = string | FieldPort | SQLBuilderPort
 export type SQLBuilderConditionConjunction = 'and' | 'or'
 export type SQLBuilderConditionInputPattern =
   | [SQLBuilderConditionsPort]
