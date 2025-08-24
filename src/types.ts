@@ -346,6 +346,17 @@ export interface SQLBuilderPort {
    */
   where(conditions: SQLBuilderConditionsPort): this
   /**
+   * Specified having condition using conditions instance.
+   *
+   * ```typescript
+   * const conditions = createConditions().and('value', '>', 10).or('value', '<', 2)
+   * builder.having(conditions)
+   * ```
+   *
+   * @param conditions
+   */
+  having(conditions: SQLBuilderConditionsPort): this
+  /**
    * Specified having condition.
    *
    * ```typescript

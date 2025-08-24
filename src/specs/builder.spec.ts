@@ -548,6 +548,25 @@ describe('builder', () => {
         )
         expect(bindings).to.be.eql([10])
       })
+
+      describe('conditions instance', () => {
+        it('"SELECT age, COUNT(*) AS value FROM users GROUP BY age HAVING value > ? OR value < ?", [10, 2]', () => {
+          const conditions = createConditions()
+            .and('value', '>', 10)
+            .or('value', '<', 2)
+          const [sql, bindings] = builder
+            .from('users')
+            .column('age')
+            .column(unescape('COUNT(*)'), 'value')
+            .groupBy('age')
+            .having(conditions)
+            .toSQL()
+          expect(sql).to.be.eql(
+            'SELECT\n  age,\n  COUNT(*) AS value\nFROM\n  users\nGROUP BY\n  age\nHAVING\n  ((value > ?)\n  OR (value < ?))'
+          )
+          expect(bindings).to.be.eql([10, 2])
+        })
+      })
     })
 
     describe('.orderBy', () => {

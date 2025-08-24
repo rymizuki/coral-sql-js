@@ -12,6 +12,7 @@ import {
   SQLBuilderToSQLInputOptions,
   SQLBuilderToSQLOptions,
   SQLBuilderConditionInputPattern,
+  SQLBuilderConditionsPort,
   SQLBuilderBindingValue,
   SQLBuilderJoinDirection
 } from './types'
@@ -73,8 +74,25 @@ export class SQLBuilder implements SQLBuilderPort {
     return this
   }
 
-  having(...args: SQLBuilderConditionInputPattern): this {
-    this.conditions_having.and(...args)
+  having(conditions: SQLBuilderConditionsPort): this
+  having(field: SQLBuilderField, value: any): this
+  having(field: SQLBuilderField, operator: string, value: any): this
+  having(
+    conditionsOrField: SQLBuilderConditionsPort | SQLBuilderField,
+    operatorOrValue?: any,
+    value?: any
+  ): this {
+    if (typeof conditionsOrField === 'object' && 'and' in conditionsOrField) {
+      // SQLBuilderConditionsPortの場合
+      this.conditions_having.add('and', conditionsOrField)
+      return this
+    }
+    // 通常の条件の場合
+    if (value !== undefined) {
+      this.conditions_having.and(conditionsOrField as SQLBuilderField, operatorOrValue, value)
+    } else {
+      this.conditions_having.and(conditionsOrField as SQLBuilderField, operatorOrValue)
+    }
     return this
   }
 
