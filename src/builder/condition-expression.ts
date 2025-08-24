@@ -5,6 +5,7 @@ import {
   SQLBuilderConditionExpressionPort,
   SQLBuilderConditionValue,
   SQLBuilderOperator,
+  SQLBuilderPort,
   SQLBuilderToSQLInputOptions
 } from '../types'
 
@@ -104,6 +105,40 @@ export class ConditionExpressionNull extends AbstractConditionExpression {
       return 'IS NOT NULL'
     }
     throw new Error('must be specified "is not? null"')
+  }
+}
+
+export class ConditionExpressionExists extends AbstractConditionExpression {
+  private subquery: SQLBuilderPort
+
+  constructor(subquery: SQLBuilderPort) {
+    super()
+    this.subquery = subquery
+  }
+
+  toSQL(
+    options?: SQLBuilderToSQLInputOptions
+  ): [string, SQLBuilderBindingValue[]] {
+    const [subquerySql, subqueryBindings] = this.subquery.toSQL(options)
+    const sql = `EXISTS (${subquerySql})`
+    return [sql, subqueryBindings]
+  }
+}
+
+export class ConditionExpressionNotExists extends AbstractConditionExpression {
+  private subquery: SQLBuilderPort
+
+  constructor(subquery: SQLBuilderPort) {
+    super()
+    this.subquery = subquery
+  }
+
+  toSQL(
+    options?: SQLBuilderToSQLInputOptions
+  ): [string, SQLBuilderBindingValue[]] {
+    const [subquerySql, subqueryBindings] = this.subquery.toSQL(options)
+    const sql = `NOT EXISTS (${subquerySql})`
+    return [sql, subqueryBindings]
   }
 }
 
