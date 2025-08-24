@@ -31,7 +31,7 @@ export class Condition implements SQLBuilderConditionPort {
         this.field = field
       }
     } else {
-      this.field = field as FieldPort
+      this.field = field as unknown as FieldPort
     }
     this.expr = expr
   }
