@@ -1,5 +1,11 @@
 # coral-sql
 
+## 1.4.2
+
+### Patch Changes
+
+- add supports field value with SQLBuilder instance
+
 ## 1.4.1
 
 ### Patch Changes
