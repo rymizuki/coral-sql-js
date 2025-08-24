@@ -8,10 +8,13 @@ export type SQLBuilderConditionInputPattern =
   | [SQLBuilderConditionsPort]
   | [SQLBuilderConditionPort]
   | [SQLBuilderField, SQLBuilderConditionValue]
+  | [SQLBuilderField, FieldPort]
   | [SQLBuilderField, SQLBuilderConditionExpressionPort]
   | [SQLBuilderField, SQLBuilderOperator, SQLBuilderConditionValue]
+  | [SQLBuilderField, SQLBuilderOperator, FieldPort]
   | [SQLBuilderField, SQLBuilderOperator, SQLBuilderConditionExpressionPort]
   | [SQLBuilderConditionExpressionPort, SQLBuilderConditionValue]
+  | [SQLBuilderConditionExpressionPort, FieldPort]
 export type SQLBuilderOperator =
   | '='
   | '!='

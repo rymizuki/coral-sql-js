@@ -1,6 +1,7 @@
 import { ensureToSQL } from '../options'
 import {
   BindingsPort,
+  FieldPort,
   SQLBuilderBindingValue,
   SQLBuilderConditionExpressionPort,
   SQLBuilderConditionValue,
@@ -19,9 +20,9 @@ export abstract class AbstractConditionExpression
 
 export class ConditionExpression extends AbstractConditionExpression {
   private operator: SQLBuilderOperator
-  private value: SQLBuilderConditionValue
+  private value: SQLBuilderConditionValue | FieldPort
 
-  constructor(operator: SQLBuilderOperator, value: SQLBuilderConditionValue) {
+  constructor(operator: SQLBuilderOperator, value: SQLBuilderConditionValue | FieldPort) {
     super()
     this.operator = operator
     this.value = value
@@ -31,12 +32,18 @@ export class ConditionExpression extends AbstractConditionExpression {
     options?: SQLBuilderToSQLInputOptions
   ): [string, SQLBuilderBindingValue[]] {
     const { bindings } = ensureToSQL(options)
-    const sql = this.generate(bindings)
+    const sql = this.generate(bindings, options)
     return [sql, bindings.getBindParameters()]
   }
 
-  private generate(bindings: BindingsPort) {
+  private generate(bindings: BindingsPort, options?: SQLBuilderToSQLInputOptions) {
     const operator = this.operator
+
+    // Handle FieldPort value
+    if (this.value && typeof this.value === 'object' && 'getContent' in this.value) {
+      const fieldContent = (this.value as FieldPort).getContent(options)
+      return `${this.createOperator(operator)} ${fieldContent}`
+    }
 
     if (Array.isArray(this.value)) {
       // IN or NOT IN
@@ -59,7 +66,11 @@ export class ConditionExpression extends AbstractConditionExpression {
     }
 
     // DEFAULT
-    return `${this.createOperator(operator)} ${bindings.create(this.value)}`
+    const conditionValue = this.value as SQLBuilderConditionValue
+    if (Array.isArray(conditionValue)) {
+      throw new Error(`operator "${operator}" does not support array value in this context.`)
+    }
+    return `${this.createOperator(operator)} ${bindings.create(conditionValue)}`
   }
 
   private createOperator(operator: SQLBuilderOperator) {
