@@ -10,11 +10,18 @@ import {
 import { Field } from './field'
 
 export class Condition implements SQLBuilderConditionPort {
-  private field: FieldPort
+  private field: FieldPort | SQLBuilderConditionExpressionPort
   private expr: SQLBuilderConditionExpressionPort
 
-  constructor(field: SQLBuilderField, expr: SQLBuilderConditionExpressionPort) {
-    this.field = typeof field === 'string' ? new Field(field) : field
+  constructor(field: SQLBuilderField | SQLBuilderConditionExpressionPort, expr: SQLBuilderConditionExpressionPort) {
+    if (typeof field === 'string') {
+      this.field = new Field(field)
+    } else if ('toSQL' in field && typeof field.toSQL === 'function') {
+      // It's either FieldPort or SQLBuilderConditionExpressionPort
+      this.field = field
+    } else {
+      this.field = field as FieldPort
+    }
     this.expr = expr
   }
 
@@ -23,7 +30,17 @@ export class Condition implements SQLBuilderConditionPort {
   ): [string, SQLBuilderBindingValue[]] {
     const options = ensureToSQL(input)
     const [expr_sql] = this.expr.toSQL(options)
-    const sql = `(${this.field.getContent(options)} ${expr_sql})`
-    return [sql, options.bindings.getBindParameters()]
+    
+    // Handle different field types
+    if ('getContent' in this.field) {
+      // It's a FieldPort
+      const sql = `(${this.field.getContent(options)} ${expr_sql})`
+      return [sql, options.bindings.getBindParameters()]
+    } else {
+      // It's a SQLBuilderConditionExpressionPort
+      const [field_sql] = this.field.toSQL(options)
+      const sql = `(${field_sql} ${expr_sql})`
+      return [sql, options.bindings.getBindParameters()]
+    }
   }
 }

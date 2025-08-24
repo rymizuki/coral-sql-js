@@ -11,6 +11,7 @@ export type SQLBuilderConditionInputPattern =
   | [SQLBuilderField, SQLBuilderConditionExpressionPort]
   | [SQLBuilderField, SQLBuilderOperator, SQLBuilderConditionValue]
   | [SQLBuilderField, SQLBuilderOperator, SQLBuilderConditionExpressionPort]
+  | [SQLBuilderConditionExpressionPort, SQLBuilderConditionValue]
 export type SQLBuilderOperator =
   | '='
   | '!='
@@ -345,6 +346,20 @@ export interface SQLBuilderPort {
    * @param conditions
    */
   where(conditions: SQLBuilderConditionsPort): this
+  /**
+   * WHERE condition with expression and value
+   *
+   * ```typescript
+   * builder.where(exists(subquery), true)
+   * ```
+   *
+   * @param expression
+   * @param value
+   */
+  where(
+    expression: SQLBuilderConditionExpressionPort,
+    value: SQLBuilderConditionValue
+  ): this
   /**
    * Specified having condition using conditions instance.
    *
