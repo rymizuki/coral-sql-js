@@ -1,6 +1,11 @@
+import { SQLBuilder } from './builder'
+import { Condition as SQLBuilderCondition } from './builder/condition'
+import { Conditions as SQLBuilderConditions } from './builder/conditions'
+import { Field } from './builder/field'
 import {
   SQLBuilderBindingValue,
   SQLBuilderConditionConjunction,
+  SQLBuilderConditionExpressionPort,
   SQLBuilderConditionInputPattern,
   SQLBuilderConditionPort,
   SQLBuilderConditionsPort,
@@ -11,35 +16,32 @@ import {
   SQLBuilderPort,
   SQLBuilderToSQLInputOptions
 } from './types'
-import { SQLBuilder } from './builder'
 import { unescape } from './utils/escape'
-import { is_null, is_not_null } from './utils/null'
 import { exists, not_exists } from './utils/exists'
-import { Conditions as SQLBuilderConditions } from './builder/conditions'
-import { Condition as SQLBuilderCondition } from './builder/condition'
-import { Field } from './builder/field'
+import { is_not_null, is_null } from './utils/null'
 
 export {
-  SQLBuilderPort,
-  SQLBuilder,
-  SQLBuilderConditionPort,
-  SQLBuilderCondition,
-  SQLBuilderConditionsPort,
-  SQLBuilderConditions,
-  Field,
-  unescape,
-  is_null,
-  is_not_null,
   exists,
+  Field,
+  is_not_null,
+  is_null,
   not_exists,
+  SQLBuilder,
   SQLBuilderBindingValue,
+  SQLBuilderCondition,
   SQLBuilderConditionConjunction,
+  SQLBuilderConditionExpressionPort,
   SQLBuilderConditionInputPattern,
+  SQLBuilderConditionPort,
+  SQLBuilderConditions,
+  SQLBuilderConditionsPort,
   SQLBuilderConditionValue,
   SQLBuilderField,
   SQLBuilderOperator,
   SQLBuilderOrderDirection,
-  SQLBuilderToSQLInputOptions
+  SQLBuilderPort,
+  SQLBuilderToSQLInputOptions,
+  unescape
 }
 
 /**

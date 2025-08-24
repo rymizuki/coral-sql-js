@@ -264,6 +264,43 @@ describe('builder', () => {
           expect(bindings).to.be.eql([])
         })
       })
+
+      
+      describe('unescape', () => {
+        it('supports unescape as condition value', () => {
+          const [sql, bindings] = builder
+            .from('users')
+            .where('prop', unescape('a.value'))
+            .toSQL()
+          expect(sql).to.be.eql(
+            'SELECT\n  *\nFROM\n  `users`\nWHERE\n  (`prop` = a.value)'
+          )
+          expect(bindings).to.be.eql([])
+        })
+
+        it('supports unescape with operators', () => {
+          const [sql, bindings] = builder
+            .from('users')
+            .where('prop', '!=', unescape('a.value'))
+            .toSQL()
+          expect(sql).to.be.eql(
+            'SELECT\n  *\nFROM\n  `users`\nWHERE\n  (`prop` != a.value)'
+          )
+          expect(bindings).to.be.eql([])
+        })
+
+        it('supports mixed regular values and unescape', () => {
+          const [sql, bindings] = builder
+            .from('users')
+            .where('prop', unescape('a.value'))
+            .where('status', 'active')
+            .toSQL()
+          expect(sql).to.be.eql(
+            'SELECT\n  *\nFROM\n  `users`\nWHERE\n  (`prop` = a.value)\n  AND (`status` = ?)'
+          )
+          expect(bindings).to.be.eql(['active'])
+        })
+      })
     })
 
     describe('.groupBy', () => {
@@ -501,6 +538,43 @@ describe('builder', () => {
             'SELECT\n  *\nFROM\n  users\nWHERE\n  (age IS NULL)'
           )
           expect(bindings).to.be.eql([])
+        })
+      })
+
+      
+      describe('unescape', () => {
+        it('supports unescape as condition value', () => {
+          const [sql, bindings] = builder
+            .from('users')
+            .where('prop', unescape('a.value'))
+            .toSQL()
+          expect(sql).to.be.eql(
+            'SELECT\n  *\nFROM\n  users\nWHERE\n  (prop = a.value)'
+          )
+          expect(bindings).to.be.eql([])
+        })
+
+        it('supports unescape with operators', () => {
+          const [sql, bindings] = builder
+            .from('users')
+            .where('prop', '!=', unescape('a.value'))
+            .toSQL()
+          expect(sql).to.be.eql(
+            'SELECT\n  *\nFROM\n  users\nWHERE\n  (prop != a.value)'
+          )
+          expect(bindings).to.be.eql([])
+        })
+
+        it('supports mixed regular values and unescape', () => {
+          const [sql, bindings] = builder
+            .from('users')
+            .where('prop', unescape('a.value'))
+            .where('status', 'active')
+            .toSQL()
+          expect(sql).to.be.eql(
+            'SELECT\n  *\nFROM\n  users\nWHERE\n  (prop = a.value)\n  AND (status = ?)'
+          )
+          expect(bindings).to.be.eql(['active'])
         })
       })
     })
