@@ -1,5 +1,11 @@
 # coral-sql
 
+## 1.4.3
+
+### Patch Changes
+
+- feat: support FieldPort in condition values #14
+
 ## 1.4.2
 
 ### Patch Changes
