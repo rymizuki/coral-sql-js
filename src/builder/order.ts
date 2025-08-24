@@ -11,7 +11,16 @@ export class Order {
   private direction: SQLBuilderOrderDirection
 
   constructor(field: SQLBuilderField, direction: SQLBuilderOrderDirection) {
-    this.field = typeof field === 'string' ? new Field(field) : field
+    if (typeof field === 'string') {
+      this.field = new Field(field)
+    } else if ('getContent' in field) {
+      this.field = field
+    } else {
+      // SQLBuilderPort の場合、サブクエリとして処理
+      this.field = {
+        getContent: (options) => `(${field.toSQL(options)[0]})`
+      }
+    }
     this.direction = direction
   }
 

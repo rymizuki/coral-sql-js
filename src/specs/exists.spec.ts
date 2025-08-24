@@ -66,7 +66,7 @@ describe('exists', () => {
         .toSQL()
 
       expect(sql).to.be.eql(
-        'SELECT\n  *\nFROM\n  `users`\nWHERE\n  (EXISTS (SELECT\n  *\nFROM\n  `orders`\nWHERE\n  (`orders`.`user_id` = ?)\n  AND (`orders`.`status` = ?)) = ?)'
+        'SELECT\n  *\nFROM\n  `users`\nWHERE\n  ((EXISTS (SELECT\n  *\nFROM\n  `orders`\nWHERE\n  (`orders`.`user_id` = ?)\n  AND (`orders`.`status` = ?))) = ?)'
       )
       expect(bindings).to.be.eql([1, 'users.id', 'completed'])
     })
@@ -82,7 +82,7 @@ describe('exists', () => {
         .toSQL()
 
       expect(sql).to.be.eql(
-        'SELECT\n  *\nFROM\n  `users`\nWHERE\n  (EXISTS (SELECT\n  *\nFROM\n  `orders`\nWHERE\n  (`orders`.`user_id` = ?)) = ?)'
+        'SELECT\n  *\nFROM\n  `users`\nWHERE\n  ((EXISTS (SELECT\n  *\nFROM\n  `orders`\nWHERE\n  (`orders`.`user_id` = ?))) = ?)'
       )
       expect(bindings).to.be.eql([0, 'users.id'])
     })

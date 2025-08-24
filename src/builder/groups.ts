@@ -9,7 +9,16 @@ export class Groups {
   private rows: FieldPort[] = []
 
   add(field: SQLBuilderField): void {
-    this.rows.push(typeof field === 'string' ? new Field(field) : field)
+    if (typeof field === 'string') {
+      this.rows.push(new Field(field))
+    } else if ('getContent' in field) {
+      this.rows.push(field)
+    } else {
+      // SQLBuilderPort の場合、サブクエリとして処理
+      this.rows.push({
+        getContent: (options) => `(${field.toSQL(options)[0]})`
+      })
+    }
   }
 
   toSQL(options: SQLBuilderToSQLInputOptions): string | null {
