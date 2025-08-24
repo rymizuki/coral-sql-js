@@ -17,6 +17,7 @@ import { is_null, is_not_null } from './utils/null'
 import { exists, not_exists } from './utils/exists'
 import { Conditions as SQLBuilderConditions } from './builder/conditions'
 import { Condition as SQLBuilderCondition } from './builder/condition'
+import { Field } from './builder/field'
 
 export {
   SQLBuilderPort,
@@ -25,6 +26,7 @@ export {
   SQLBuilderCondition,
   SQLBuilderConditionsPort,
   SQLBuilderConditions,
+  Field,
   unescape,
   is_null,
   is_not_null,

@@ -303,6 +303,19 @@ export interface SQLBuilderPort {
    */
   where(field: SQLBuilderField, value: SQLBuilderConditionValue): this
   /**
+   * Specified search condition with FieldPort value.
+   *
+   * ```typescript
+   * import { unescape } from 'coral-sql'
+   *
+   * builder.where('field', unescape('other.field')) // `field` = other.field
+   * ```
+   *
+   * @param field
+   * @param value
+   */
+  where(field: SQLBuilderField, value: FieldPort): this
+  /**
    * Specified search condition with expression.
    * Example for `IS NULL`
    *
@@ -337,6 +350,11 @@ export interface SQLBuilderPort {
   where(
     field: SQLBuilderField,
     operator: SQLBuilderOperator,
+    value: FieldPort
+  ): this
+  where(
+    field: SQLBuilderField,
+    operator: SQLBuilderOperator,
     value: SQLBuilderConditionExpressionPort
   ): this
   /**
@@ -363,6 +381,10 @@ export interface SQLBuilderPort {
     expression: SQLBuilderConditionExpressionPort,
     value: SQLBuilderConditionValue
   ): this
+  where(
+    expression: SQLBuilderConditionExpressionPort,
+    value: FieldPort
+  ): this
   /**
    * Specified having condition using conditions instance.
    *
@@ -386,6 +408,7 @@ export interface SQLBuilderPort {
    * @param value
    */
   having(field: SQLBuilderField, value: SQLBuilderConditionValue): this
+  having(field: SQLBuilderField, value: FieldPort): this
   /**
    * Specified having condition.
    *
@@ -402,6 +425,11 @@ export interface SQLBuilderPort {
     field: SQLBuilderField,
     operator: SQLBuilderOperator,
     value: SQLBuilderConditionValue
+  ): this
+  having(
+    field: SQLBuilderField,
+    operator: SQLBuilderOperator,
+    value: FieldPort
   ): this
   /**
    * Specified group-by condition.
