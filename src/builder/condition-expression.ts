@@ -4,6 +4,7 @@ import {
   FieldPort,
   SQLBuilderBindingValue,
   SQLBuilderConditionExpressionPort,
+  SQLBuilderConditionsPort,
   SQLBuilderConditionValue,
   SQLBuilderOperator,
   SQLBuilderPort,
@@ -247,6 +248,136 @@ export class ConditionExpressionJsonArrayAggregate extends AbstractConditionExpr
     const sql = `${functionName}(${innerSql})`
     return [sql, bindings]
   }
+}
+
+export class ConditionExpressionCaseWhen extends AbstractConditionExpression {
+  private conditions: Array<{
+    condition: [string, SQLBuilderOperator, SQLBuilderConditionValue] | SQLBuilderConditionExpressionPort | SQLBuilderConditionsPort
+    then: SQLBuilderConditionValue | FieldPort | SQLBuilderConditionExpressionPort
+  }> = []
+  private elseValue?: SQLBuilderConditionValue | FieldPort | SQLBuilderConditionExpressionPort
+  private pendingCondition?: [string, SQLBuilderOperator, SQLBuilderConditionValue] | SQLBuilderConditionExpressionPort | SQLBuilderConditionsPort
+
+  when(
+    field: string | SQLBuilderConditionExpressionPort | SQLBuilderConditionsPort,
+    operator?: SQLBuilderOperator,
+    value?: SQLBuilderConditionValue
+  ): this {
+    if (typeof field === 'string' && operator && value !== undefined) {
+      // Pattern: when('field', '=', 'value')
+      this.pendingCondition = [field, operator, value]
+    } else if (isSQLBuilderConditionExpressionPort(field) || (field && typeof field === 'object' && 'toSQL' in field)) {
+      // Pattern: when(conditionsInstance) or when(conditionExpressionInstance)
+      this.pendingCondition = field
+    } else {
+      throw new Error('Invalid when() parameters. Use when(field, operator, value) or when(conditions)')
+    }
+    return this
+  }
+
+  then(value: SQLBuilderConditionValue | FieldPort | SQLBuilderConditionExpressionPort): this {
+    if (!this.pendingCondition) {
+      throw new Error('then() must be called after when()')
+    }
+    
+    this.conditions.push({
+      condition: this.pendingCondition,
+      then: value
+    })
+    
+    this.pendingCondition = undefined
+    return this
+  }
+
+  else(value: SQLBuilderConditionValue | FieldPort | SQLBuilderConditionExpressionPort): this {
+    if (this.pendingCondition) {
+      throw new Error('Cannot call else() with pending when() condition. Call then() first.')
+    }
+    this.elseValue = value
+    return this
+  }
+
+  toSQL(options?: SQLBuilderToSQLInputOptions): [string, SQLBuilderBindingValue[]] {
+    if (this.pendingCondition) {
+      throw new Error('Incomplete case expression. Missing then() call.')
+    }
+    
+    const allBindings: SQLBuilderBindingValue[] = []
+    const parts: string[] = ['CASE']
+
+    // Process WHEN conditions
+    for (const { condition, then } of this.conditions) {
+      let conditionSql: string
+
+      if (Array.isArray(condition)) {
+        // Simple condition: [field, operator, value]
+        const [field, operator, value] = condition
+        const fieldContent = getFieldContent(field, options)
+        
+        if (value === null && (operator === '=' || operator === '!=')) {
+          conditionSql = operator === '=' 
+            ? `${fieldContent} IS NULL`
+            : `${fieldContent} IS NOT NULL`
+        } else {
+          allBindings.push(value as SQLBuilderBindingValue)
+          conditionSql = `${fieldContent} ${operator} ?`
+        }
+      } else {
+        // Complex condition: SQLBuilderConditionExpressionPort or SQLBuilderConditionsPort
+        const [sql, conditionBindings] = condition.toSQL(options)
+        allBindings.push(...conditionBindings)
+        conditionSql = sql || ''
+      }
+
+      // Process THEN value
+      const thenSql = processCaseValue(then, options, allBindings)
+      parts.push(`WHEN ${conditionSql} THEN ${thenSql}`)
+    }
+
+    // Process ELSE value if present
+    if (this.elseValue !== undefined) {
+      const elseSql = processCaseValue(this.elseValue, options, allBindings)
+      parts.push(`ELSE ${elseSql}`)
+    }
+
+    parts.push('END')
+    const sql = parts.join(' ')
+    return [sql, allBindings]
+  }
+}
+
+// Helper function to process CASE values (THEN/ELSE)
+function processCaseValue(
+  value: SQLBuilderConditionValue | FieldPort | SQLBuilderConditionExpressionPort,
+  options: SQLBuilderToSQLInputOptions | undefined,
+  bindings: SQLBuilderBindingValue[]
+): string {
+  if (isSQLBuilderConditionExpressionPort(value)) {
+    const [sql, valueBindings] = value.toSQL(options)
+    bindings.push(...valueBindings)
+    return sql
+  }
+  
+  if (isFieldPort(value)) {
+    return value.getContent(options)
+  }
+  
+  // Regular value - add to bindings
+  bindings.push(value as SQLBuilderBindingValue)
+  return '?'
+}
+
+// Helper function to get field content
+function getFieldContent(field: string, options: SQLBuilderToSQLInputOptions | undefined): string {
+  const { quote } = ensureToSQL(options)
+  if (quote) {
+    // Handle table.column format
+    if (field.includes('.')) {
+      return field.split('.').map(part => `${quote}${part}${quote}`).join('.')
+    }
+    return `${quote}${field}${quote}`
+  }
+  return field
 }
 
 export class ConditionExpressionJsonObject extends AbstractConditionExpression {

@@ -1,7 +1,8 @@
 import {
   ConditionExpressionCoalesce,
   ConditionExpressionJsonArrayAggregate,
-  ConditionExpressionJsonObject
+  ConditionExpressionJsonObject,
+  ConditionExpressionCaseWhen
 } from '../builder/condition-expression'
 import {
   FieldPort,
@@ -97,4 +98,28 @@ export const json_object = (
   fields: Record<string, string | FieldPort | SQLBuilderConditionExpressionPort>
 ): SQLBuilderConditionExpressionPort => {
   return new ConditionExpressionJsonObject(fields)
+}
+
+/**
+ * Create CASE WHEN expression for conditional logic in SQL.
+ *
+ * ```typescript
+ * import { createBuilder, caseWhen } from 'coral-sql'
+ *
+ * const [sql, bindings] = createBuilder()
+ *   .from('users')
+ *   .column(
+ *     caseWhen()
+ *       .when('status', '=', 'active').then('Active User')
+ *       .when('status', '=', 'pending').then('Pending User')
+ *       .else('Unknown Status'),
+ *     'status_label'
+ *   )
+ *   .toSQL()
+ * ```
+ *
+ * @returns ConditionExpressionCaseWhen instance for chaining
+ */
+export const caseWhen = (): ConditionExpressionCaseWhen => {
+  return new ConditionExpressionCaseWhen()
 }
