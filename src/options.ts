@@ -5,11 +5,15 @@ export const ensureToSQL = (
   input: SQLBuilderToSQLInputOptions = {}
 ): SQLBuilderToSQLOptions => {
   const placeholder = input.placeholder ?? '?'
+  const driver = input.driver ?? 'mysql'
+  const quote = input.quote ?? getDefaultQuote(driver)
+  
   const defaults = {
     placeholder,
     indent: '  ',
     bindings: new Bindings(placeholder),
-    quote: '`'
+    quote,
+    driver
   }
   
   // input.bindingsが存在する場合はそれを使用、存在しない場合のみデフォルトのbindingsを使用
@@ -19,4 +23,17 @@ export const ensureToSQL = (
   }
   
   return result
+}
+
+const getDefaultQuote = (driver: 'mysql' | 'postgresql' | 'sqlite'): string => {
+  switch (driver) {
+    case 'mysql':
+      return '`'
+    case 'postgresql':
+      return '"'
+    case 'sqlite':
+      return '`'
+    default:
+      return '`'
+  }
 }

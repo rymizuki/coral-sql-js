@@ -11,8 +11,11 @@ import {
 
 describe('JSON functions', () => {
   let builder: SQLBuilderPort
+  let postgresqlBuilder: SQLBuilderPort
+  
   beforeEach(() => {
     builder = new SQLBuilder() as unknown as SQLBuilderPort
+    postgresqlBuilder = new SQLBuilder({ driver: 'postgresql' }) as unknown as SQLBuilderPort
   })
 
   describe('json_object() function', () => {
@@ -380,6 +383,80 @@ describe('JSON functions', () => {
           "SELECT\n  `p`.`category`,\n  COALESCE(JSON_ARRAYAGG(JSON_OBJECT('id', `p`.`id`, 'name', `p`.`name`, 'price', `p`.`price`, 'in_stock', `p`.`stock_quantity`)), ?) AS `products_json`\nFROM\n  `products` AS `p`\nGROUP BY\n  `p`.`category`\nHAVING\n  (COUNT(*) > ?)"
         )
         expect(bindings).to.be.eql(['[]', 0])
+      })
+    })
+  })
+
+  describe('PostgreSQL driver', () => {
+    describe('json_object() function with PostgreSQL driver', () => {
+      describe('basic usage', () => {
+        it('SELECT json_build_object(\'id\', "id", \'name\', "name") FROM "users"', () => {
+          const [sql, bindings] = postgresqlBuilder
+            .from('users')
+            .column(json_object({ id: 'id', name: 'name' }))
+            .toSQL()
+          expect(sql).to.be.eql(
+            'SELECT\n  json_build_object(\'id\', "id", \'name\', "name")\nFROM\n  "users"'
+          )
+          expect(bindings).to.be.eql([])
+        })
+
+        it('SELECT json_build_object(\'id\', "id", \'name\', "name", \'email\', "email", \'created\', "created_at") FROM "users"', () => {
+          const [sql, bindings] = postgresqlBuilder
+            .from('users')
+            .column(
+              json_object({
+                id: 'id',
+                name: 'name',
+                email: 'email',
+                created: 'created_at'
+              })
+            )
+            .toSQL()
+          expect(sql).to.be.eql(
+            'SELECT\n  json_build_object(\'id\', "id", \'name\', "name", \'email\', "email", \'created\', "created_at")\nFROM\n  "users"'
+          )
+          expect(bindings).to.be.eql([])
+        })
+      })
+
+      describe('with table aliases', () => {
+        it('SELECT json_build_object(\'id\', "o"."id", \'ordered_at\', "o"."created_at") FROM "order" AS "o"', () => {
+          const [sql, bindings] = postgresqlBuilder
+            .from('order', 'o')
+            .column(json_object({ id: 'o.id', ordered_at: 'o.created_at' }))
+            .toSQL()
+          expect(sql).to.be.eql(
+            'SELECT\n  json_build_object(\'id\', "o"."id", \'ordered_at\', "o"."created_at")\nFROM\n  "order" AS "o"'
+          )
+          expect(bindings).to.be.eql([])
+        })
+      })
+    })
+
+    describe('json_array_aggregate() function with PostgreSQL driver', () => {
+      describe('basic usage', () => {
+        it('SELECT json_agg(json_build_object(\'sku\', "sku", \'price\', "price")) FROM "products"', () => {
+          const [sql, bindings] = postgresqlBuilder
+            .from('products')
+            .column(
+              json_array_aggregate(json_object({ sku: 'sku', price: 'price' }))
+            )
+            .toSQL()
+          expect(sql).to.be.eql(
+            'SELECT\n  json_agg(json_build_object(\'sku\', "sku", \'price\', "price"))\nFROM\n  "products"'
+          )
+          expect(bindings).to.be.eql([])
+        })
+
+        it('SELECT json_agg(name) FROM "users"', () => {
+          const [sql, bindings] = postgresqlBuilder
+            .from('users')
+            .column(json_array_aggregate(unescape('name')))
+          .toSQL()
+          expect(sql).to.be.eql('SELECT\n  json_agg(name)\nFROM\n  "users"')
+          expect(bindings).to.be.eql([])
+        })
       })
     })
   })

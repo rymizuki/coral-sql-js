@@ -50,12 +50,14 @@ export type SQLBuilderToSQLInputOptions = {
   indent?: string
   bindings?: BindingsPort
   quote?: string | null
+  driver?: 'mysql' | 'postgresql' | 'sqlite'
 }
 export type SQLBuilderToSQLOptions = {
   placeholder: '?' | '$'
   indent: string
   bindings: BindingsPort
   quote: string | null
+  driver: 'mysql' | 'postgresql' | 'sqlite'
 }
 export type SQLBuilderBindingValue = string | number | Date
 
