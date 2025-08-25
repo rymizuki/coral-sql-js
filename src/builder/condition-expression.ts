@@ -184,7 +184,6 @@ export class ConditionExpressionCoalesce extends AbstractConditionExpression {
     options?: SQLBuilderToSQLInputOptions
   ): [string, SQLBuilderBindingValue[]] {
     const allBindings: SQLBuilderBindingValue[] = []
-    const { quote } = ensureToSQL(options)
 
     const argStrings = this.args.map((arg) => {
       // Handle SQLBuilderConditionExpressionPort
