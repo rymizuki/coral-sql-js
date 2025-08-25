@@ -13,7 +13,7 @@ export const ensureToSQL = (
   }
   
   // input.bindingsが存在する場合はそれを使用、存在しない場合のみデフォルトのbindingsを使用
-  const result = Object.assign({}, defaults, input)
+  const result: SQLBuilderToSQLOptions = Object.assign({}, defaults, input)
   if (input.bindings) {
     result.bindings = input.bindings
   }
