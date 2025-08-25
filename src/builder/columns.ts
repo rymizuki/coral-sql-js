@@ -31,7 +31,7 @@ export class Columns {
             // 独立した関数の場合はbindingsを手動で追加する必要がある
             const [sql, bindings] = name.toSQL(options)
             if (bindings && bindings.length > 0 && options?.bindings) {
-              bindings.forEach((binding) => options.bindings.create(binding))
+              bindings.forEach((binding) => options.bindings!.create(binding))
             }
             return sql
           }
