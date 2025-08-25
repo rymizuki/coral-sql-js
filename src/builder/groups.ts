@@ -16,7 +16,11 @@ export class Groups {
     } else {
       // SQLBuilderPort の場合、サブクエリとして処理
       this.rows.push({
-        getContent: (options) => `(${field.toSQL(options)[0]})`
+        getContent: (options) => {
+          // 親のbindingsオブジェクトを使用してsubqueryを実行
+          const [sql] = field.toSQL(options)
+          return `(${sql})`
+        }
       })
     }
   }

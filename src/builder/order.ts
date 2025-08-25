@@ -18,7 +18,11 @@ export class Order {
     } else {
       // SQLBuilderPort の場合、サブクエリとして処理
       this.field = {
-        getContent: (options) => `(${field.toSQL(options)[0]})`
+        getContent: (options) => {
+          // 親のbindingsオブジェクトを使用してsubqueryを実行
+          const [sql] = field.toSQL(options)
+          return `(${sql})`
+        }
       }
     }
     this.direction = direction

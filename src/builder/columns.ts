@@ -19,7 +19,11 @@ export class Columns {
     } else {
       // SQLBuilderPort の場合、サブクエリとして処理
       field = {
-        getContent: (options) => `(${name.toSQL(options)[0]})`
+        getContent: (options) => {
+          // 親のbindingsオブジェクトを使用してsubqueryを実行
+          const [sql] = name.toSQL(options)
+          return `(${sql})`
+        }
       }
     }
     this.rows.push({ field, as })
