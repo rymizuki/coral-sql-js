@@ -10,6 +10,10 @@ import {
   SQLBuilderToSQLInputOptions
 } from '../types'
 import { escape } from '../utils/escape'
+import {
+  isFieldPort,
+  isSQLBuilderConditionExpressionPort
+} from '../utils/type-guards'
 
 export abstract class AbstractConditionExpression
   implements SQLBuilderConditionExpressionPort
@@ -47,12 +51,8 @@ export class ConditionExpression extends AbstractConditionExpression {
     const operator = this.operator
 
     // Handle FieldPort value
-    if (
-      this.value &&
-      typeof this.value === 'object' &&
-      'getContent' in this.value
-    ) {
-      const fieldContent = (this.value as FieldPort).getContent(options)
+    if (isFieldPort(this.value)) {
+      const fieldContent = this.value.getContent(options)
       return `${this.createOperator(operator)} ${fieldContent}`
     }
 
@@ -187,16 +187,14 @@ export class ConditionExpressionCoalesce extends AbstractConditionExpression {
 
     const argStrings = this.args.map((arg) => {
       // Handle SQLBuilderConditionExpressionPort
-      if (arg && typeof arg === 'object' && 'toSQL' in arg) {
-        const [sql, argBindings] = (
-          arg as SQLBuilderConditionExpressionPort
-        ).toSQL(options)
+      if (isSQLBuilderConditionExpressionPort(arg)) {
+        const [sql, argBindings] = arg.toSQL(options)
         allBindings.push(...argBindings)
         return sql
       }
       // Handle FieldPort
-      if (arg && typeof arg === 'object' && 'getContent' in arg) {
-        return (arg as FieldPort).getContent(options)
+      if (isFieldPort(arg)) {
+        return arg.getContent(options)
       }
       // Handle regular values (all strings are treated as literal values)
       // For field names, use unescape() or FieldPort explicitly
@@ -224,24 +222,14 @@ export class ConditionExpressionJsonArrayAggregate extends AbstractConditionExpr
     let bindings: SQLBuilderBindingValue[] = []
 
     // Handle SQLBuilderConditionExpressionPort
-    if (
-      this.expression &&
-      typeof this.expression === 'object' &&
-      'toSQL' in this.expression
-    ) {
-      const [sql, exprBindings] = (
-        this.expression as SQLBuilderConditionExpressionPort
-      ).toSQL(options)
+    if (isSQLBuilderConditionExpressionPort(this.expression)) {
+      const [sql, exprBindings] = this.expression.toSQL(options)
       innerSql = sql
       bindings = exprBindings
     }
     // Handle FieldPort
-    else if (
-      this.expression &&
-      typeof this.expression === 'object' &&
-      'getContent' in this.expression
-    ) {
-      innerSql = (this.expression as FieldPort).getContent(options)
+    else if (isFieldPort(this.expression)) {
+      innerSql = this.expression.getContent(options)
     } else {
       throw new Error('Invalid expression type for JSON_ARRAY_AGG')
     }
@@ -276,16 +264,14 @@ export class ConditionExpressionJsonObject extends AbstractConditionExpression {
     for (const [key, value] of Object.entries(this.fields)) {
       let fieldContent: string
       // Handle SQLBuilderConditionExpressionPort
-      if (value && typeof value === 'object' && 'toSQL' in value) {
-        const [sql, bindings] = (
-          value as SQLBuilderConditionExpressionPort
-        ).toSQL(options)
+      if (isSQLBuilderConditionExpressionPort(value)) {
+        const [sql, bindings] = value.toSQL(options)
         fieldContent = sql
         allBindings.push(...bindings)
       }
       // Handle FieldPort
-      else if (value && typeof value === 'object' && 'getContent' in value) {
-        fieldContent = (value as FieldPort).getContent(options)
+      else if (isFieldPort(value)) {
+        fieldContent = value.getContent(options)
       } else {
         // Treat string as a field name that should be escaped
         const { quote } = ensureToSQL(options)

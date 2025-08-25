@@ -5,6 +5,11 @@ import {
   SQLBuilderToSQLInputOptions
 } from '../types'
 import { escape } from '../utils/escape'
+import {
+  isFieldPort,
+  isSQLBuilderPort,
+  hasToSQLMethod
+} from '../utils/type-guards'
 import { Field } from './field'
 
 export class Columns {
@@ -14,13 +19,13 @@ export class Columns {
     let field: FieldPort
     if (typeof name === 'string') {
       field = new Field(name)
-    } else if ('getContent' in name) {
+    } else if (isFieldPort(name)) {
       field = name
-    } else if ('toSQL' in name) {
+    } else if (hasToSQLMethod(name)) {
       // SQLBuilderPort or SQLBuilderConditionExpressionPort の場合
       field = {
         getContent: (options) => {
-          if ('select' in name) {
+          if (isSQLBuilderPort(name)) {
             // SQLBuilderPortの場合（サブクエリ）
             // サブクエリの場合は、toSQL内部でbindingsが適切に処理されるので
             // ここでは手動でbindingsを追加しない

@@ -4,6 +4,7 @@ import {
   SQLBuilderField,
   SQLBuilderToSQLInputOptions
 } from '../types'
+import { isFieldPort } from '../utils/type-guards'
 import { Field } from './field'
 
 export class Groups {
@@ -12,7 +13,7 @@ export class Groups {
   add(field: SQLBuilderField): void {
     if (typeof field === 'string') {
       this.rows.push(new Field(field))
-    } else if ('getContent' in field) {
+    } else if (isFieldPort(field)) {
       this.rows.push(field)
     } else {
       // SQLBuilderPort の場合、サブクエリとして処理

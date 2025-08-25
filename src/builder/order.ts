@@ -5,6 +5,7 @@ import {
   SQLBuilderOrderDirection,
   SQLBuilderToSQLInputOptions
 } from '../types'
+import { isFieldPort } from '../utils/type-guards'
 import { Field } from './field'
 
 export class Order {
@@ -14,7 +15,7 @@ export class Order {
   constructor(field: SQLBuilderField, direction: SQLBuilderOrderDirection) {
     if (typeof field === 'string') {
       this.field = new Field(field)
-    } else if ('getContent' in field) {
+    } else if (isFieldPort(field)) {
       this.field = field
     } else {
       // SQLBuilderPort の場合、サブクエリとして処理

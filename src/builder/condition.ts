@@ -7,6 +7,7 @@ import {
   SQLBuilderField,
   SQLBuilderToSQLInputOptions
 } from '../types'
+import { isFieldPort, hasToSQLMethod } from '../utils/type-guards'
 import { Field } from './field'
 
 export class Condition implements SQLBuilderConditionPort {
@@ -19,10 +20,10 @@ export class Condition implements SQLBuilderConditionPort {
   ) {
     if (typeof field === 'string') {
       this.field = new Field(field)
-    } else if ('getContent' in field) {
+    } else if (isFieldPort(field)) {
       // It's a FieldPort
       this.field = field
-    } else if ('toSQL' in field && typeof field.toSQL === 'function') {
+    } else if (hasToSQLMethod(field)) {
       // It's either SQLBuilderPort or SQLBuilderConditionExpressionPort
       this.field = field
     } else {
@@ -39,7 +40,7 @@ export class Condition implements SQLBuilderConditionPort {
     // Handle case where expr is null (standalone expression like EXISTS)
     if (this.expr === null) {
       // field must be an expression in this case
-      if ('toSQL' in this.field && typeof this.field.toSQL === 'function') {
+      if (hasToSQLMethod(this.field)) {
         const [field_sql] = this.field.toSQL(options)
         return [field_sql, options.bindings!.getBindParameters()]
       } else {
@@ -52,7 +53,7 @@ export class Condition implements SQLBuilderConditionPort {
     const [expr_sql] = this.expr.toSQL(options)
 
     // Handle different field types
-    if ('getContent' in this.field) {
+    if (isFieldPort(this.field)) {
       // It's a FieldPort
       const sql = `(${this.field.getContent(options)} ${expr_sql})`
       return [sql, options.bindings!.getBindParameters()]

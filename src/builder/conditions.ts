@@ -10,6 +10,7 @@ import {
   SQLBuilderToSQLInputOptions,
   SQLBuilderToSQLOptions
 } from '../types'
+import { isFieldPort } from '../utils/type-guards'
 import { Condition } from './condition'
 import { ConditionExpression, isExpression } from './condition-expression'
 
@@ -95,10 +96,9 @@ export class Conditions implements SQLBuilderConditionsPort {
       }
 
       // Check if second argument is FieldPort
-      const isFieldPort =
-        args[1] && typeof args[1] === 'object' && 'getContent' in args[1]
+      const isFieldPortArg = isFieldPort(args[1])
 
-      const operator = !isFieldPort && Array.isArray(args[1]) ? 'in' : '='
+      const operator = !isFieldPortArg && Array.isArray(args[1]) ? 'in' : '='
       const expr = isExpression(args[1])
         ? args[1]
         : new ConditionExpression(
