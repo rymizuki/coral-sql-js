@@ -13,6 +13,19 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - run: npm ci
       - run: npm run build
-      - run: npm run publish
+      - name: Publish to npm
+        run: |
+          npm run publish 2>&1 | tee publish.log
+          # Check if the error is about package already being published
+          if grep -q "You cannot publish over the previously published versions" publish.log; then
+            echo "::warning::Package version already published, skipping..."
+            exit 0
+          fi
+          # Check the actual exit code of the publish command
+          if [ ${PIPESTATUS[0]} -ne 0 ]; then
+            echo "::error::Publish failed with unexpected error"
+            exit 1
+          fi
+          echo "::notice::Package published successfully"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
