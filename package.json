@@ -18,8 +18,9 @@
   "scripts": {
     "build": "tsup",
     "build:docs": "typedoc --excludePrivate --out docs --tsconfig ./tsconfig.build.json --entryPoints src/index.ts",
-    "lint": "eslint src/**/*.ts",
+    "lint": "eslint src/**/*.ts && tsc --noEmit",
     "test": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' mocha",
+    "format": "prettier . -w --check",
     "ncu": "ncu",
     "changeset": "changeset",
     "version": "npm run lint && npm test && changeset version",

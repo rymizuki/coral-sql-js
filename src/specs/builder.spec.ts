@@ -8,8 +8,6 @@ import {
   unescape
 } from '../../dist'
 
-
-
 describe('builder', () => {
   describe('select() method', () => {
     describe('basic usage', () => {
@@ -265,7 +263,6 @@ describe('builder', () => {
         })
       })
 
-      
       describe('unescape', () => {
         it('supports unescape as condition value', () => {
           const [sql, bindings] = builder
@@ -541,7 +538,6 @@ describe('builder', () => {
         })
       })
 
-      
       describe('unescape', () => {
         it('supports unescape as condition value', () => {
           const [sql, bindings] = builder

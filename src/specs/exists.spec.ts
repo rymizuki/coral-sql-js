@@ -118,10 +118,7 @@ describe('exists', () => {
         .and('active', true)
         .or('id', exists(subquery))
 
-      const [sql, bindings] = builder
-        .from('users')
-        .where(conditions)
-        .toSQL()
+      const [sql, bindings] = builder.from('users').where(conditions).toSQL()
 
       expect(sql).to.be.eql(
         'SELECT\n  *\nFROM\n  `users`\nWHERE\n  ((`active` = ?)\n  OR (`id` EXISTS (SELECT\n  *\nFROM\n  `orders`\nWHERE\n  (`orders`.`user_id` = ?)\n  AND (`orders`.`status` = ?))))'
@@ -138,7 +135,7 @@ describe('exists', () => {
         .where(
           createConditions()
             .and('pt.patient_id', unescape('p.id'))
-            .and('pt.value', 'test_value'),
+            .and('pt.value', 'test_value')
         )
 
       const [sql, bindings] = builder
@@ -188,7 +185,6 @@ describe('exists', () => {
     })
   })
 
-  
   describe('standard EXISTS syntax', () => {
     it('supports standalone EXISTS without field binding', () => {
       const subquery = createBuilder()

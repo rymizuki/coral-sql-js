@@ -1,5 +1,10 @@
 import { expect } from 'chai'
-import { createConditions, SQLBuilderConditionsPort, unescape, Field } from '../../dist'
+import {
+  createConditions,
+  SQLBuilderConditionsPort,
+  unescape,
+  Field
+} from '../../dist'
 
 describe('conditions', () => {
   let builder: SQLBuilderConditionsPort
@@ -89,27 +94,21 @@ describe('conditions', () => {
     describe('with Field instance', () => {
       it('supports Field instance as condition value', () => {
         const field = new Field('user.name', true) // unescaped
-        const [sql, bindings] = builder
-          .and('display_name', field)
-          .toSQL()
+        const [sql, bindings] = builder.and('display_name', field).toSQL()
         expect(sql).to.be.eql('(`display_name` = user.name)')
         expect(bindings).to.be.eql([])
       })
 
       it('supports escaped Field instance as condition value', () => {
         const field = new Field('user_name', false) // escaped
-        const [sql, bindings] = builder
-          .and('display_name', field)
-          .toSQL()
+        const [sql, bindings] = builder.and('display_name', field).toSQL()
         expect(sql).to.be.eql('(`display_name` = `user_name`)')
         expect(bindings).to.be.eql([])
       })
 
       it('supports Field instance with operators', () => {
         const field = new Field('other_table.id', true)
-        const [sql, bindings] = builder
-          .and('table_id', '<>', field)
-          .toSQL()
+        const [sql, bindings] = builder.and('table_id', '<>', field).toSQL()
         expect(sql).to.be.eql('(`table_id` <> other_table.id)')
         expect(bindings).to.be.eql([])
       })
@@ -120,11 +119,11 @@ describe('conditions', () => {
         const existsBuilder = createConditions()
           .and('pt.patient_id', unescape('p.id'))
           .and('pt.value', 'test_value')
-        
-        const [sql, bindings] = builder
-          .and(existsBuilder)
-          .toSQL()
-        expect(sql).to.be.eql('((`pt`.`patient_id` = p.id)\n  AND (`pt`.`value` = ?))')
+
+        const [sql, bindings] = builder.and(existsBuilder).toSQL()
+        expect(sql).to.be.eql(
+          '((`pt`.`patient_id` = p.id)\n  AND (`pt`.`value` = ?))'
+        )
         expect(bindings).to.be.eql(['test_value'])
       })
     })
