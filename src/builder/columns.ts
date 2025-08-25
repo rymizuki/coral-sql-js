@@ -16,8 +16,8 @@ export class Columns {
       field = new Field(name)
     } else if ('getContent' in name) {
       field = name
-    } else {
-      // SQLBuilderPort の場合、サブクエリとして処理
+    } else if ('toSQL' in name) {
+      // SQLBuilderPort or SQLBuilderConditionExpressionPort の場合
       field = {
         getContent: (options) => {
           // 親のbindingsオブジェクトを使用してsubqueryを実行
@@ -25,6 +25,8 @@ export class Columns {
           return `(${sql})`
         }
       }
+    } else {
+      throw new Error('Invalid field type')
     }
     this.rows.push({ field, as })
   }
