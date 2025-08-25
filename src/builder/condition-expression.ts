@@ -197,6 +197,14 @@ export class ConditionExpressionCoalesce extends AbstractConditionExpression {
       if (isFieldPort(arg)) {
         return arg.getContent(options)
       }
+      // Special handling for JSON literals '[]' and '{}'
+      if (arg === '[]' || arg === '{}') {
+        const { driver } = ensureToSQL(options)
+        if (driver === 'postgresql') {
+          return `'${arg}'::json`
+        }
+        return `'${arg}'`
+      }
       // Handle regular values (all strings are treated as literal values)
       // For field names, use unescape() or FieldPort explicitly
       // Special handling for JSON literals: '[]' and '{}'
@@ -303,7 +311,7 @@ export class ConditionExpressionCaseWhen extends AbstractConditionExpression {
     }
     
     const allBindings: SQLBuilderBindingValue[] = []
-    const parts: string[] = ['CASE']
+    const parts: string[] = ['(CASE']
 
     // Process WHEN conditions
     for (const { condition, then } of this.conditions) {
@@ -340,7 +348,7 @@ export class ConditionExpressionCaseWhen extends AbstractConditionExpression {
       parts.push(`ELSE ${elseSql}`)
     }
 
-    parts.push('END')
+    parts.push('END)')
     const sql = parts.join(' ')
     return [sql, allBindings]
   }
