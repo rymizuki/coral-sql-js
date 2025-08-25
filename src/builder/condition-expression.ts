@@ -198,6 +198,10 @@ export class ConditionExpressionCoalesce extends AbstractConditionExpression {
       }
       // Handle regular values (all strings are treated as literal values)
       // For field names, use unescape() or FieldPort explicitly
+      // Special handling for JSON literals: '[]' and '{}'
+      if (arg === '[]' || arg === '{}') {
+        return `'${arg}'`
+      }
       allBindings.push(arg as SQLBuilderBindingValue)
       return '?'
     })

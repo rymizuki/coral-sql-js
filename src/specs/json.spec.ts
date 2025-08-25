@@ -244,7 +244,7 @@ describe('JSON functions', () => {
     })
 
     describe('with JSON aggregation', () => {
-      it("SELECT COALESCE(JSON_ARRAYAGG(JSON_OBJECT('id', `o`.`id`, 'ordered_at', `o`.`created_at`)), ?) FROM `order` AS `o`", () => {
+      it("SELECT COALESCE(JSON_ARRAYAGG(JSON_OBJECT('id', `o`.`id`, 'ordered_at', `o`.`created_at`)), '[]') FROM `order` AS `o`", () => {
         const [sql, bindings] = builder
           .from('order', 'o')
           .column(
@@ -257,12 +257,12 @@ describe('JSON functions', () => {
           )
           .toSQL()
         expect(sql).to.be.eql(
-          "SELECT\n  COALESCE(JSON_ARRAYAGG(JSON_OBJECT('id', `o`.`id`, 'ordered_at', `o`.`created_at`)), ?)\nFROM\n  `order` AS `o`"
+          "SELECT\n  COALESCE(JSON_ARRAYAGG(JSON_OBJECT('id', `o`.`id`, 'ordered_at', `o`.`created_at`)), '[]')\nFROM\n  `order` AS `o`"
         )
-        expect(bindings).to.be.eql(['[]'])
+        expect(bindings).to.be.eql([])
       })
 
-      it("SELECT COALESCE(JSON_ARRAYAGG(JSON_OBJECT('id', `u`.`id`, 'name', `u`.`name`)), ?) FROM `users` AS `u`", () => {
+      it("SELECT COALESCE(JSON_ARRAYAGG(JSON_OBJECT('id', `u`.`id`, 'name', `u`.`name`)), '{}') FROM `users` AS `u`", () => {
         const [sql, bindings] = builder
           .from('users', 'u')
           .column(
@@ -273,9 +273,9 @@ describe('JSON functions', () => {
           )
           .toSQL()
         expect(sql).to.be.eql(
-          "SELECT\n  COALESCE(JSON_ARRAYAGG(JSON_OBJECT('id', `u`.`id`, 'name', `u`.`name`)), ?)\nFROM\n  `users` AS `u`"
+          "SELECT\n  COALESCE(JSON_ARRAYAGG(JSON_OBJECT('id', `u`.`id`, 'name', `u`.`name`)), '{}')\nFROM\n  `users` AS `u`"
         )
-        expect(bindings).to.be.eql(['{}'])
+        expect(bindings).to.be.eql([])
       })
     })
 
@@ -302,11 +302,46 @@ describe('JSON functions', () => {
         expect(bindings).to.be.eql([0])
       })
     })
+
+    describe('with JSON literal embedding', () => {
+      it("SELECT COALESCE(JSON_ARRAYAGG(name), '[]') FROM `users`", () => {
+        const [sql, bindings] = builder
+          .from('users')
+          .column(coalesce(json_array_aggregate(unescape('name')), '[]'))
+          .toSQL()
+        expect(sql).to.be.eql(
+          "SELECT\n  COALESCE(JSON_ARRAYAGG(name), '[]')\nFROM\n  `users`"
+        )
+        expect(bindings).to.be.eql([])
+      })
+
+      it("SELECT COALESCE(JSON_OBJECT('data', `data`), '{}') FROM `items`", () => {
+        const [sql, bindings] = builder
+          .from('items')
+          .column(coalesce(json_object({ data: 'data' }), '{}'))
+          .toSQL()
+        expect(sql).to.be.eql(
+          "SELECT\n  COALESCE(JSON_OBJECT('data', `data`), '{}')\nFROM\n  `items`"
+        )
+        expect(bindings).to.be.eql([])
+      })
+
+      it('Other string values still use placeholders: SELECT COALESCE(title, ?) FROM `articles`', () => {
+        const [sql, bindings] = builder
+          .from('articles')
+          .column(coalesce(unescape('title'), 'Default Title'))
+          .toSQL()
+        expect(sql).to.be.eql(
+          'SELECT\n  COALESCE(title, ?)\nFROM\n  `articles`'
+        )
+        expect(bindings).to.be.eql(['Default Title'])
+      })
+    })
   })
 
   describe('complex queries', () => {
     describe('user order history with JSON aggregation', () => {
-      it("SELECT COALESCE(JSON_ARRAYAGG(JSON_OBJECT('id', `o`.`id`, 'ordered_at', `o`.`created_at`)), ?) FROM `order` AS `o` WHERE (`order`.`user_id` = u.id) ORDER BY `o`.`created_at` desc LIMIT 5", () => {
+      it("SELECT COALESCE(JSON_ARRAYAGG(JSON_OBJECT('id', `o`.`id`, 'ordered_at', `o`.`created_at`)), '[]') FROM `order` AS `o` WHERE (`order`.`user_id` = u.id) ORDER BY `o`.`created_at` desc LIMIT 5", () => {
         const [sql, bindings] = createBuilder()
           .from('order', 'o')
           .column(
@@ -322,14 +357,14 @@ describe('JSON functions', () => {
           .limit(5)
           .toSQL()
         expect(sql).to.be.eql(
-          "SELECT\n  COALESCE(JSON_ARRAYAGG(JSON_OBJECT('id', `o`.`id`, 'ordered_at', `o`.`created_at`)), ?)\nFROM\n  `order` AS `o`\nWHERE\n  (`order`.`user_id` = u.id)\nORDER BY\n  `o`.`created_at` DESC\nLIMIT 5"
+          "SELECT\n  COALESCE(JSON_ARRAYAGG(JSON_OBJECT('id', `o`.`id`, 'ordered_at', `o`.`created_at`)), '[]')\nFROM\n  `order` AS `o`\nWHERE\n  (`order`.`user_id` = u.id)\nORDER BY\n  `o`.`created_at` DESC\nLIMIT 5"
         )
-        expect(bindings).to.be.eql(['[]'])
+        expect(bindings).to.be.eql([])
       })
     })
 
     describe('user orders summary with nested JSON', () => {
-      it("SELECT JSON_OBJECT('user_name', `u`.`name`, 'orders', COALESCE(JSON_ARRAYAGG(JSON_OBJECT('order_id', `o`.`id`, 'total', `o`.`total_amount`, 'date', `o`.`created_at`)), ?)) FROM `orders` AS `o` INNER JOIN `users` AS `u` ON `o`.`user_id` = `u`.`id` GROUP BY `u`.`id`", () => {
+      it("SELECT JSON_OBJECT('user_name', `u`.`name`, 'orders', COALESCE(JSON_ARRAYAGG(JSON_OBJECT('order_id', `o`.`id`, 'total', `o`.`total_amount`, 'date', `o`.`created_at`)), '[]')) FROM `orders` AS `o` INNER JOIN `users` AS `u` ON `o`.`user_id` = `u`.`id` GROUP BY `u`.`id`", () => {
         const [sql, bindings] = createBuilder()
           .from('orders', 'o')
           .join('inner', 'users', 'u', '`o`.`user_id` = `u`.`id`')
@@ -351,14 +386,14 @@ describe('JSON functions', () => {
           .groupBy('u.id')
           .toSQL()
         expect(sql).to.be.eql(
-          "SELECT\n  JSON_OBJECT('user_name', `u`.`name`, 'orders', COALESCE(JSON_ARRAYAGG(JSON_OBJECT('order_id', `o`.`id`, 'total', `o`.`total_amount`, 'date', `o`.`created_at`)), ?))\nFROM\n  `orders` AS `o`\nINNER JOIN `users` AS `u` ON `o`.`user_id` = `u`.`id`\nGROUP BY\n  `u`.`id`"
+          "SELECT\n  JSON_OBJECT('user_name', `u`.`name`, 'orders', COALESCE(JSON_ARRAYAGG(JSON_OBJECT('order_id', `o`.`id`, 'total', `o`.`total_amount`, 'date', `o`.`created_at`)), '[]'))\nFROM\n  `orders` AS `o`\nINNER JOIN `users` AS `u` ON `o`.`user_id` = `u`.`id`\nGROUP BY\n  `u`.`id`"
         )
-        expect(bindings).to.be.eql(['[]'])
+        expect(bindings).to.be.eql([])
       })
     })
 
     describe('product aggregation by category', () => {
-      it("SELECT `p`.`category`, COALESCE(JSON_ARRAYAGG(JSON_OBJECT('id', `p`.`id`, 'name', `p`.`name`, 'price', `p`.`price`, 'in_stock', `p`.`stock_quantity`)), ?) AS `products_json` FROM `products` AS `p` GROUP BY `p`.`category` HAVING (COUNT(*) > ?)", () => {
+      it("SELECT `p`.`category`, COALESCE(JSON_ARRAYAGG(JSON_OBJECT('id', `p`.`id`, 'name', `p`.`name`, 'price', `p`.`price`, 'in_stock', `p`.`stock_quantity`)), '[]') AS `products_json` FROM `products` AS `p` GROUP BY `p`.`category` HAVING (COUNT(*) > ?)", () => {
         const [sql, bindings] = createBuilder()
           .from('products', 'p')
           .column('p.category')
@@ -380,9 +415,9 @@ describe('JSON functions', () => {
           .having(unescape('COUNT(*)'), '>', 0)
           .toSQL()
         expect(sql).to.be.eql(
-          "SELECT\n  `p`.`category`,\n  COALESCE(JSON_ARRAYAGG(JSON_OBJECT('id', `p`.`id`, 'name', `p`.`name`, 'price', `p`.`price`, 'in_stock', `p`.`stock_quantity`)), ?) AS `products_json`\nFROM\n  `products` AS `p`\nGROUP BY\n  `p`.`category`\nHAVING\n  (COUNT(*) > ?)"
+          "SELECT\n  `p`.`category`,\n  COALESCE(JSON_ARRAYAGG(JSON_OBJECT('id', `p`.`id`, 'name', `p`.`name`, 'price', `p`.`price`, 'in_stock', `p`.`stock_quantity`)), '[]') AS `products_json`\nFROM\n  `products` AS `p`\nGROUP BY\n  `p`.`category`\nHAVING\n  (COUNT(*) > ?)"
         )
-        expect(bindings).to.be.eql(['[]', 0])
+        expect(bindings).to.be.eql([0])
       })
     })
   })
