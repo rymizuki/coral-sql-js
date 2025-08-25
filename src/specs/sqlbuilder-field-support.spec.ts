@@ -2,7 +2,8 @@ import { expect } from 'chai'
 import {
   createBuilder,
   SQLBuilder,
-  SQLBuilderPort
+  SQLBuilderPort,
+  unescape
 } from '../../dist'
 
 describe('SQLBuilder field support for subqueries', () => {
@@ -16,7 +17,7 @@ describe('SQLBuilder field support for subqueries', () => {
       const subquery = createBuilder()
         .select('SELECT COUNT(*)')
         .from('orders')
-        .where('user_id', 'users.id')
+        .where('user_id', unescape('users.id'))
 
       const [sql, bindings] = builder
         .from('users')
@@ -25,16 +26,16 @@ describe('SQLBuilder field support for subqueries', () => {
         .toSQL()
 
       expect(sql).to.be.eql(
-        'SELECT\n  `id`,\n  (SELECT COUNT(*)\nFROM\n  `orders`\nWHERE\n  (`user_id` = ?))\nFROM\n  `users`'
+        'SELECT\n  `id`,\n  (SELECT COUNT(*)\nFROM\n  `orders`\nWHERE\n  (`user_id` = users.id))\nFROM\n  `users`'
       )
-      expect(bindings).to.be.eql(['users.id'])
+      expect(bindings).to.be.eql([])
     })
 
     it('subquery as column with alias', () => {
       const subquery = createBuilder()
         .select('SELECT COUNT(*)')
         .from('orders')
-        .where('user_id', 'users.id')
+        .where('user_id', unescape('users.id'))
         .where('status', 'completed')
 
       const [sql, bindings] = builder
@@ -45,21 +46,21 @@ describe('SQLBuilder field support for subqueries', () => {
         .toSQL()
 
       expect(sql).to.be.eql(
-        'SELECT\n  `id`,\n  `name`,\n  (SELECT COUNT(*)\nFROM\n  `orders`\nWHERE\n  (`user_id` = ?)\n  AND (`status` = ?)) AS `order_count`\nFROM\n  `users`'
+        'SELECT\n  `id`,\n  `name`,\n  (SELECT COUNT(*)\nFROM\n  `orders`\nWHERE\n  (`user_id` = users.id)\n  AND (`status` = ?)) AS `order_count`\nFROM\n  `users`'
       )
-      expect(bindings).to.be.eql(['users.id', 'completed'])
+      expect(bindings).to.be.eql(['completed'])
     })
 
     it('multiple subqueries as columns', () => {
       const orderCountQuery = createBuilder()
         .select('SELECT COUNT(*)')
         .from('orders')
-        .where('user_id', 'users.id')
+        .where('user_id', unescape('users.id'))
 
       const activeOrderCountQuery = createBuilder()
         .select('SELECT COUNT(*)')
         .from('orders')
-        .where('user_id', 'users.id')
+        .where('user_id', unescape('users.id'))
         .where('status', 'active')
 
       const [sql, bindings] = builder
@@ -70,9 +71,9 @@ describe('SQLBuilder field support for subqueries', () => {
         .toSQL()
 
       expect(sql).to.be.eql(
-        'SELECT\n  `id`,\n  (SELECT COUNT(*)\nFROM\n  `orders`\nWHERE\n  (`user_id` = ?)) AS `total_orders`,\n  (SELECT COUNT(*)\nFROM\n  `orders`\nWHERE\n  (`user_id` = ?)\n  AND (`status` = ?)) AS `active_orders`\nFROM\n  `users`'
+        'SELECT\n  `id`,\n  (SELECT COUNT(*)\nFROM\n  `orders`\nWHERE\n  (`user_id` = users.id)) AS `total_orders`,\n  (SELECT COUNT(*)\nFROM\n  `orders`\nWHERE\n  (`user_id` = users.id)\n  AND (`status` = ?)) AS `active_orders`\nFROM\n  `users`'
       )
-      expect(bindings).to.be.eql(['users.id', 'users.id', 'active'])
+      expect(bindings).to.be.eql(['active'])
     })
 
     it('complex subquery with joins and aggregation', () => {
@@ -80,7 +81,7 @@ describe('SQLBuilder field support for subqueries', () => {
         .select('SELECT AVG(amount)')
         .from('orders', 'o')
         .leftJoin('order_items', 'oi', 'oi.order_id = o.id')
-        .where('o.user_id', 'users.id')
+        .where('o.user_id', unescape('users.id'))
         .where('o.created_at', '>=', '2024-01-01')
         .groupBy('o.id')
 
@@ -93,9 +94,9 @@ describe('SQLBuilder field support for subqueries', () => {
         .toSQL()
 
       expect(sql).to.be.eql(
-        'SELECT\n  `id`,\n  `name`,\n  (SELECT AVG(amount)\nFROM\n  `orders` AS `o`\nLEFT JOIN `order_items` AS `oi` ON oi.order_id = o.id\nWHERE\n  (`o`.`user_id` = ?)\n  AND (`o`.`created_at` >= ?)\nGROUP BY\n  `o`.`id`) AS `avg_order_amount`\nFROM\n  `users`\nWHERE\n  (`active` = ?)'
+        'SELECT\n  `id`,\n  `name`,\n  (SELECT AVG(amount)\nFROM\n  `orders` AS `o`\nLEFT JOIN `order_items` AS `oi` ON oi.order_id = o.id\nWHERE\n  (`o`.`user_id` = users.id)\n  AND (`o`.`created_at` >= ?)\nGROUP BY\n  `o`.`id`) AS `avg_order_amount`\nFROM\n  `users`\nWHERE\n  (`active` = ?)'
       )
-      expect(bindings).to.be.eql(['users.id', '2024-01-01', 1])
+      expect(bindings).to.be.eql(['2024-01-01', 1])
     })
   })
 
@@ -104,7 +105,7 @@ describe('SQLBuilder field support for subqueries', () => {
       const subquery = createBuilder()
         .select('SELECT DATE(created_at)')
         .from('orders')
-        .where('user_id', 'stats.user_id')
+        .where('user_id', unescape('stats.user_id'))
 
       const [sql, bindings] = builder
         .select('SELECT user_id, COUNT(*) as count')
@@ -113,16 +114,16 @@ describe('SQLBuilder field support for subqueries', () => {
         .toSQL()
 
       expect(sql).to.be.eql(
-        'SELECT user_id, COUNT(*) as count\nFROM\n  `user_stats` AS `stats`\nGROUP BY\n  (SELECT DATE(created_at)\nFROM\n  `orders`\nWHERE\n  (`user_id` = ?))'
+        'SELECT user_id, COUNT(*) as count\nFROM\n  `user_stats` AS `stats`\nGROUP BY\n  (SELECT DATE(created_at)\nFROM\n  `orders`\nWHERE\n  (`user_id` = stats.user_id))'
       )
-      expect(bindings).to.be.eql(['stats.user_id'])
+      expect(bindings).to.be.eql([])
     })
 
     it('subquery with multiple fields in GROUP BY', () => {
       const dateSubquery = createBuilder()
         .select('SELECT DATE(created_at)')
         .from('orders')
-        .where('user_id', 'stats.user_id')
+        .where('user_id', unescape('stats.user_id'))
 
       const [sql, bindings] = builder
         .select('SELECT user_id, status, COUNT(*) as count')
@@ -133,16 +134,16 @@ describe('SQLBuilder field support for subqueries', () => {
         .toSQL()
 
       expect(sql).to.be.eql(
-        'SELECT user_id, status, COUNT(*) as count\nFROM\n  `user_stats` AS `stats`\nGROUP BY\n  `user_id`,(SELECT DATE(created_at)\nFROM\n  `orders`\nWHERE\n  (`user_id` = ?)),`status`'
+        'SELECT user_id, status, COUNT(*) as count\nFROM\n  `user_stats` AS `stats`\nGROUP BY\n  `user_id`,(SELECT DATE(created_at)\nFROM\n  `orders`\nWHERE\n  (`user_id` = stats.user_id)),`status`'
       )
-      expect(bindings).to.be.eql(['stats.user_id'])
+      expect(bindings).to.be.eql([])
     })
 
     it('complex subquery in GROUP BY with aggregation', () => {
       const complexSubquery = createBuilder()
         .select('SELECT CASE WHEN amount > 100 THEN "high" ELSE "low" END')
         .from('orders')
-        .where('user_id', 'sales.user_id')
+        .where('user_id', unescape('sales.user_id'))
         .where('status', 'completed')
 
       const [sql, bindings] = builder
@@ -154,9 +155,9 @@ describe('SQLBuilder field support for subqueries', () => {
         .toSQL()
 
       expect(sql).to.be.eql(
-        'SELECT user_id, SUM(amount) as total_amount\nFROM\n  `sales`\nGROUP BY\n  `user_id`,(SELECT CASE WHEN amount > 100 THEN "high" ELSE "low" END\nFROM\n  `orders`\nWHERE\n  (`user_id` = ?)\n  AND (`status` = ?))\nHAVING\n  (`total_amount` > ?)'
+        'SELECT user_id, SUM(amount) as total_amount\nFROM\n  `sales`\nGROUP BY\n  `user_id`,(SELECT CASE WHEN amount > 100 THEN "high" ELSE "low" END\nFROM\n  `orders`\nWHERE\n  (`user_id` = sales.user_id)\n  AND (`status` = ?))\nHAVING\n  (`total_amount` > ?)'
       )
-      expect(bindings).to.be.eql(['sales.user_id', 'completed', 1000])
+      expect(bindings).to.be.eql(['completed', 1000])
     })
   })
 
@@ -165,7 +166,7 @@ describe('SQLBuilder field support for subqueries', () => {
       const subquery = createBuilder()
         .select('SELECT COUNT(*)')
         .from('orders')
-        .where('user_id', 'users.id')
+        .where('user_id', unescape('users.id'))
 
       const [sql, bindings] = builder
         .from('users')
@@ -177,14 +178,14 @@ describe('SQLBuilder field support for subqueries', () => {
       expect(sql).to.be.eql(
         'SELECT\n  `id`,\n  `name`\nFROM\n  `users`\nORDER BY\n  (SELECT COUNT(*)\nFROM\n  `orders`\nWHERE\n  (`user_id` = ?)) ASC'
       )
-      expect(bindings).to.be.eql(['users.id'])
+      expect(bindings).to.be.eql([unescape('users.id')])
     })
 
     it('simple subquery in ORDER BY descending', () => {
       const subquery = createBuilder()
         .select('SELECT MAX(created_at)')
         .from('orders')
-        .where('user_id', 'users.id')
+        .where('user_id', unescape('users.id'))
         .where('status', 'completed')
 
       const [sql, bindings] = builder
@@ -197,19 +198,19 @@ describe('SQLBuilder field support for subqueries', () => {
       expect(sql).to.be.eql(
         'SELECT\n  `id`,\n  `name`\nFROM\n  `users`\nORDER BY\n  (SELECT MAX(created_at)\nFROM\n  `orders`\nWHERE\n  (`user_id` = ?)\n  AND (`status` = ?)) DESC'
       )
-      expect(bindings).to.be.eql(['users.id', 'completed'])
+      expect(bindings).to.be.eql([unescape('users.id'), 'completed'])
     })
 
     it('multiple ORDER BY with mixed fields and subqueries', () => {
       const orderCountSubquery = createBuilder()
         .select('SELECT COUNT(*)')
         .from('orders')
-        .where('user_id', 'users.id')
+        .where('user_id', unescape('users.id'))
 
       const lastOrderDateSubquery = createBuilder()
         .select('SELECT MAX(created_at)')
         .from('orders')
-        .where('user_id', 'users.id')
+        .where('user_id', unescape('users.id'))
 
       const [sql, bindings] = builder
         .from('users')
@@ -223,7 +224,7 @@ describe('SQLBuilder field support for subqueries', () => {
       expect(sql).to.be.eql(
         'SELECT\n  `id`,\n  `name`\nFROM\n  `users`\nORDER BY\n  `name` ASC,\n  (SELECT COUNT(*)\nFROM\n  `orders`\nWHERE\n  (`user_id` = ?)) DESC,\n  (SELECT MAX(created_at)\nFROM\n  `orders`\nWHERE\n  (`user_id` = ?)) DESC'
       )
-      expect(bindings).to.be.eql(['users.id', 'users.id'])
+      expect(bindings).to.be.eql([unescape('users.id'), unescape('users.id')])
     })
 
     it('complex subquery with joins in ORDER BY', () => {
@@ -231,7 +232,7 @@ describe('SQLBuilder field support for subqueries', () => {
         .select('SELECT AVG(oi.price * oi.quantity)')
         .from('orders', 'o')
         .leftJoin('order_items', 'oi', 'oi.order_id = o.id')
-        .where('o.user_id', 'users.id')
+        .where('o.user_id', unescape('users.id'))
         .where('o.status', 'completed')
         .groupBy('o.user_id')
 
@@ -247,7 +248,7 @@ describe('SQLBuilder field support for subqueries', () => {
       expect(sql).to.be.eql(
         'SELECT\n  `id`,\n  `name`\nFROM\n  `users`\nWHERE\n  (`active` = ?)\nORDER BY\n  (SELECT AVG(oi.price * oi.quantity)\nFROM\n  `orders` AS `o`\nLEFT JOIN `order_items` AS `oi` ON oi.order_id = o.id\nWHERE\n  (`o`.`user_id` = ?)\n  AND (`o`.`status` = ?)\nGROUP BY\n  `o`.`user_id`) DESC\nLIMIT 10'
       )
-      expect(bindings).to.be.eql([1, 'users.id', 'completed'])
+      expect(bindings).to.be.eql([1, unescape('users.id'), 'completed'])
     })
   })
 
@@ -256,7 +257,7 @@ describe('SQLBuilder field support for subqueries', () => {
       const subquery = createBuilder()
         .select('SELECT COUNT(*)')
         .from('orders')
-        .where('user_id', 'users.id')
+        .where('user_id', unescape('users.id'))
         .where('status', 'completed')
 
       const [sql, bindings] = builder
@@ -269,14 +270,14 @@ describe('SQLBuilder field support for subqueries', () => {
       expect(sql).to.be.eql(
         'SELECT\n  `id`,\n  `name`\nFROM\n  `users`\nWHERE\n  ((SELECT COUNT(*)\nFROM\n  `orders`\nWHERE\n  (`user_id` = ?)\n  AND (`status` = ?)) = ?)'
       )
-      expect(bindings).to.be.eql([5, 'users.id', 'completed'])
+      expect(bindings).to.be.eql([5, unescape('users.id'), 'completed'])
     })
 
     it('subquery with comparison operator in WHERE', () => {
       const subquery = createBuilder()
         .select('SELECT AVG(amount)')
         .from('orders')
-        .where('user_id', 'users.id')
+        .where('user_id', unescape('users.id'))
 
       const [sql, bindings] = builder
         .from('users')
@@ -288,19 +289,19 @@ describe('SQLBuilder field support for subqueries', () => {
       expect(sql).to.be.eql(
         'SELECT\n  `id`,\n  `name`\nFROM\n  `users`\nWHERE\n  ((SELECT AVG(amount)\nFROM\n  `orders`\nWHERE\n  (`user_id` = ?)) > ?)'
       )
-      expect(bindings).to.be.eql([100, 'users.id'])
+      expect(bindings).to.be.eql([100, unescape('users.id')])
     })
 
     it('multiple subqueries in WHERE conditions', () => {
       const orderCountSubquery = createBuilder()
         .select('SELECT COUNT(*)')
         .from('orders')
-        .where('user_id', 'users.id')
+        .where('user_id', unescape('users.id'))
 
       const avgAmountSubquery = createBuilder()
         .select('SELECT AVG(amount)')
         .from('orders')
-        .where('user_id', 'users.id')
+        .where('user_id', unescape('users.id'))
         .where('status', 'completed')
 
       const [sql, bindings] = builder
@@ -314,14 +315,14 @@ describe('SQLBuilder field support for subqueries', () => {
       expect(sql).to.be.eql(
         'SELECT\n  `id`\nFROM\n  `users`\nWHERE\n  (`active` = ?)\n  AND ((SELECT COUNT(*)\nFROM\n  `orders`\nWHERE\n  (`user_id` = ?)) > ?)\n  AND ((SELECT AVG(amount)\nFROM\n  `orders`\nWHERE\n  (`user_id` = ?)\n  AND (`status` = ?)) >= ?)'
       )
-      expect(bindings).to.be.eql([1, 0, 'users.id', 50, 'users.id', 'completed'])
+      expect(bindings).to.be.eql([1, 0, unescape('users.id'), 50, unescape('users.id'), 'completed'])
     })
 
     it('subquery with IN operator', () => {
       const subquery = createBuilder()
         .select('SELECT category_id')
         .from('user_preferences')
-        .where('user_id', 'users.id')
+        .where('user_id', unescape('users.id'))
 
       const [sql, bindings] = builder
         .from('users')
@@ -333,7 +334,7 @@ describe('SQLBuilder field support for subqueries', () => {
       expect(sql).to.be.eql(
         'SELECT\n  `id`,\n  `name`\nFROM\n  `users`\nWHERE\n  ((SELECT category_id\nFROM\n  `user_preferences`\nWHERE\n  (`user_id` = ?)) IN (?,?,?))'
       )
-      expect(bindings).to.be.eql([1, 2, 3, 'users.id'])
+      expect(bindings).to.be.eql([1, 2, 3, unescape('users.id')])
     })
   })
 
@@ -342,18 +343,18 @@ describe('SQLBuilder field support for subqueries', () => {
       const orderCountSubquery = createBuilder()
         .select('SELECT COUNT(*)')
         .from('orders')
-        .where('user_id', 'users.id')
+        .where('user_id', unescape('users.id'))
 
       const avgAmountSubquery = createBuilder()
         .select('SELECT AVG(amount)')
         .from('orders')
-        .where('user_id', 'users.id')
+        .where('user_id', unescape('users.id'))
         .where('status', 'completed')
 
       const categorySubquery = createBuilder()
         .select('SELECT category')
         .from('user_categories')
-        .where('user_id', 'users.id')
+        .where('user_id', unescape('users.id'))
 
       const [sql, bindings] = builder
         .from('users')
@@ -372,7 +373,7 @@ describe('SQLBuilder field support for subqueries', () => {
       expect(sql).to.be.eql(
         'SELECT\n  `id`,\n  `name`,\n  (SELECT COUNT(*)\nFROM\n  `orders`\nWHERE\n  (`user_id` = ?)) AS `total_orders`,\n  (SELECT AVG(amount)\nFROM\n  `orders`\nWHERE\n  (`user_id` = ?)\n  AND (`status` = ?)) AS `avg_order_amount`\nFROM\n  `users`\nWHERE\n  (`active` = ?)\nGROUP BY\n  `id`,(SELECT category\nFROM\n  `user_categories`\nWHERE\n  (`user_id` = ?))\nORDER BY\n  (SELECT COUNT(*)\nFROM\n  `orders`\nWHERE\n  (`user_id` = ?)) DESC,\n  `name` ASC\nLIMIT 20'
       )
-      expect(bindings).to.be.eql(['users.id', 'users.id', 'completed', 1, 'users.id', 'users.id'])
+      expect(bindings).to.be.eql([unescape('users.id'), unescape('users.id'), 'completed', 1, unescape('users.id'), unescape('users.id')])
     })
   })
 })
