@@ -234,7 +234,9 @@ export class ConditionExpressionJsonArrayAggregate extends AbstractConditionExpr
       throw new Error('Invalid expression type for JSON_ARRAY_AGG')
     }
 
-    const sql = `JSON_ARRAYAGG(${innerSql})`
+    const { driver } = ensureToSQL(options)
+    const functionName = driver === 'postgresql' ? 'json_agg' : 'JSON_ARRAYAGG'
+    const sql = `${functionName}(${innerSql})`
     return [sql, bindings]
   }
 }
@@ -280,7 +282,9 @@ export class ConditionExpressionJsonObject extends AbstractConditionExpression {
       pairs.push(`'${key}', ${fieldContent}`)
     }
 
-    const sql = `JSON_OBJECT(${pairs.join(', ')})`
+    const { driver } = ensureToSQL(options)
+    const functionName = driver === 'postgresql' ? 'json_build_object' : 'JSON_OBJECT'
+    const sql = `${functionName}(${pairs.join(', ')})`
     return [sql, allBindings]
   }
 }
