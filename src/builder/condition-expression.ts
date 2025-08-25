@@ -367,7 +367,10 @@ export class ConditionExpressionCaseWhen extends AbstractConditionExpression {
         // Condition object (handles field + expression cases like 'field', is_not_null())
         const [sql, conditionBindings] = condition.toSQL(options)
         allBindings.push(...conditionBindings)
-        conditionSql = sql
+        // Remove parentheses from Condition's output
+        conditionSql = sql.startsWith('(') && sql.endsWith(')') 
+          ? sql.slice(1, -1) 
+          : sql
       } else {
         // Complex condition: SQLBuilderConditionExpressionPort or SQLBuilderConditionsPort
         const [sql, conditionBindings] = condition.toSQL(options)
@@ -375,14 +378,14 @@ export class ConditionExpressionCaseWhen extends AbstractConditionExpression {
         conditionSql = sql || ''
       }
 
-      // Process THEN value
-      const thenSql = processCaseValue(then, options, allBindings)
+      // Process THEN value (no bindings needed as values are embedded directly)
+      const thenSql = processCaseValue(then, options, [])
       parts.push(`WHEN ${conditionSql} THEN ${thenSql}`)
     }
 
-    // Process ELSE value if present
+    // Process ELSE value if present (no bindings needed as values are embedded directly)
     if (this.elseValue !== undefined) {
-      const elseSql = processCaseValue(this.elseValue, options, allBindings)
+      const elseSql = processCaseValue(this.elseValue, options, [])
       parts.push(`ELSE ${elseSql}`)
     }
 
@@ -408,9 +411,19 @@ function processCaseValue(
     return value.getContent(options)
   }
   
-  // Regular value - add to bindings
-  bindings.push(value as SQLBuilderBindingValue)
-  return '?'
+  // For regular values, embed them directly in SQL instead of using placeholders
+  if (typeof value === 'string') {
+    // Escape single quotes in strings
+    const escaped = value.replace(/'/g, "''")
+    return `'${escaped}'`
+  } else if (value === null) {
+    return 'NULL'
+  } else if (value === undefined) {
+    return 'NULL'
+  } else {
+    // Numbers, booleans, etc.
+    return String(value)
+  }
 }
 
 // Helper function to get field content
