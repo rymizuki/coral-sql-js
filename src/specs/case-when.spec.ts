@@ -201,7 +201,7 @@ describe('caseWhen() function', () => {
         )
         .toSQL()
       expect(sql).to.be.eql(
-        'SELECT\n  (CASE WHEN `email` IS NOT NULL THEN ? ELSE ? END)\nFROM\n  `users`'
+        'SELECT\n  (CASE WHEN (`email` IS NOT NULL) THEN ? ELSE ? END)\nFROM\n  `users`'
       )
       expect(bindings).to.be.eql(['Has Email', 'No Email'])
     })

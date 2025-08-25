@@ -16,6 +16,7 @@ import {
   isFieldPort,
   isSQLBuilderConditionExpressionPort
 } from '../utils/type-guards'
+import { Condition } from './condition'
 
 export abstract class AbstractConditionExpression
   implements SQLBuilderConditionExpressionPort
@@ -253,43 +254,60 @@ export class ConditionExpressionJsonArrayAggregate extends AbstractConditionExpr
 
 export class ConditionExpressionCaseWhen extends AbstractConditionExpression {
   private conditions: Array<{
-    condition: [string, SQLBuilderOperator, SQLBuilderConditionValue] | SQLBuilderConditionExpressionPort | SQLBuilderConditionsPort | { field: string; expression: SQLBuilderConditionExpressionPort }
+    condition: [string, SQLBuilderOperator, SQLBuilderConditionValue] | SQLBuilderConditionExpressionPort | SQLBuilderConditionsPort | Condition
     then: SQLBuilderConditionValue | FieldPort | SQLBuilderConditionExpressionPort
   }> = []
   private elseValue?: SQLBuilderConditionValue | FieldPort | SQLBuilderConditionExpressionPort
-  private pendingCondition?: [string, SQLBuilderOperator, SQLBuilderConditionValue] | SQLBuilderConditionExpressionPort | SQLBuilderConditionsPort | { field: string; expression: SQLBuilderConditionExpressionPort }
+  private pendingCondition?: [string, SQLBuilderOperator, SQLBuilderConditionValue] | SQLBuilderConditionExpressionPort | SQLBuilderConditionsPort | Condition
 
   when(...args: SQLBuilderConditionInputPattern): this {
-    let condition: [string, SQLBuilderOperator, SQLBuilderConditionValue] | SQLBuilderConditionExpressionPort | SQLBuilderConditionsPort | { field: string; expression: SQLBuilderConditionExpressionPort }
+    let condition: [string, SQLBuilderOperator, SQLBuilderConditionValue] | SQLBuilderConditionExpressionPort | SQLBuilderConditionsPort | Condition
 
+    // Use the same logic as Conditions.createCondition but keep simple cases as arrays
     if (
+      args.length === 1 &&
+      (args[0] instanceof Condition)
+    ) {
+      condition = args[0]
+    } else if (args.length === 1 && isExpression(args[0])) {
+      // Handle standalone expressions like EXISTS(...) without field binding
+      condition = new Condition(args[0], null)
+    } else if (args.length === 2) {
+      // Check if the first argument is an expression (like exists(...))
+      if (isExpression(args[0])) {
+        // args[1] should be SQLBuilderConditionValue or FieldPort in this context
+        if (isExpression(args[1])) {
+          throw new Error(
+            'Second argument cannot be an expression when first argument is an expression'
+          )
+        }
+        const expr = new ConditionExpression(
+          '=',
+          args[1] as SQLBuilderConditionValue | FieldPort
+        )
+        condition = new Condition(args[0], expr)
+      } else {
+        // Standard case: field + expression or field + value
+        const isFieldPortArg = isFieldPort(args[1])
+        
+        if (isExpression(args[1])) {
+          // Use Condition for expressions like is_not_null()
+          condition = new Condition(args[0], args[1])
+        } else {
+          // Use array format for simple values to maintain backward compatibility
+          const operator = !isFieldPortArg && Array.isArray(args[1]) ? 'in' : '='
+          condition = [args[0] as string, operator, args[1] as SQLBuilderConditionValue]
+        }
+      }
+    } else if (args.length === 3) {
+      // Keep 3-parameter cases as arrays for backward compatibility
+      condition = [args[0] as string, args[1] as SQLBuilderOperator, args[2] as SQLBuilderConditionValue]
+    } else if (
       args.length === 1 &&
       (isSQLBuilderConditionExpressionPort(args[0]) || (args[0] && typeof args[0] === 'object' && 'toSQL' in args[0]))
     ) {
       // Single condition expression or conditions object
       condition = args[0] as SQLBuilderConditionExpressionPort | SQLBuilderConditionsPort
-    } else if (args.length === 2) {
-      // Check if second argument is an expression (like is_not_null())
-      if (isExpression(args[1])) {
-        // Create a condition that combines field with the expression
-        // This will be handled in toSQL() method 
-        const field = args[0] as string
-        const expr = args[1] as SQLBuilderConditionExpressionPort
-        // Store as a special format that toSQL can recognize
-        condition = { field, expression: expr } as any
-      } else {
-        // Field and value (operator defaults to '=' or 'in' for arrays)
-        const field = args[0] as string
-        const value = args[1] as SQLBuilderConditionValue
-        const operator = Array.isArray(value) ? 'in' : '='
-        condition = [field, operator, value]
-      }
-    } else if (args.length === 3) {
-      // Field, operator, and value
-      const field = args[0] as string
-      const operator = args[1] as SQLBuilderOperator  
-      const value = args[2] as SQLBuilderConditionValue
-      condition = [field, operator, value]
     } else {
       throw new Error('Invalid when() parameters. Use when(field, operator, value), when(field, value), or when(conditions)')
     }
@@ -345,13 +363,11 @@ export class ConditionExpressionCaseWhen extends AbstractConditionExpression {
           allBindings.push(value as SQLBuilderBindingValue)
           conditionSql = `${fieldContent} ${operator} ?`
         }
-      } else if (condition && typeof condition === 'object' && 'field' in condition && 'expression' in condition) {
-        // Field + Expression condition: { field, expression }
-        const fieldCondition = condition as any
-        const fieldContent = getFieldContent(fieldCondition.field, options)
-        const [exprSql, exprBindings] = fieldCondition.expression.toSQL(options)
-        allBindings.push(...exprBindings)
-        conditionSql = `${fieldContent} ${exprSql}`
+      } else if (condition instanceof Condition) {
+        // Condition object (handles field + expression cases like 'field', is_not_null())
+        const [sql, conditionBindings] = condition.toSQL(options)
+        allBindings.push(...conditionBindings)
+        conditionSql = sql
       } else {
         // Complex condition: SQLBuilderConditionExpressionPort or SQLBuilderConditionsPort
         const [sql, conditionBindings] = condition.toSQL(options)
