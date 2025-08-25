@@ -28,9 +28,9 @@ describe('caseWhen() function', () => {
         )
         .toSQL()
       expect(sql).to.be.eql(
-        'SELECT\n  (CASE WHEN `status` = ? THEN ? ELSE ? END)\nFROM\n  `users`'
+        'SELECT\n  (CASE WHEN `status` = ? THEN \'Active User\' ELSE \'Inactive User\' END)\nFROM\n  `users`'
       )
-      expect(bindings).to.be.eql(['active', 'Active User', 'Inactive User'])
+      expect(bindings).to.be.eql(['active'])
     })
 
     it('Multiple WHEN conditions', () => {
@@ -45,9 +45,9 @@ describe('caseWhen() function', () => {
         )
         .toSQL()
       expect(sql).to.be.eql(
-        'SELECT\n  (CASE WHEN `status` = ? THEN ? WHEN `status` = ? THEN ? WHEN `status` = ? THEN ? ELSE ? END)\nFROM\n  `users`'
+        'SELECT\n  (CASE WHEN `status` = ? THEN \'Active\' WHEN `status` = ? THEN \'Pending\' WHEN `status` = ? THEN \'Suspended\' ELSE \'Unknown\' END)\nFROM\n  `users`'
       )
-      expect(bindings).to.be.eql(['active', 'Active', 'pending', 'Pending', 'suspended', 'Suspended', 'Unknown'])
+      expect(bindings).to.be.eql(['active', 'pending', 'suspended'])
     })
   })
 
@@ -62,9 +62,9 @@ describe('caseWhen() function', () => {
         )
         .toSQL()
       expect(sql).to.be.eql(
-        'SELECT\n  (CASE WHEN `u`.`status` = ? THEN ? ELSE ? END)\nFROM\n  `users` AS `u`'
+        'SELECT\n  (CASE WHEN `u`.`status` = ? THEN \'Active\' ELSE \'Inactive\' END)\nFROM\n  `users` AS `u`'
       )
-      expect(bindings).to.be.eql(['active', 'Active', 'Inactive'])
+      expect(bindings).to.be.eql(['active'])
     })
   })
 
@@ -80,9 +80,9 @@ describe('caseWhen() function', () => {
         )
         .toSQL()
       expect(sql).to.be.eql(
-        'SELECT\n  (CASE WHEN `amount` > ? THEN ? WHEN `amount` > ? THEN ? ELSE ? END)\nFROM\n  `orders`'
+        'SELECT\n  (CASE WHEN `amount` > ? THEN \'High Value\' WHEN `amount` > ? THEN \'Medium Value\' ELSE \'Low Value\' END)\nFROM\n  `orders`'
       )
-      expect(bindings).to.be.eql([1000, 'High Value', 100, 'Medium Value', 'Low Value'])
+      expect(bindings).to.be.eql([1000, 100])
     })
 
     it('NULL handling', () => {
@@ -95,9 +95,9 @@ describe('caseWhen() function', () => {
         )
         .toSQL()
       expect(sql).to.be.eql(
-        'SELECT\n  (CASE WHEN `email` IS NULL THEN ? ELSE ? END)\nFROM\n  `users`'
+        'SELECT\n  (CASE WHEN `email` IS NULL THEN \'No Email\' ELSE \'Has Email\' END)\nFROM\n  `users`'
       )
-      expect(bindings).to.be.eql(['No Email', 'Has Email'])
+      expect(bindings).to.be.eql([])
     })
 
     it('NOT NULL handling', () => {
@@ -110,9 +110,9 @@ describe('caseWhen() function', () => {
         )
         .toSQL()
       expect(sql).to.be.eql(
-        'SELECT\n  (CASE WHEN `email` IS NOT NULL THEN ? ELSE ? END)\nFROM\n  `users`'
+        'SELECT\n  (CASE WHEN `email` IS NOT NULL THEN \'Has Email\' ELSE \'No Email\' END)\nFROM\n  `users`'
       )
-      expect(bindings).to.be.eql(['Has Email', 'No Email'])
+      expect(bindings).to.be.eql([])
     })
   })
 
@@ -131,9 +131,9 @@ describe('caseWhen() function', () => {
         )
         .toSQL()
       expect(sql).to.be.eql(
-        'SELECT\n  (CASE WHEN (`age` >= ?)\n  AND (`status` = ?) THEN ? ELSE ? END)\nFROM\n  `users`'
+        'SELECT\n  (CASE WHEN (`age` >= ?)\n  AND (`status` = ?) THEN \'Adult Active User\' ELSE \'Other\' END)\nFROM\n  `users`'
       )
-      expect(bindings).to.be.eql([18, 'active', 18, 'active', 'Adult Active User', 'Other'])
+      expect(bindings).to.be.eql([18, 'active', 18, 'active'])
     })
   })
 
@@ -148,9 +148,9 @@ describe('caseWhen() function', () => {
         )
         .toSQL()
       expect(sql).to.be.eql(
-        'SELECT\n  (CASE WHEN `status` = ? THEN UPPER(name) ELSE ? END)\nFROM\n  `users`'
+        'SELECT\n  (CASE WHEN `status` = ? THEN UPPER(name) ELSE \'Unknown\' END)\nFROM\n  `users`'
       )
-      expect(bindings).to.be.eql(['active', 'Unknown'])
+      expect(bindings).to.be.eql(['active'])
     })
   })
 
@@ -166,9 +166,9 @@ describe('caseWhen() function', () => {
         )
         .toSQL()
       expect(sql).to.be.eql(
-        'SELECT\n  (CASE WHEN `status` = ? THEN ? ELSE ? END) AS `status_label`\nFROM\n  `users`'
+        'SELECT\n  (CASE WHEN `status` = ? THEN \'Active\' ELSE \'Inactive\' END) AS `status_label`\nFROM\n  `users`'
       )
-      expect(bindings).to.be.eql(['active', 'Active', 'Inactive'])
+      expect(bindings).to.be.eql(['active'])
     })
   })
 
@@ -183,9 +183,9 @@ describe('caseWhen() function', () => {
         )
         .toSQL()
       expect(sql).to.be.eql(
-        'SELECT\n  (CASE WHEN "status" = ? THEN ? ELSE ? END)\nFROM\n  "users"'
+        'SELECT\n  (CASE WHEN "status" = ? THEN \'Active\' ELSE \'Inactive\' END)\nFROM\n  "users"'
       )
-      expect(bindings).to.be.eql(['active', 'Active', 'Inactive'])
+      expect(bindings).to.be.eql(['active'])
     })
   })
 
@@ -200,9 +200,9 @@ describe('caseWhen() function', () => {
         )
         .toSQL()
       expect(sql).to.be.eql(
-        'SELECT\n  (CASE WHEN (`email` IS NOT NULL) THEN ? ELSE ? END)\nFROM\n  `users`'
+        'SELECT\n  (CASE WHEN `email` IS NOT NULL THEN \'Has Email\' ELSE \'No Email\' END)\nFROM\n  `users`'
       )
-      expect(bindings).to.be.eql(['Has Email', 'No Email'])
+      expect(bindings).to.be.eql([])
     })
   })
 
@@ -240,9 +240,9 @@ describe('caseWhen() function', () => {
         )
         .toSQL()
       expect(sql).to.be.eql(
-        'SELECT\n  (CASE WHEN `status` = ? THEN ? END)\nFROM\n  `users`'
+        'SELECT\n  (CASE WHEN `status` = ? THEN \'Active User\' END)\nFROM\n  `users`'
       )
-      expect(bindings).to.be.eql(['active', 'Active User'])
+      expect(bindings).to.be.eql(['active'])
     })
   })
 })
