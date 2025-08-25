@@ -121,7 +121,7 @@ export interface SQLBuilderConditionsPort {
    *
    * @param args
    */
-  and(...args: SQLBuilderConditionInputPattern): this
+  and(...args: SQLBuilderConditionInputPattern): SQLBuilderConditionsPort
   /**
    * Add `or` condition.
    *
@@ -135,11 +135,11 @@ export interface SQLBuilderConditionsPort {
    *
    * @param args
    */
-  or(...args: SQLBuilderConditionInputPattern): this
+  or(...args: SQLBuilderConditionInputPattern): SQLBuilderConditionsPort
   add(
     conjunction: SQLBuilderConditionConjunction,
     ...args: SQLBuilderConditionInputPattern
-  ): this
+  ): SQLBuilderConditionsPort
   /**
    * Generate SQL and Binding Values.
    *
@@ -165,7 +165,7 @@ export interface SQLBuilderPort {
    *
    * @param statement Custom SELECT statement
    */
-  select(statement: string): this
+  select(statement: string): SQLBuilderPort
   /**
    * Specified select column.
    *
@@ -176,7 +176,7 @@ export interface SQLBuilderPort {
    *
    * @param name Specified column's name.
    */
-  column(name: SQLBuilderField): this
+  column(name: SQLBuilderField): SQLBuilderPort
   /**
    * Specified select column with alias name.
    *
@@ -188,7 +188,7 @@ export interface SQLBuilderPort {
    * @param name
    * @param as
    */
-  column(name: SQLBuilderField, as: string): this
+  column(name: SQLBuilderField, as: string): SQLBuilderPort
   /**
    * Specified table name.
    *
@@ -199,7 +199,7 @@ export interface SQLBuilderPort {
    *
    * @param name
    */
-  from(name: string): this
+  from(name: string): SQLBuilderPort
   /**
    * Specified table name with alias.
    *
@@ -211,7 +211,7 @@ export interface SQLBuilderPort {
    * @param name
    * @param as
    */
-  from(name: string, as: string): this
+  from(name: string, as: string): SQLBuilderPort
   /**
    * Sepcified left join
    *
@@ -223,7 +223,7 @@ export interface SQLBuilderPort {
    * @param table_name
    * @param condition
    */
-  leftJoin(table_name: string, condition: string): this
+  leftJoin(table_name: string, condition: string): SQLBuilderPort
   /**
    * Specified left join with SQLBuilder subquery
    *
@@ -240,7 +240,7 @@ export interface SQLBuilderPort {
    * @param as
    * @param condition
    */
-  leftJoin(subquery: SQLBuilderPort, as: string, condition: string): this
+  leftJoin(subquery: SQLBuilderPort, as: string, condition: string): SQLBuilderPort
   /**
    * Specified left join with table alias.
    *
@@ -253,7 +253,7 @@ export interface SQLBuilderPort {
    * @param as
    * @param condition
    */
-  leftJoin(table_name: string, as: string, condition: string): this
+  leftJoin(table_name: string, as: string, condition: string): SQLBuilderPort
   /**
    * Specified join.
    *
@@ -265,7 +265,7 @@ export interface SQLBuilderPort {
     direction: SQLBuilderJoinDirection,
     table_name: string,
     condition: string
-  ): this
+  ): SQLBuilderPort
   /**
    * Specified join with direction.
    *
@@ -279,7 +279,7 @@ export interface SQLBuilderPort {
     table_name: string,
     as: string,
     condition: string
-  ): this
+  ): SQLBuilderPort
   /**
    * Specified join with SQLBuilder subquery.
    *
@@ -293,7 +293,7 @@ export interface SQLBuilderPort {
     subquery: SQLBuilderPort,
     as: string,
     condition: string
-  ): this
+  ): SQLBuilderPort
 
   /**
    * Specified search condition.
@@ -306,7 +306,7 @@ export interface SQLBuilderPort {
    * @param field field name.
    * @param value condition value.
    */
-  where(field: SQLBuilderField, value: SQLBuilderConditionValue): this
+  where(field: SQLBuilderField, value: SQLBuilderConditionValue): SQLBuilderPort
   /**
    * Specified search condition with FieldPort value.
    *
@@ -319,7 +319,7 @@ export interface SQLBuilderPort {
    * @param field
    * @param value
    */
-  where(field: SQLBuilderField, value: FieldPort): this
+  where(field: SQLBuilderField, value: FieldPort): SQLBuilderPort
   /**
    * Specified search condition with expression.
    * Example for `IS NULL`
@@ -333,7 +333,7 @@ export interface SQLBuilderPort {
    * @param field
    * @param value
    */
-  where(field: SQLBuilderField, value: SQLBuilderConditionExpressionPort): this
+  where(field: SQLBuilderField, value: SQLBuilderConditionExpressionPort): SQLBuilderPort
   /**
    * Specified search condition with operator.
    *
@@ -351,17 +351,17 @@ export interface SQLBuilderPort {
     field: SQLBuilderField,
     operator: SQLBuilderOperator,
     value: SQLBuilderConditionValue
-  ): this
+  ): SQLBuilderPort
   where(
     field: SQLBuilderField,
     operator: SQLBuilderOperator,
     value: FieldPort
-  ): this
+  ): SQLBuilderPort
   where(
     field: SQLBuilderField,
     operator: SQLBuilderOperator,
     value: SQLBuilderConditionExpressionPort
-  ): this
+  ): SQLBuilderPort
   /**
    * Specified where condition.
    *
@@ -371,7 +371,7 @@ export interface SQLBuilderPort {
    *
    * @param conditions
    */
-  where(conditions: SQLBuilderConditionsPort): this
+  where(conditions: SQLBuilderConditionsPort): SQLBuilderPort
   /**
    * WHERE condition with standalone expression
    *
@@ -382,7 +382,7 @@ export interface SQLBuilderPort {
    *
    * @param expression
    */
-  where(expression: SQLBuilderConditionExpressionPort): this
+  where(expression: SQLBuilderConditionExpressionPort): SQLBuilderPort
   /**
    * WHERE condition with expression and value
    *
@@ -396,8 +396,8 @@ export interface SQLBuilderPort {
   where(
     expression: SQLBuilderConditionExpressionPort,
     value: SQLBuilderConditionValue
-  ): this
-  where(expression: SQLBuilderConditionExpressionPort, value: FieldPort): this
+  ): SQLBuilderPort
+  where(expression: SQLBuilderConditionExpressionPort, value: FieldPort): SQLBuilderPort
   /**
    * Specified having condition using conditions instance.
    *
@@ -408,7 +408,7 @@ export interface SQLBuilderPort {
    *
    * @param conditions
    */
-  having(conditions: SQLBuilderConditionsPort): this
+  having(conditions: SQLBuilderConditionsPort): SQLBuilderPort
   /**
    * Specified having condition.
    *
@@ -420,8 +420,8 @@ export interface SQLBuilderPort {
    * @param field
    * @param value
    */
-  having(field: SQLBuilderField, value: SQLBuilderConditionValue): this
-  having(field: SQLBuilderField, value: FieldPort): this
+  having(field: SQLBuilderField, value: SQLBuilderConditionValue): SQLBuilderPort
+  having(field: SQLBuilderField, value: FieldPort): SQLBuilderPort
   /**
    * Specified having condition.
    *
@@ -438,12 +438,12 @@ export interface SQLBuilderPort {
     field: SQLBuilderField,
     operator: SQLBuilderOperator,
     value: SQLBuilderConditionValue
-  ): this
+  ): SQLBuilderPort
   having(
     field: SQLBuilderField,
     operator: SQLBuilderOperator,
     value: FieldPort
-  ): this
+  ): SQLBuilderPort
   /**
    * Specified group-by condition.
    *
@@ -453,7 +453,7 @@ export interface SQLBuilderPort {
    *
    * @param column
    */
-  groupBy(column: SQLBuilderField): this
+  groupBy(column: SQLBuilderField): SQLBuilderPort
   /**
    * Specified order-by condition.
    *
@@ -465,7 +465,7 @@ export interface SQLBuilderPort {
    * @param column
    * @param order
    */
-  orderBy(column: SQLBuilderField, order: SQLBuilderOrderDirection): this
+  orderBy(column: SQLBuilderField, order: SQLBuilderOrderDirection): SQLBuilderPort
   /**
    * Specified limit value.
    *
@@ -475,7 +475,7 @@ export interface SQLBuilderPort {
    *
    * @param value
    */
-  limit(value: number): this
+  limit(value: number): SQLBuilderPort
   /**
    * Specified offset value.
    *
@@ -485,7 +485,7 @@ export interface SQLBuilderPort {
    *
    * @param value
    */
-  offset(value: number): this
+  offset(value: number): SQLBuilderPort
   /**
    * Override builder options.
    *
@@ -495,7 +495,7 @@ export interface SQLBuilderPort {
    *
    * @param options
    */
-  setOptions(options: SQLBuilderToSQLInputOptions): this
+  setOptions(options: SQLBuilderToSQLInputOptions): SQLBuilderPort
   /**
    * Returns SQL and Binding values.
    *
@@ -508,4 +508,25 @@ export interface SQLBuilderPort {
   toSQL(
     options?: SQLBuilderToSQLInputOptions
   ): [string, SQLBuilderBindingValue[]]
+
+  /**
+   * Create a new SQLBuilder instance.
+   *
+   * ```typescript
+   * const newBuilder = builder.createBuilder()
+   * ```
+   *
+   * @param options Optional SQLBuilderToSQLInputOptions
+   */
+  createBuilder(options?: SQLBuilderToSQLInputOptions): SQLBuilderPort
+  /**
+   * Create a new Conditions instance for building complex condition groups.
+   *
+   * ```typescript
+   * const conditions = builder.createConditions()
+   *   .and('status', 'active')
+   *   .or('priority', 'high')
+   * ```
+   */
+  createConditions(): SQLBuilderConditionsPort
 }

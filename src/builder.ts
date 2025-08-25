@@ -14,7 +14,10 @@ import {
   SQLBuilderConditionInputPattern,
   SQLBuilderConditionsPort,
   SQLBuilderBindingValue,
-  SQLBuilderJoinDirection
+  SQLBuilderJoinDirection,
+  SQLBuilderConditionValue,
+  SQLBuilderOperator,
+  FieldPort
 } from './types'
 
 export class SQLBuilder implements SQLBuilderPort {
@@ -41,17 +44,17 @@ export class SQLBuilder implements SQLBuilderPort {
     this.orders = new Orders()
   }
 
-  column(name: SQLBuilderField, as?: string): this {
+  column(name: SQLBuilderField, as?: string): SQLBuilderPort {
     this.columns.add(name, as)
     return this
   }
 
-  select(statement: string): this {
+  select(statement: string): SQLBuilderPort {
     this.custom_select = statement
     return this
   }
 
-  from(name: string, as?: string): this {
+  from(name: string, as?: string): SQLBuilderPort {
     this.table = new Table(name, as)
     return this
   }
@@ -61,7 +64,7 @@ export class SQLBuilder implements SQLBuilderPort {
       | [string, string]
       | [string, string, string]
       | [SQLBuilderPort, string, string]
-  ): this {
+  ): SQLBuilderPort {
     this.join('left', ...args)
     return this
   }
@@ -72,24 +75,26 @@ export class SQLBuilder implements SQLBuilderPort {
       | [string, string]
       | [string, string, string]
       | [SQLBuilderPort, string, string]
-  ): this {
+  ): SQLBuilderPort {
     this.joins.push(new Join(direction, ...args))
     return this
   }
 
-  where(...args: SQLBuilderConditionInputPattern): this {
+  where(...args: SQLBuilderConditionInputPattern): SQLBuilderPort {
     this.conditions_where.and(...args)
     return this
   }
 
-  having(conditions: SQLBuilderConditionsPort): this
-  having(field: SQLBuilderField, value: any): this
-  having(field: SQLBuilderField, operator: string, value: any): this
+  having(conditions: SQLBuilderConditionsPort): SQLBuilderPort
+  having(field: SQLBuilderField, value: SQLBuilderConditionValue): SQLBuilderPort
+  having(field: SQLBuilderField, value: FieldPort): SQLBuilderPort
+  having(field: SQLBuilderField, operator: SQLBuilderOperator, value: SQLBuilderConditionValue): SQLBuilderPort
+  having(field: SQLBuilderField, operator: SQLBuilderOperator, value: FieldPort): SQLBuilderPort
   having(
     conditionsOrField: SQLBuilderConditionsPort | SQLBuilderField,
-    operatorOrValue?: any,
-    value?: any
-  ): this {
+    operatorOrValue?: SQLBuilderOperator | SQLBuilderConditionValue | FieldPort,
+    value?: SQLBuilderConditionValue | FieldPort
+  ): SQLBuilderPort {
     if (typeof conditionsOrField === 'object' && 'and' in conditionsOrField) {
       // SQLBuilderConditionsPortの場合
       this.conditions_having.add('and', conditionsOrField)
@@ -97,41 +102,36 @@ export class SQLBuilder implements SQLBuilderPort {
     }
     // 通常の条件の場合
     if (value !== undefined) {
-      this.conditions_having.and(
-        conditionsOrField as SQLBuilderField,
-        operatorOrValue,
-        value
-      )
+      // 3つの引数: field, operator, value
+      ;(this.conditions_having as any).and(conditionsOrField, operatorOrValue, value)
     } else {
-      this.conditions_having.and(
-        conditionsOrField as SQLBuilderField,
-        operatorOrValue
-      )
+      // 2つの引数: field, value
+      ;(this.conditions_having as any).and(conditionsOrField, operatorOrValue)
     }
     return this
   }
 
-  groupBy(field: SQLBuilderField): this {
+  groupBy(field: SQLBuilderField): SQLBuilderPort {
     this.groups.add(field)
     return this
   }
 
-  orderBy(field: SQLBuilderField, direction: SQLBuilderOrderDirection): this {
+  orderBy(field: SQLBuilderField, direction: SQLBuilderOrderDirection): SQLBuilderPort {
     this.orders.add(field, direction)
     return this
   }
 
-  limit(value: number): this {
+  limit(value: number): SQLBuilderPort {
     this.limit_value = value
     return this
   }
 
-  offset(value: number): this {
+  offset(value: number): SQLBuilderPort {
     this.offset_value = value
     return this
   }
 
-  setOptions(options: SQLBuilderToSQLInputOptions) {
+  setOptions(options: SQLBuilderToSQLInputOptions): SQLBuilderPort {
     this.options = options
     return this
   }
@@ -153,6 +153,32 @@ export class SQLBuilder implements SQLBuilderPort {
       .filter((section) => section)
       .join('\n')
     return [sql, options.bindings!.getBindParameters()]
+  }
+
+  /**
+   * Create a new SQLBuilder instance.
+   *
+   * ```typescript
+   * const newBuilder = builder.createBuilder()
+   * ```
+   *
+   * @param options Optional SQLBuilderToSQLInputOptions
+   */
+  createBuilder(options?: SQLBuilderToSQLInputOptions): SQLBuilderPort {
+    return new SQLBuilder(options)
+  }
+
+  /**
+   * Create a new Conditions instance for building complex condition groups.
+   *
+   * ```typescript
+   * const conditions = builder.createConditions()
+   *   .and('status', 'active')
+   *   .or('priority', 'high')
+   * ```
+   */
+  createConditions(): SQLBuilderConditionsPort {
+    return new Conditions()
   }
 
   private getSelect(options: SQLBuilderToSQLOptions) {

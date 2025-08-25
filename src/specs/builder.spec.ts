@@ -120,7 +120,7 @@ describe('builder', () => {
   describe('no options', () => {
     let builder: SQLBuilderPort
     beforeEach(() => {
-      builder = new SQLBuilder()
+      builder = new SQLBuilder() as unknown as SQLBuilderPort as unknown as SQLBuilderPort
     })
 
     describe('.table', () => {
@@ -397,7 +397,7 @@ describe('builder', () => {
     beforeEach(() => {
       builder = new SQLBuilder({
         quote: null
-      })
+      }) as unknown as SQLBuilderPort
     })
 
     describe('.table', () => {
@@ -687,7 +687,7 @@ describe('builder', () => {
   describe('options.placeholder = $', () => {
     let builder: SQLBuilderPort
     beforeEach(() => {
-      builder = new SQLBuilder({ placeholder: '$' })
+      builder = new SQLBuilder({ placeholder: '$' }) as unknown as SQLBuilderPort
     })
 
     describe('.table', () => {
@@ -919,6 +919,74 @@ describe('builder', () => {
         const [sql, bindings] = builder.from('users').offset(10).toSQL()
         expect(sql).to.be.eql('SELECT\n  *\nFROM\n  `users`\nOFFSET 10')
         expect(bindings).to.be.eql([])
+      })
+    })
+  })
+
+  describe('instance methods', () => {
+    describe('.createBuilder()', () => {
+      it('creates a new SQLBuilder instance', () => {
+        const originalBuilder = new SQLBuilder()
+        const builder = originalBuilder.createBuilder()
+        const [sql, bindings] = builder
+          .column('id')
+          .from('users')
+          .where('status', 'active')
+          .toSQL()
+        expect(sql).to.be.eql(
+          'SELECT\n  `id`\nFROM\n  `users`\nWHERE\n  (`status` = ?)'
+        )
+        expect(bindings).to.be.eql(['active'])
+      })
+
+      it('accepts options parameter', () => {
+        const originalBuilder = new SQLBuilder()
+        const builder = originalBuilder.createBuilder({ quote: null })
+        const [sql, bindings] = builder
+          .column('id')
+          .from('users')
+          .toSQL()
+        expect(sql).to.be.eql('SELECT\n  id\nFROM\n  users')
+        expect(bindings).to.be.eql([])
+      })
+    })
+
+    describe('.createConditions()', () => {
+      it('creates a new Conditions instance', () => {
+        const originalBuilder = new SQLBuilder()
+        const conditions = originalBuilder.createConditions()
+          .and('status', 'active')
+          .or('priority', 'high')
+
+        const builder = createBuilder()
+        const [sql, bindings] = builder
+          .column('id')
+          .column('name')
+          .from('tasks')
+          .where(conditions)
+          .toSQL()
+        expect(sql).to.be.eql(
+          'SELECT\n  `id`,\n  `name`\nFROM\n  `tasks`\nWHERE\n  ((`status` = ?)\n  OR (`priority` = ?))'
+        )
+        expect(bindings).to.be.eql(['active', 'high'])
+      })
+
+      it('works with complex conditions', () => {
+        const originalBuilder = new SQLBuilder()
+        const conditions = originalBuilder.createConditions()
+          .and('age', '>=', 18)
+          .and('age', '<=', 65)
+          .or('role', 'admin')
+
+        const builder = createBuilder()
+        const [sql, bindings] = builder
+          .from('users')
+          .where(conditions)
+          .toSQL()
+        expect(sql).to.be.eql(
+          'SELECT\n  *\nFROM\n  `users`\nWHERE\n  ((`age` >= ?)\n  AND (`age` <= ?)\n  OR (`role` = ?))'
+        )
+        expect(bindings).to.be.eql([18, 65, 'admin'])
       })
     })
   })

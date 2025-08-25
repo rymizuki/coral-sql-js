@@ -5,7 +5,7 @@ describe('builder leftJoin with subquery', () => {
   describe('no options', () => {
     let builder: SQLBuilderPort
     beforeEach(() => {
-      builder = new SQLBuilder()
+      builder = new SQLBuilder() as unknown as SQLBuilderPort as unknown as SQLBuilderPort
     })
 
     describe('.leftJoin', () => {
@@ -101,7 +101,7 @@ describe('builder leftJoin with subquery', () => {
   describe('options.quote = null', () => {
     let builder: SQLBuilderPort
     beforeEach(() => {
-      builder = new SQLBuilder({ quote: null })
+      builder = new SQLBuilder({ quote: null }) as unknown as SQLBuilderPort
     })
 
     describe('.leftJoin', () => {

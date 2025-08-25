@@ -63,11 +63,11 @@ export {
  *
  * ```
  *
- * @returns SQLBuilderPort
+ * @returns SQLBuilder
  */
 export const createBuilder = (
   options?: SQLBuilderToSQLInputOptions
-): SQLBuilderPort => {
+): SQLBuilder => {
   return new SQLBuilder(options)
 }
 
