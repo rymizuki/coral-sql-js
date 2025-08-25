@@ -1,5 +1,11 @@
 # coral-sql
 
+## 1.5.0
+
+### Minor Changes
+
+- add functional-expression supports
+
 ## 1.4.5
 
 ### Patch Changes
