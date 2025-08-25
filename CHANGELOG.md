@@ -1,5 +1,11 @@
 # coral-sql
 
+## 1.5.1
+
+### Patch Changes
+
+- fix bugs for case-when
+
 ## 1.5.0
 
 ### Minor Changes
