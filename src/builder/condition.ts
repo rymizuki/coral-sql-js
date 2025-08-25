@@ -38,7 +38,7 @@ export class Condition implements SQLBuilderConditionPort {
       // field must be an expression in this case
       if ('toSQL' in this.field && typeof this.field.toSQL === 'function') {
         const [field_sql] = this.field.toSQL(options)
-        return [field_sql, options.bindings.getBindParameters()]
+        return [field_sql, options.bindings!.getBindParameters()]
       } else {
         throw new Error('Invalid condition: field must be an expression when expr is null')
       }
@@ -50,12 +50,12 @@ export class Condition implements SQLBuilderConditionPort {
     if ('getContent' in this.field) {
       // It's a FieldPort
       const sql = `(${this.field.getContent(options)} ${expr_sql})`
-      return [sql, options.bindings.getBindParameters()]
+      return [sql, options.bindings!.getBindParameters()]
     } else {
       // It's a SQLBuilderConditionExpressionPort
       const [field_sql] = this.field.toSQL(options)
       const sql = `((${field_sql}) ${expr_sql})`
-      return [sql, options.bindings.getBindParameters()]
+      return [sql, options.bindings!.getBindParameters()]
     }
   }
 }

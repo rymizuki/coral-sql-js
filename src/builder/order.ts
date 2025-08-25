@@ -1,3 +1,4 @@
+import { ensureToSQL } from '../options'
 import {
   FieldPort,
   SQLBuilderField,
@@ -18,14 +19,18 @@ export class Order {
     } else {
       // SQLBuilderPort の場合、サブクエリとして処理
       this.field = {
-        getContent: (options) => `(${field.toSQL(options)[0]})`
+        getContent: (options) => {
+          // 親のbindingsオブジェクトを使用してsubqueryを実行
+          const [sql] = field.toSQL(options)
+          return `(${sql})`
+        }
       }
     }
     this.direction = direction
   }
 
   toSQL(options?: SQLBuilderToSQLInputOptions): string {
-    return `${this.field.getContent(options)} ${this.createDirectionValue()}`
+    return `${this.field.getContent(ensureToSQL(options))} ${this.createDirectionValue()}`
   }
 
   private createDirectionValue() {
