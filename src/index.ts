@@ -18,10 +18,11 @@ import {
 } from './types'
 import { unescape } from './utils/escape'
 import { exists, not_exists } from './utils/exists'
-import { coalesce, json_array_aggregate, json_object } from './utils/json'
+import { caseWhen, coalesce, json_array_aggregate, json_object } from './utils/json'
 import { is_not_null, is_null } from './utils/null'
 
 export {
+  caseWhen,
   coalesce,
   exists,
   Field,
