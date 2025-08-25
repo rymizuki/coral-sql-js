@@ -201,6 +201,63 @@ describe('JSON functions', () => {
         expect(bindings).to.be.eql([])
       })
     })
+
+    describe('with auto-coalesce feature', () => {
+      it("SELECT COALESCE(JSON_ARRAYAGG(JSON_OBJECT('sku', `sku`, 'price', `price`)), '[]') FROM `products`", () => {
+        const [sql, bindings] = builder
+          .from('products')
+          .column(
+            json_array_aggregate(json_object({ sku: 'sku', price: 'price' }), true)
+          )
+          .toSQL()
+        expect(sql).to.be.eql(
+          "SELECT\n  COALESCE(JSON_ARRAYAGG(JSON_OBJECT('sku', `sku`, 'price', `price`)), '[]')\nFROM\n  `products`"
+        )
+        expect(bindings).to.be.eql([])
+      })
+
+      it("SELECT COALESCE(JSON_ARRAYAGG(name), '[]') FROM `users`", () => {
+        const [sql, bindings] = builder
+          .from('users')
+          .column(json_array_aggregate(unescape('name'), true))
+          .toSQL()
+        expect(sql).to.be.eql("SELECT\n  COALESCE(JSON_ARRAYAGG(name), '[]')\nFROM\n  `users`")
+        expect(bindings).to.be.eql([])
+      })
+
+      it('Without auto-coalesce: SELECT JSON_ARRAYAGG(name) FROM `users`', () => {
+        const [sql, bindings] = builder
+          .from('users')
+          .column(json_array_aggregate(unescape('name')))
+          .toSQL()
+        expect(sql).to.be.eql('SELECT\n  JSON_ARRAYAGG(name)\nFROM\n  `users`')
+        expect(bindings).to.be.eql([])
+      })
+    })
+
+    describe('PostgreSQL auto-coalesce with json type casting', () => {
+      it("SELECT COALESCE(json_agg(json_build_object('sku', \"sku\", 'price', \"price\")), '[]'::json) FROM \"products\"", () => {
+        const [sql, bindings] = postgresqlBuilder
+          .from('products')
+          .column(
+            json_array_aggregate(json_object({ sku: 'sku', price: 'price' }), true)
+          )
+          .toSQL()
+        expect(sql).to.be.eql(
+          "SELECT\n  COALESCE(json_agg(json_build_object('sku', \"sku\", 'price', \"price\")), '[]'::json)\nFROM\n  \"products\""
+        )
+        expect(bindings).to.be.eql([])
+      })
+
+      it("SELECT COALESCE(json_agg(name), '[]'::json) FROM \"users\"", () => {
+        const [sql, bindings] = postgresqlBuilder
+          .from('users')
+          .column(json_array_aggregate(unescape('name'), true))
+          .toSQL()
+        expect(sql).to.be.eql("SELECT\n  COALESCE(json_agg(name), '[]'::json)\nFROM\n  \"users\"")
+        expect(bindings).to.be.eql([])
+      })
+    })
   })
 
   describe('coalesce() function', () => {

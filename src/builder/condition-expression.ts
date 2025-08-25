@@ -200,6 +200,10 @@ export class ConditionExpressionCoalesce extends AbstractConditionExpression {
       // For field names, use unescape() or FieldPort explicitly
       // Special handling for JSON literals: '[]' and '{}'
       if (arg === '[]' || arg === '{}') {
+        const { driver } = ensureToSQL(options)
+        if (driver === 'postgresql') {
+          return `'${arg}'::json`
+        }
         return `'${arg}'`
       }
       allBindings.push(arg as SQLBuilderBindingValue)
