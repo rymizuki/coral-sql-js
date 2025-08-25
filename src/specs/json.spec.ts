@@ -12,7 +12,7 @@ import {
 describe('JSON functions', () => {
   let builder: SQLBuilderPort
   beforeEach(() => {
-    builder = new SQLBuilder()
+    builder = new SQLBuilder() as unknown as SQLBuilderPort
   })
 
   describe('json_object() function', () => {
