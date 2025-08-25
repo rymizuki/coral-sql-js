@@ -1,9 +1,9 @@
 import { expect } from 'chai'
 import {
-  createBuilder,
   caseWhen,
   createConditions,
   unescape,
+  is_not_null,
   SQLBuilder,
   SQLBuilderPort
 } from '../../dist'
@@ -186,6 +186,23 @@ describe('caseWhen() function', () => {
         'SELECT\n  (CASE WHEN "status" = ? THEN ? ELSE ? END)\nFROM\n  "users"'
       )
       expect(bindings).to.be.eql(['active', 'Active', 'Inactive'])
+    })
+  })
+
+  describe('with is_not_null() and is_null() functions', () => {
+    it('Using is_not_null() as condition expression', () => {
+      const [sql, bindings] = builder
+        .from('users')
+        .column(
+          caseWhen()
+            .when('email', is_not_null()).then('Has Email')
+            .else('No Email')
+        )
+        .toSQL()
+      expect(sql).to.be.eql(
+        'SELECT\n  (CASE WHEN (`email` IS NOT NULL) THEN ? ELSE ? END)\nFROM\n  `users`'
+      )
+      expect(bindings).to.be.eql(['Has Email', 'No Email'])
     })
   })
 
