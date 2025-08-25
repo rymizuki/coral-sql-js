@@ -176,9 +176,9 @@ describe('SQLBuilder field support for subqueries', () => {
         .toSQL()
 
       expect(sql).to.be.eql(
-        'SELECT\n  `id`,\n  `name`\nFROM\n  `users`\nORDER BY\n  (SELECT COUNT(*)\nFROM\n  `orders`\nWHERE\n  (`user_id` = ?)) ASC'
+        'SELECT\n  `id`,\n  `name`\nFROM\n  `users`\nORDER BY\n  (SELECT COUNT(*)\nFROM\n  `orders`\nWHERE\n  (`user_id` = users.id)) ASC'
       )
-      expect(bindings).to.be.eql([unescape('users.id')])
+      expect(bindings).to.be.eql([])
     })
 
     it('simple subquery in ORDER BY descending', () => {
@@ -196,9 +196,9 @@ describe('SQLBuilder field support for subqueries', () => {
         .toSQL()
 
       expect(sql).to.be.eql(
-        'SELECT\n  `id`,\n  `name`\nFROM\n  `users`\nORDER BY\n  (SELECT MAX(created_at)\nFROM\n  `orders`\nWHERE\n  (`user_id` = ?)\n  AND (`status` = ?)) DESC'
+        'SELECT\n  `id`,\n  `name`\nFROM\n  `users`\nORDER BY\n  (SELECT MAX(created_at)\nFROM\n  `orders`\nWHERE\n  (`user_id` = users.id)\n  AND (`status` = ?)) DESC'
       )
-      expect(bindings).to.be.eql([unescape('users.id'), 'completed'])
+      expect(bindings).to.be.eql(['completed'])
     })
 
     it('multiple ORDER BY with mixed fields and subqueries', () => {
@@ -222,9 +222,9 @@ describe('SQLBuilder field support for subqueries', () => {
         .toSQL()
 
       expect(sql).to.be.eql(
-        'SELECT\n  `id`,\n  `name`\nFROM\n  `users`\nORDER BY\n  `name` ASC,\n  (SELECT COUNT(*)\nFROM\n  `orders`\nWHERE\n  (`user_id` = ?)) DESC,\n  (SELECT MAX(created_at)\nFROM\n  `orders`\nWHERE\n  (`user_id` = ?)) DESC'
+        'SELECT\n  `id`,\n  `name`\nFROM\n  `users`\nORDER BY\n  `name` ASC,\n  (SELECT COUNT(*)\nFROM\n  `orders`\nWHERE\n  (`user_id` = users.id)) DESC,\n  (SELECT MAX(created_at)\nFROM\n  `orders`\nWHERE\n  (`user_id` = users.id)) DESC'
       )
-      expect(bindings).to.be.eql([unescape('users.id'), unescape('users.id')])
+      expect(bindings).to.be.eql([])
     })
 
     it('complex subquery with joins in ORDER BY', () => {
@@ -246,9 +246,9 @@ describe('SQLBuilder field support for subqueries', () => {
         .toSQL()
 
       expect(sql).to.be.eql(
-        'SELECT\n  `id`,\n  `name`\nFROM\n  `users`\nWHERE\n  (`active` = ?)\nORDER BY\n  (SELECT AVG(oi.price * oi.quantity)\nFROM\n  `orders` AS `o`\nLEFT JOIN `order_items` AS `oi` ON oi.order_id = o.id\nWHERE\n  (`o`.`user_id` = ?)\n  AND (`o`.`status` = ?)\nGROUP BY\n  `o`.`user_id`) DESC\nLIMIT 10'
+        'SELECT\n  `id`,\n  `name`\nFROM\n  `users`\nWHERE\n  (`active` = ?)\nORDER BY\n  (SELECT AVG(oi.price * oi.quantity)\nFROM\n  `orders` AS `o`\nLEFT JOIN `order_items` AS `oi` ON oi.order_id = o.id\nWHERE\n  (`o`.`user_id` = users.id)\n  AND (`o`.`status` = ?)\nGROUP BY\n  `o`.`user_id`) DESC\nLIMIT 10'
       )
-      expect(bindings).to.be.eql([1, unescape('users.id'), 'completed'])
+      expect(bindings).to.be.eql([1, 'completed'])
     })
   })
 
@@ -268,9 +268,9 @@ describe('SQLBuilder field support for subqueries', () => {
         .toSQL()
 
       expect(sql).to.be.eql(
-        'SELECT\n  `id`,\n  `name`\nFROM\n  `users`\nWHERE\n  ((SELECT COUNT(*)\nFROM\n  `orders`\nWHERE\n  (`user_id` = ?)\n  AND (`status` = ?)) = ?)'
+        'SELECT\n  `id`,\n  `name`\nFROM\n  `users`\nWHERE\n  ((SELECT COUNT(*)\nFROM\n  `orders`\nWHERE\n  (`user_id` = users.id)\n  AND (`status` = ?)) = ?)'
       )
-      expect(bindings).to.be.eql([5, unescape('users.id'), 'completed'])
+      expect(bindings).to.be.eql([5, 'completed'])
     })
 
     it('subquery with comparison operator in WHERE', () => {
@@ -287,9 +287,9 @@ describe('SQLBuilder field support for subqueries', () => {
         .toSQL()
 
       expect(sql).to.be.eql(
-        'SELECT\n  `id`,\n  `name`\nFROM\n  `users`\nWHERE\n  ((SELECT AVG(amount)\nFROM\n  `orders`\nWHERE\n  (`user_id` = ?)) > ?)'
+        'SELECT\n  `id`,\n  `name`\nFROM\n  `users`\nWHERE\n  ((SELECT AVG(amount)\nFROM\n  `orders`\nWHERE\n  (`user_id` = users.id)) > ?)'
       )
-      expect(bindings).to.be.eql([100, unescape('users.id')])
+      expect(bindings).to.be.eql([100])
     })
 
     it('multiple subqueries in WHERE conditions', () => {
@@ -313,9 +313,9 @@ describe('SQLBuilder field support for subqueries', () => {
         .toSQL()
 
       expect(sql).to.be.eql(
-        'SELECT\n  `id`\nFROM\n  `users`\nWHERE\n  (`active` = ?)\n  AND ((SELECT COUNT(*)\nFROM\n  `orders`\nWHERE\n  (`user_id` = ?)) > ?)\n  AND ((SELECT AVG(amount)\nFROM\n  `orders`\nWHERE\n  (`user_id` = ?)\n  AND (`status` = ?)) >= ?)'
+        'SELECT\n  `id`\nFROM\n  `users`\nWHERE\n  (`active` = ?)\n  AND ((SELECT COUNT(*)\nFROM\n  `orders`\nWHERE\n  (`user_id` = users.id)) > ?)\n  AND ((SELECT AVG(amount)\nFROM\n  `orders`\nWHERE\n  (`user_id` = users.id)\n  AND (`status` = ?)) >= ?)'
       )
-      expect(bindings).to.be.eql([1, 0, unescape('users.id'), 50, unescape('users.id'), 'completed'])
+      expect(bindings).to.be.eql([1, 0, 50, 'completed'])
     })
 
     it('subquery with IN operator', () => {
@@ -332,9 +332,9 @@ describe('SQLBuilder field support for subqueries', () => {
         .toSQL()
 
       expect(sql).to.be.eql(
-        'SELECT\n  `id`,\n  `name`\nFROM\n  `users`\nWHERE\n  ((SELECT category_id\nFROM\n  `user_preferences`\nWHERE\n  (`user_id` = ?)) IN (?,?,?))'
+        'SELECT\n  `id`,\n  `name`\nFROM\n  `users`\nWHERE\n  ((SELECT category_id\nFROM\n  `user_preferences`\nWHERE\n  (`user_id` = users.id)) IN (?,?,?))'
       )
-      expect(bindings).to.be.eql([1, 2, 3, unescape('users.id')])
+      expect(bindings).to.be.eql([1, 2, 3])
     })
   })
 
@@ -371,9 +371,9 @@ describe('SQLBuilder field support for subqueries', () => {
         .toSQL()
 
       expect(sql).to.be.eql(
-        'SELECT\n  `id`,\n  `name`,\n  (SELECT COUNT(*)\nFROM\n  `orders`\nWHERE\n  (`user_id` = ?)) AS `total_orders`,\n  (SELECT AVG(amount)\nFROM\n  `orders`\nWHERE\n  (`user_id` = ?)\n  AND (`status` = ?)) AS `avg_order_amount`\nFROM\n  `users`\nWHERE\n  (`active` = ?)\nGROUP BY\n  `id`,(SELECT category\nFROM\n  `user_categories`\nWHERE\n  (`user_id` = ?))\nORDER BY\n  (SELECT COUNT(*)\nFROM\n  `orders`\nWHERE\n  (`user_id` = ?)) DESC,\n  `name` ASC\nLIMIT 20'
+        'SELECT\n  `id`,\n  `name`,\n  (SELECT COUNT(*)\nFROM\n  `orders`\nWHERE\n  (`user_id` = users.id)) AS `total_orders`,\n  (SELECT AVG(amount)\nFROM\n  `orders`\nWHERE\n  (`user_id` = users.id)\n  AND (`status` = ?)) AS `avg_order_amount`\nFROM\n  `users`\nWHERE\n  (`active` = ?)\nGROUP BY\n  `id`,(SELECT category\nFROM\n  `user_categories`\nWHERE\n  (`user_id` = users.id))\nORDER BY\n  (SELECT COUNT(*)\nFROM\n  `orders`\nWHERE\n  (`user_id` = users.id)) DESC,\n  `name` ASC\nLIMIT 20'
       )
-      expect(bindings).to.be.eql([unescape('users.id'), unescape('users.id'), 'completed', 1, unescape('users.id'), unescape('users.id')])
+      expect(bindings).to.be.eql(['completed', 1])
     })
   })
 })
