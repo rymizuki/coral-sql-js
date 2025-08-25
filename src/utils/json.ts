@@ -63,9 +63,16 @@ export const coalesce = (
  * @returns SQLBuilderConditionExpressionPort
  */
 export const json_array_aggregate = (
-  expression: SQLBuilderConditionExpressionPort | FieldPort
+  expression: SQLBuilderConditionExpressionPort | FieldPort,
+  autoCoalesce?: boolean
 ): SQLBuilderConditionExpressionPort => {
-  return new ConditionExpressionJsonArrayAggregate(expression)
+  const jsonAggregateExpression = new ConditionExpressionJsonArrayAggregate(expression)
+  
+  if (autoCoalesce) {
+    return new ConditionExpressionCoalesce(jsonAggregateExpression, '[]')
+  }
+  
+  return jsonAggregateExpression
 }
 
 /**
