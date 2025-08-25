@@ -36,7 +36,7 @@ export class Columns {
     }
     return this.rows
       .map(({ field, as }) => {
-        return `${indent}${field.getContent(options)}${
+        return `${indent}${field.getContent(ensureToSQL(options))}${
           as ? ' AS ' + escape(as, { quote: options?.quote }) : ''
         }`
       })

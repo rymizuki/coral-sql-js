@@ -1,3 +1,4 @@
+import { ensureToSQL } from '../options'
 import {
   FieldPort,
   SQLBuilderField,
@@ -30,6 +31,6 @@ export class Groups {
       return null
     }
 
-    return this.rows.map((field) => field.getContent(options)).join(',')
+    return this.rows.map((field) => field.getContent(ensureToSQL(options))).join(',')
   }
 }

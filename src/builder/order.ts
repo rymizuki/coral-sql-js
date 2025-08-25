@@ -1,3 +1,4 @@
+import { ensureToSQL } from '../options'
 import {
   FieldPort,
   SQLBuilderField,
@@ -29,7 +30,7 @@ export class Order {
   }
 
   toSQL(options?: SQLBuilderToSQLInputOptions): string {
-    return `${this.field.getContent(options)} ${this.createDirectionValue()}`
+    return `${this.field.getContent(ensureToSQL(options))} ${this.createDirectionValue()}`
   }
 
   private createDirectionValue() {
