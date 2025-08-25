@@ -202,39 +202,39 @@ describe('JSON functions', () => {
 
   describe('coalesce() function', () => {
     describe('basic usage', () => {
-      it('SELECT COALESCE(`description`, ?) FROM `items`', () => {
+      it('SELECT COALESCE(description, ?) FROM `items`', () => {
         const [sql, bindings] = builder
           .from('items')
-          .column(coalesce('description', 'No description'))
+          .column(coalesce(unescape('description'), 'No description'))
           .toSQL()
         expect(sql).to.be.eql(
-          'SELECT\n  COALESCE(`description`, ?)\nFROM\n  `items`'
+          'SELECT\n  COALESCE(description, ?)\nFROM\n  `items`'
         )
         expect(bindings).to.be.eql(['No description'])
       })
 
-      it('SELECT COALESCE(`description`, `short_desc`, `summary`, ?) FROM `items`', () => {
+      it('SELECT COALESCE(description, short_desc, summary, ?) FROM `items`', () => {
         const [sql, bindings] = builder
           .from('items')
           .column(
-            coalesce('description', 'short_desc', 'summary', 'No description')
+            coalesce(unescape('description'), unescape('short_desc'), unescape('summary'), 'No description')
           )
           .toSQL()
         expect(sql).to.be.eql(
-          'SELECT\n  COALESCE(`description`, `short_desc`, `summary`, ?)\nFROM\n  `items`'
+          'SELECT\n  COALESCE(description, short_desc, summary, ?)\nFROM\n  `items`'
         )
         expect(bindings).to.be.eql(['No description'])
       })
     })
 
     describe('with numeric defaults', () => {
-      it('SELECT COALESCE(`discount`, ?) FROM `products`', () => {
+      it('SELECT COALESCE(discount, ?) FROM `products`', () => {
         const [sql, bindings] = builder
           .from('products')
-          .column(coalesce('discount', 0))
+          .column(coalesce(unescape('discount'), 0))
           .toSQL()
         expect(sql).to.be.eql(
-          'SELECT\n  COALESCE(`discount`, ?)\nFROM\n  `products`'
+          'SELECT\n  COALESCE(discount, ?)\nFROM\n  `products`'
         )
         expect(bindings).to.be.eql([0])
       })

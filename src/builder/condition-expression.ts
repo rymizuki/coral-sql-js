@@ -199,14 +199,8 @@ export class ConditionExpressionCoalesce extends AbstractConditionExpression {
       if (arg && typeof arg === 'object' && 'getContent' in arg) {
         return (arg as FieldPort).getContent(options)
       }
-      // If it's a string that looks like a field name (contains . or only letters/numbers/underscores)
-      if (
-        typeof arg === 'string' &&
-        /^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)?$/.test(arg)
-      ) {
-        return escape(arg, { quote })
-      }
-      // Handle regular values
+      // Handle regular values (all strings are treated as literal values)
+      // For field names, use unescape() or FieldPort explicitly
       allBindings.push(arg as SQLBuilderBindingValue)
       return '?'
     })
