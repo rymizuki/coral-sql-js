@@ -72,7 +72,7 @@ describe('JSON functions', () => {
           )
           .toSQL()
         expect(sql).to.be.eql(
-          "SELECT\n  JSON_OBJECT('order_id', `o`.`id`, 'user_name', `u`.`name`, 'user_email', `u`.`email`)\nFROM\n  `orders` AS `o`\n  INNER JOIN `users` AS `u` ON `o`.`user_id` = `u`.`id`"
+          "SELECT\n  JSON_OBJECT('order_id', `o`.`id`, 'user_name', `u`.`name`, 'user_email', `u`.`email`)\nFROM\n  `orders` AS `o`\nINNER JOIN `users` AS `u` ON `o`.`user_id` = `u`.`id`"
         )
         expect(bindings).to.be.eql([])
       })
@@ -348,7 +348,7 @@ describe('JSON functions', () => {
           .groupBy('u.id')
           .toSQL()
         expect(sql).to.be.eql(
-          "SELECT\n  JSON_OBJECT('user_name', `u`.`name`, 'orders', COALESCE(JSON_ARRAYAGG(JSON_OBJECT('order_id', `o`.`id`, 'total', `o`.`total_amount`, 'date', `o`.`created_at`)), ?))\nFROM\n  `orders` AS `o`\n  INNER JOIN `users` AS `u` ON `o`.`user_id` = `u`.`id`\nGROUP BY\n  `u`.`id`"
+          "SELECT\n  JSON_OBJECT('user_name', `u`.`name`, 'orders', COALESCE(JSON_ARRAYAGG(JSON_OBJECT('order_id', `o`.`id`, 'total', `o`.`total_amount`, 'date', `o`.`created_at`)), ?))\nFROM\n  `orders` AS `o`\nINNER JOIN `users` AS `u` ON `o`.`user_id` = `u`.`id`\nGROUP BY\n  `u`.`id`"
         )
         expect(bindings).to.be.eql(['[]'])
       })
