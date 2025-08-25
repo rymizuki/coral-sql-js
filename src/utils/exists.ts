@@ -1,4 +1,7 @@
-import { ConditionExpressionExists, ConditionExpressionNotExists } from '../builder/condition-expression'
+import {
+  ConditionExpressionExists,
+  ConditionExpressionNotExists
+} from '../builder/condition-expression'
 import { SQLBuilderConditionExpressionPort, SQLBuilderPort } from '../types'
 
 /**
@@ -23,7 +26,9 @@ import { SQLBuilderConditionExpressionPort, SQLBuilderPort } from '../types'
  * @param subquery SQLBuilder instance for EXISTS subquery
  * @returns SQLBuilderConditionExpressionPort
  */
-export const exists = (subquery: SQLBuilderPort): SQLBuilderConditionExpressionPort => {
+export const exists = (
+  subquery: SQLBuilderPort
+): SQLBuilderConditionExpressionPort => {
   return new ConditionExpressionExists(subquery)
 }
 
@@ -47,6 +52,8 @@ export const exists = (subquery: SQLBuilderPort): SQLBuilderConditionExpressionP
  * @param subquery SQLBuilder instance for NOT EXISTS subquery
  * @returns SQLBuilderConditionExpressionPort
  */
-export const not_exists = (subquery: SQLBuilderPort): SQLBuilderConditionExpressionPort => {
+export const not_exists = (
+  subquery: SQLBuilderPort
+): SQLBuilderConditionExpressionPort => {
   return new ConditionExpressionNotExists(subquery)
 }

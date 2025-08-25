@@ -7,19 +7,23 @@ import {
   SQLBuilderField,
   SQLBuilderToSQLInputOptions
 } from '../types'
+import { isFieldPort, hasToSQLMethod } from '../utils/type-guards'
 import { Field } from './field'
 
 export class Condition implements SQLBuilderConditionPort {
   private field: FieldPort | SQLBuilderConditionExpressionPort
   private expr: SQLBuilderConditionExpressionPort | null
 
-  constructor(field: SQLBuilderField | SQLBuilderConditionExpressionPort, expr: SQLBuilderConditionExpressionPort | null) {
+  constructor(
+    field: SQLBuilderField | SQLBuilderConditionExpressionPort,
+    expr: SQLBuilderConditionExpressionPort | null
+  ) {
     if (typeof field === 'string') {
       this.field = new Field(field)
-    } else if ('getContent' in field) {
+    } else if (isFieldPort(field)) {
       // It's a FieldPort
       this.field = field
-    } else if ('toSQL' in field && typeof field.toSQL === 'function') {
+    } else if (hasToSQLMethod(field)) {
       // It's either SQLBuilderPort or SQLBuilderConditionExpressionPort
       this.field = field
     } else {
@@ -32,22 +36,24 @@ export class Condition implements SQLBuilderConditionPort {
     input?: SQLBuilderToSQLInputOptions
   ): [string, SQLBuilderBindingValue[]] {
     const options = ensureToSQL(input)
-    
+
     // Handle case where expr is null (standalone expression like EXISTS)
     if (this.expr === null) {
       // field must be an expression in this case
-      if ('toSQL' in this.field && typeof this.field.toSQL === 'function') {
+      if (hasToSQLMethod(this.field)) {
         const [field_sql] = this.field.toSQL(options)
         return [field_sql, options.bindings!.getBindParameters()]
       } else {
-        throw new Error('Invalid condition: field must be an expression when expr is null')
+        throw new Error(
+          'Invalid condition: field must be an expression when expr is null'
+        )
       }
     }
-    
+
     const [expr_sql] = this.expr.toSQL(options)
-    
+
     // Handle different field types
-    if ('getContent' in this.field) {
+    if (isFieldPort(this.field)) {
       // It's a FieldPort
       const sql = `(${this.field.getContent(options)} ${expr_sql})`
       return [sql, options.bindings!.getBindParameters()]

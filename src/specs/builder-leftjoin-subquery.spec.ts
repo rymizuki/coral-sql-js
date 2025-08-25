@@ -1,10 +1,5 @@
 import { expect } from 'chai'
-import {
-  createBuilder,
-  SQLBuilder,
-  SQLBuilderPort,
-  unescape
-} from '../../dist'
+import { createBuilder, SQLBuilder, SQLBuilderPort, unescape } from '../../dist'
 
 describe('builder leftJoin with subquery', () => {
   describe('no options', () => {
@@ -93,7 +88,7 @@ describe('builder leftJoin with subquery', () => {
             .from('users', 'u')
             .join('inner', subquery, 'o', 'o.user_id = u.id')
             .toSQL()
-          
+
           expect(sql).to.be.eql(
             'SELECT\n  *\nFROM\n  `users` AS `u`\nINNER JOIN (SELECT\n  `user_id`,\n  SUM(amount) AS `total_amount`\nFROM\n  `orders`\nGROUP BY\n  `user_id`) AS `o` ON o.user_id = u.id'
           )
@@ -124,7 +119,7 @@ describe('builder leftJoin with subquery', () => {
               'o.user_id = u.id'
             )
             .toSQL()
-          
+
           expect(sql).to.be.eql(
             'SELECT\n  *\nFROM\n  users AS u\nLEFT JOIN (SELECT\n  COUNT(*) AS order_count\nFROM\n  orders\nWHERE\n  (status = ?)\nGROUP BY\n  user_id) AS o ON o.user_id = u.id'
           )

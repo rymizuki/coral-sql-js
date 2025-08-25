@@ -2,7 +2,11 @@ export type SQLBuilderPrimitiveValue = string | number | boolean | Date
 export type SQLBuilderConditionValue =
   | SQLBuilderPrimitiveValue
   | SQLBuilderPrimitiveValue[]
-export type SQLBuilderField = string | FieldPort | SQLBuilderPort
+export type SQLBuilderField =
+  | string
+  | FieldPort
+  | SQLBuilderPort
+  | SQLBuilderConditionExpressionPort
 export type SQLBuilderConditionConjunction = 'and' | 'or'
 export type SQLBuilderConditionInputPattern =
   | [SQLBuilderConditionsPort]
@@ -393,10 +397,7 @@ export interface SQLBuilderPort {
     expression: SQLBuilderConditionExpressionPort,
     value: SQLBuilderConditionValue
   ): this
-  where(
-    expression: SQLBuilderConditionExpressionPort,
-    value: FieldPort
-  ): this
+  where(expression: SQLBuilderConditionExpressionPort, value: FieldPort): this
   /**
    * Specified having condition using conditions instance.
    *

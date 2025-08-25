@@ -5,6 +5,11 @@ import {
   SQLBuilderToSQLInputOptions
 } from '../types'
 import { escape } from '../utils/escape'
+import {
+  isFieldPort,
+  isSQLBuilderPort,
+  hasToSQLMethod
+} from '../utils/type-guards'
 import { Field } from './field'
 
 export class Columns {
@@ -14,17 +19,31 @@ export class Columns {
     let field: FieldPort
     if (typeof name === 'string') {
       field = new Field(name)
-    } else if ('getContent' in name) {
+    } else if (isFieldPort(name)) {
       field = name
-    } else {
-      // SQLBuilderPort の場合、サブクエリとして処理
+    } else if (hasToSQLMethod(name)) {
+      // SQLBuilderPort or SQLBuilderConditionExpressionPort の場合
       field = {
         getContent: (options) => {
-          // 親のbindingsオブジェクトを使用してsubqueryを実行
-          const [sql] = name.toSQL(options)
-          return `(${sql})`
+          if (isSQLBuilderPort(name)) {
+            // SQLBuilderPortの場合（サブクエリ）
+            // サブクエリの場合は、toSQL内部でbindingsが適切に処理されるので
+            // ここでは手動でbindingsを追加しない
+            const [sql] = name.toSQL(options)
+            return `(${sql})`
+          } else {
+            // SQLBuilderConditionExpressionPortの場合（JSON関数など）
+            // 独立した関数の場合はbindingsを手動で追加する必要がある
+            const [sql, bindings] = name.toSQL(options)
+            if (bindings && bindings.length > 0 && options?.bindings) {
+              bindings.forEach((binding) => options.bindings!.create(binding))
+            }
+            return sql
+          }
         }
       }
+    } else {
+      throw new Error('Invalid field type')
     }
     this.rows.push({ field, as })
   }

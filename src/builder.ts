@@ -56,14 +56,22 @@ export class SQLBuilder implements SQLBuilderPort {
     return this
   }
 
-  leftJoin(...args: [string, string] | [string, string, string] | [SQLBuilderPort, string, string]): this {
+  leftJoin(
+    ...args:
+      | [string, string]
+      | [string, string, string]
+      | [SQLBuilderPort, string, string]
+  ): this {
     this.join('left', ...args)
     return this
   }
 
   join(
     direction: SQLBuilderJoinDirection,
-    ...args: [string, string] | [string, string, string] | [SQLBuilderPort, string, string]
+    ...args:
+      | [string, string]
+      | [string, string, string]
+      | [SQLBuilderPort, string, string]
   ): this {
     this.joins.push(new Join(direction, ...args))
     return this
@@ -89,9 +97,16 @@ export class SQLBuilder implements SQLBuilderPort {
     }
     // 通常の条件の場合
     if (value !== undefined) {
-      this.conditions_having.and(conditionsOrField as SQLBuilderField, operatorOrValue, value)
+      this.conditions_having.and(
+        conditionsOrField as SQLBuilderField,
+        operatorOrValue,
+        value
+      )
     } else {
-      this.conditions_having.and(conditionsOrField as SQLBuilderField, operatorOrValue)
+      this.conditions_having.and(
+        conditionsOrField as SQLBuilderField,
+        operatorOrValue
+      )
     }
     return this
   }

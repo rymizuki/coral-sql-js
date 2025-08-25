@@ -1,5 +1,9 @@
 import { SQLBuilderToSQLInputOptions } from '..'
-import { SQLBuilderBindingValue, SQLBuilderJoinDirection, SQLBuilderPort } from '../types'
+import {
+  SQLBuilderBindingValue,
+  SQLBuilderJoinDirection,
+  SQLBuilderPort
+} from '../types'
 import { escape } from '../utils/escape'
 import { Table } from './table'
 
@@ -12,7 +16,10 @@ export class Join {
 
   constructor(
     direction: SQLBuilderJoinDirection,
-    ...args: [string, string] | [string, string, string] | [SQLBuilderPort, string, string]
+    ...args:
+      | [string, string]
+      | [string, string, string]
+      | [SQLBuilderPort, string, string]
   ) {
     this.direction = direction
 
@@ -43,7 +50,7 @@ export class Join {
   ): [string, SQLBuilderBindingValue[]] {
     let table_sql: string
     let bindings: SQLBuilderBindingValue[] = []
-    
+
     if (this.table) {
       table_sql = this.table.toSQL(options)
     } else if (this.subquery && this.alias) {
@@ -53,7 +60,7 @@ export class Join {
     } else {
       throw new Error('Invalid join configuration')
     }
-    
+
     const sql = [
       this.createDirection(this.direction),
       'JOIN',
