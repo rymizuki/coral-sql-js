@@ -137,7 +137,7 @@ export class SQLBuilder implements SQLBuilderPort {
     ]
       .filter((section) => section)
       .join('\n')
-    return [sql, options.bindings.getBindParameters()]
+    return [sql, options.bindings!.getBindParameters()]
   }
 
   private getSelect(options: SQLBuilderToSQLOptions) {

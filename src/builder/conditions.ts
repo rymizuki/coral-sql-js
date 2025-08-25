@@ -64,7 +64,7 @@ export class Conditions implements SQLBuilderConditionsPort {
       })
       .filter((section) => section)
       .join('\n')
-    return [output, options.bindings.getBindParameters()]
+    return [output, options.bindings!.getBindParameters()]
   }
 
   private createCondition(...args: SQLBuilderConditionInputPattern) {
