@@ -216,6 +216,32 @@ describe('JSON functions', () => {
         expect(bindings).to.be.eql([])
       })
 
+      it("New API with 'with_coalesce': SELECT COALESCE(JSON_ARRAYAGG(JSON_OBJECT('sku', `sku`, 'price', `price`)), '[]') FROM `products`", () => {
+        const [sql, bindings] = builder
+          .from('products')
+          .column(
+            json_array_aggregate(json_object({ sku: 'sku', price: 'price' }), 'with_coalesce')
+          )
+          .toSQL()
+        expect(sql).to.be.eql(
+          "SELECT\n  COALESCE(JSON_ARRAYAGG(JSON_OBJECT('sku', `sku`, 'price', `price`)), '[]')\nFROM\n  `products`"
+        )
+        expect(bindings).to.be.eql([])
+      })
+
+      it("New API with 'without_coalesce': SELECT JSON_ARRAYAGG(JSON_OBJECT('sku', `sku`, 'price', `price`)) FROM `products`", () => {
+        const [sql, bindings] = builder
+          .from('products')
+          .column(
+            json_array_aggregate(json_object({ sku: 'sku', price: 'price' }), 'without_coalesce')
+          )
+          .toSQL()
+        expect(sql).to.be.eql(
+          "SELECT\n  JSON_ARRAYAGG(JSON_OBJECT('sku', `sku`, 'price', `price`))\nFROM\n  `products`"
+        )
+        expect(bindings).to.be.eql([])
+      })
+
       it("SELECT COALESCE(JSON_ARRAYAGG(name), '[]') FROM `users`", () => {
         const [sql, bindings] = builder
           .from('users')
@@ -241,6 +267,19 @@ describe('JSON functions', () => {
           .from('products')
           .column(
             json_array_aggregate(json_object({ sku: 'sku', price: 'price' }), true)
+          )
+          .toSQL()
+        expect(sql).to.be.eql(
+          "SELECT\n  COALESCE(json_agg(json_build_object('sku', \"sku\", 'price', \"price\")), '[]'::json)\nFROM\n  \"products\""
+        )
+        expect(bindings).to.be.eql([])
+      })
+
+      it("New API with 'with_coalesce': SELECT COALESCE(json_agg(json_build_object('sku', \"sku\", 'price', \"price\")), '[]'::json) FROM \"products\"", () => {
+        const [sql, bindings] = postgresqlBuilder
+          .from('products')
+          .column(
+            json_array_aggregate(json_object({ sku: 'sku', price: 'price' }), 'with_coalesce')
           )
           .toSQL()
         expect(sql).to.be.eql(

@@ -7,7 +7,8 @@ import {
 import {
   FieldPort,
   SQLBuilderConditionExpressionPort,
-  SQLBuilderConditionValue
+  SQLBuilderConditionValue,
+  JsonArrayAggregateCoalesceOption
 } from '../types'
 
 /**
@@ -53,23 +54,51 @@ export const coalesce = (
  *   .from('orders')
  *   .column(
  *     json_array_aggregate(
- *       json_object({ id: 'id', total: 'total_amount' })
+ *       json_object({ id: 'id', total: 'total_amount' }),
+ *       'with_coalesce'
  *     )
  *   )
  *   .toSQL()
- * // sql: SELECT JSON_ARRAYAGG(JSON_OBJECT('id', `id`, 'total', `total_amount`)) FROM `orders`
+ * // sql: SELECT COALESCE(JSON_ARRAYAGG(JSON_OBJECT('id', `id`, 'total', `total_amount`)), '[]') FROM `orders`
  * ```
  *
  * @param expression Expression to aggregate
+ * @param coalesceOption Option to specify whether to wrap with COALESCE
  * @returns SQLBuilderConditionExpressionPort
  */
-export const json_array_aggregate = (
+export function json_array_aggregate(
   expression: SQLBuilderConditionExpressionPort | FieldPort,
-  autoCoalesce?: boolean
-): SQLBuilderConditionExpressionPort => {
+  coalesceOption: JsonArrayAggregateCoalesceOption
+): SQLBuilderConditionExpressionPort
+
+/**
+ * @deprecated Use string literal 'with_coalesce' | 'without_coalesce' instead of boolean
+ */
+export function json_array_aggregate(
+  expression: SQLBuilderConditionExpressionPort | FieldPort,
+  autoCoalesce: boolean
+): SQLBuilderConditionExpressionPort
+
+export function json_array_aggregate(
+  expression: SQLBuilderConditionExpressionPort | FieldPort
+): SQLBuilderConditionExpressionPort
+
+export function json_array_aggregate(
+  expression: SQLBuilderConditionExpressionPort | FieldPort,
+  coalesceOption?: JsonArrayAggregateCoalesceOption | boolean
+): SQLBuilderConditionExpressionPort {
   const jsonAggregateExpression = new ConditionExpressionJsonArrayAggregate(expression)
   
-  if (autoCoalesce) {
+  // Handle boolean for backward compatibility (deprecated)
+  if (typeof coalesceOption === 'boolean') {
+    if (coalesceOption) {
+      return new ConditionExpressionCoalesce(jsonAggregateExpression, '[]')
+    }
+    return jsonAggregateExpression
+  }
+  
+  // Handle string literal
+  if (coalesceOption === 'with_coalesce') {
     return new ConditionExpressionCoalesce(jsonAggregateExpression, '[]')
   }
   

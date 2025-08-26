@@ -45,6 +45,7 @@ export type SQLBuilderJoinDirection =
   | null
 
 export type SQLBuilderOrderDirection = 'asc' | 'desc'
+export type JsonArrayAggregateCoalesceOption = 'with_coalesce' | 'without_coalesce'
 export type SQLBuilderToSQLInputOptions = {
   placeholder?: '?' | '$'
   indent?: string
