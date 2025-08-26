@@ -1,5 +1,11 @@
 # coral-sql
 
+## 1.5.3
+
+### Patch Changes
+
+- fix export name case_when
+
 ## 1.5.2
 
 ### Patch Changes
