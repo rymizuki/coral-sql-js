@@ -23,7 +23,7 @@
     "format": "prettier . -w --check",
     "ncu": "ncu",
     "changeset": "changeset",
-    "version": "npm run lint && npm test && changeset version",
+    "version": "npm run lint && npm test && changeset version && npm install --package-lock-only",
     "publish": "changeset publish"
   },
   "keywords": [
