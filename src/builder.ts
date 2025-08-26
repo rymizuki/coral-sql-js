@@ -165,7 +165,7 @@ export class SQLBuilder implements SQLBuilderPort {
    * @param options Optional SQLBuilderToSQLInputOptions
    */
   createBuilder(options?: SQLBuilderToSQLInputOptions): SQLBuilderPort {
-    return new SQLBuilder(options)
+    return new SQLBuilder({ ...this.options, ...options })
   }
 
   /**
