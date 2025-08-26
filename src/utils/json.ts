@@ -104,12 +104,12 @@ export const json_object = (
  * Create CASE WHEN expression for conditional logic in SQL.
  *
  * ```typescript
- * import { createBuilder, caseWhen } from 'coral-sql'
+ * import { createBuilder, case_when } from 'coral-sql'
  *
  * const [sql, bindings] = createBuilder()
  *   .from('users')
  *   .column(
- *     caseWhen()
+ *     case_when()
  *       .when('status', '=', 'active').then('Active User')
  *       .when('status', '=', 'pending').then('Pending User')
  *       .else('Unknown Status'),
@@ -120,6 +120,6 @@ export const json_object = (
  *
  * @returns ConditionExpressionCaseWhen instance for chaining
  */
-export const caseWhen = (): ConditionExpressionCaseWhen => {
+export const case_when = (): ConditionExpressionCaseWhen => {
   return new ConditionExpressionCaseWhen()
 }

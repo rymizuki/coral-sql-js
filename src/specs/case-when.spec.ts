@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 import {
-  caseWhen,
+  case_when,
   createConditions,
   unescape,
   is_not_null,
@@ -8,7 +8,7 @@ import {
   SQLBuilderPort
 } from '../../dist'
 
-describe('caseWhen() function', () => {
+describe('case_when() function', () => {
   let builder: SQLBuilderPort
   let postgresqlBuilder: SQLBuilderPort
   
@@ -22,7 +22,7 @@ describe('caseWhen() function', () => {
       const [sql, bindings] = builder
         .from('users')
         .column(
-          caseWhen()
+          case_when()
             .when('status', '=', 'active').then('Active User')
             .else('Inactive User')
         )
@@ -37,7 +37,7 @@ describe('caseWhen() function', () => {
       const [sql, bindings] = builder
         .from('users')
         .column(
-          caseWhen()
+          case_when()
             .when('status', '=', 'active').then('Active')
             .when('status', '=', 'pending').then('Pending')
             .when('status', '=', 'suspended').then('Suspended')
@@ -56,7 +56,7 @@ describe('caseWhen() function', () => {
       const [sql, bindings] = builder
         .from('users', 'u')
         .column(
-          caseWhen()
+          case_when()
             .when('u.status', '=', 'active').then('Active')
             .else('Inactive')
         )
@@ -73,7 +73,7 @@ describe('caseWhen() function', () => {
       const [sql, bindings] = builder
         .from('orders')
         .column(
-          caseWhen()
+          case_when()
             .when('amount', '>', 1000).then('High Value')
             .when('amount', '>', 100).then('Medium Value')
             .else('Low Value')
@@ -89,7 +89,7 @@ describe('caseWhen() function', () => {
       const [sql, bindings] = builder
         .from('users')
         .column(
-          caseWhen()
+          case_when()
             .when('email', '=', null as any).then('No Email')
             .else('Has Email')
         )
@@ -104,7 +104,7 @@ describe('caseWhen() function', () => {
       const [sql, bindings] = builder
         .from('users')
         .column(
-          caseWhen()
+          case_when()
             .when('email', '!=', null as any).then('Has Email')
             .else('No Email')
         )
@@ -125,7 +125,7 @@ describe('caseWhen() function', () => {
       const [sql, bindings] = builder
         .from('users')
         .column(
-          caseWhen()
+          case_when()
             .when(conditions).then('Adult Active User')
             .else('Other')
         )
@@ -142,7 +142,7 @@ describe('caseWhen() function', () => {
       const [sql, bindings] = builder
         .from('users')
         .column(
-          caseWhen()
+          case_when()
             .when('status', '=', 'active').then(unescape('UPPER(name)'))
             .else('Unknown')
         )
@@ -159,7 +159,7 @@ describe('caseWhen() function', () => {
       const [sql, bindings] = builder
         .from('users')
         .column(
-          caseWhen()
+          case_when()
             .when('status', '=', 'active').then('Active')
             .else('Inactive'),
           'status_label'
@@ -177,7 +177,7 @@ describe('caseWhen() function', () => {
       const [sql, bindings] = postgresqlBuilder
         .from('users')
         .column(
-          caseWhen()
+          case_when()
             .when('status', '=', 'active').then('Active')
             .else('Inactive')
         )
@@ -194,7 +194,7 @@ describe('caseWhen() function', () => {
       const [sql, bindings] = builder
         .from('users')
         .column(
-          caseWhen()
+          case_when()
             .when('email', is_not_null()).then('Has Email')
             .else('No Email')
         )
@@ -209,13 +209,13 @@ describe('caseWhen() function', () => {
   describe('error handling', () => {
     it('Should throw error when then() called without when()', () => {
       expect(() => {
-        caseWhen().then('value')
+        case_when().then('value')
       }).to.throw('then() must be called after when()')
     })
 
     it('Should throw error when else() called with pending condition', () => {
       expect(() => {
-        caseWhen()
+        case_when()
           .when('status', '=', 'active')
           .else('Default')
       }).to.throw('Cannot call else() with pending when() condition. Call then() first.')
@@ -223,7 +223,7 @@ describe('caseWhen() function', () => {
 
     it('Should throw error when toSQL() called with incomplete condition', () => {
       expect(() => {
-        caseWhen()
+        case_when()
           .when('status', '=', 'active')
           .toSQL()
       }).to.throw('Incomplete case expression. Missing then() call.')
@@ -235,7 +235,7 @@ describe('caseWhen() function', () => {
       const [sql, bindings] = builder
         .from('users')
         .column(
-          caseWhen()
+          case_when()
             .when('status', '=', 'active').then('Active User')
         )
         .toSQL()
