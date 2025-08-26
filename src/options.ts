@@ -4,8 +4,8 @@ import { SQLBuilderToSQLInputOptions, SQLBuilderToSQLOptions } from './types'
 export const ensureToSQL = (
   input: SQLBuilderToSQLInputOptions = {}
 ): SQLBuilderToSQLOptions => {
-  const placeholder = input.placeholder ?? '?'
   const driver = input.driver ?? 'mysql'
+  const placeholder = input.placeholder ?? getDefaultPlaceholder(driver)
   const quote = input.quote ?? getDefaultQuote(driver)
   
   const defaults = {
@@ -23,6 +23,17 @@ export const ensureToSQL = (
   }
   
   return result
+}
+
+const getDefaultPlaceholder = (driver: 'mysql' | 'postgresql' | 'sqlite'): '?' | '$' => {
+  switch (driver) {
+    case 'postgresql':
+      return '$'
+    case 'mysql':
+    case 'sqlite':
+    default:
+      return '?'
+  }
 }
 
 const getDefaultQuote = (driver: 'mysql' | 'postgresql' | 'sqlite'): string => {

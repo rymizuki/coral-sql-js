@@ -923,6 +923,94 @@ describe('builder', () => {
     })
   })
 
+  describe('driver-dependent defaults', () => {
+    describe('PostgreSQL driver default placeholder', () => {
+      it('uses $ placeholder by default for PostgreSQL', () => {
+        const postgresqlBuilder = new SQLBuilder({ driver: 'postgresql' }) as unknown as SQLBuilderPort
+        const [sql, bindings] = postgresqlBuilder
+          .from('users')
+          .where('id', 1)
+          .toSQL()
+        expect(sql).to.be.eql(
+          'SELECT\n  *\nFROM\n  "users"\nWHERE\n  ("id" = $1)'
+        )
+        expect(bindings).to.be.eql([1])
+      })
+
+      it('uses $ placeholder by default for PostgreSQL with multiple conditions', () => {
+        const postgresqlBuilder = new SQLBuilder({ driver: 'postgresql' }) as unknown as SQLBuilderPort
+        const [sql, bindings] = postgresqlBuilder
+          .from('users')
+          .where('name', 'John')
+          .where('age', '>=', 18)
+          .toSQL()
+        expect(sql).to.be.eql(
+          'SELECT\n  *\nFROM\n  "users"\nWHERE\n  ("name" = $1)\n  AND ("age" >= $2)'
+        )
+        expect(bindings).to.be.eql(['John', 18])
+      })
+    })
+
+    describe('MySQL driver default placeholder', () => {
+      it('uses ? placeholder by default for MySQL', () => {
+        const mysqlBuilder = new SQLBuilder({ driver: 'mysql' }) as unknown as SQLBuilderPort
+        const [sql, bindings] = mysqlBuilder
+          .from('users')
+          .where('id', 1)
+          .toSQL()
+        expect(sql).to.be.eql(
+          'SELECT\n  *\nFROM\n  `users`\nWHERE\n  (`id` = ?)'
+        )
+        expect(bindings).to.be.eql([1])
+      })
+    })
+
+    describe('SQLite driver default placeholder', () => {
+      it('uses ? placeholder by default for SQLite', () => {
+        const sqliteBuilder = new SQLBuilder({ driver: 'sqlite' }) as unknown as SQLBuilderPort
+        const [sql, bindings] = sqliteBuilder
+          .from('users')
+          .where('id', 1)
+          .toSQL()
+        expect(sql).to.be.eql(
+          'SELECT\n  *\nFROM\n  `users`\nWHERE\n  (`id` = ?)'
+        )
+        expect(bindings).to.be.eql([1])
+      })
+    })
+
+    describe('default behavior without driver specified', () => {
+      it('uses ? placeholder by default (MySQL default)', () => {
+        const defaultBuilder = new SQLBuilder() as unknown as SQLBuilderPort
+        const [sql, bindings] = defaultBuilder
+          .from('users')
+          .where('id', 1)
+          .toSQL()
+        expect(sql).to.be.eql(
+          'SELECT\n  *\nFROM\n  `users`\nWHERE\n  (`id` = ?)'
+        )
+        expect(bindings).to.be.eql([1])
+      })
+    })
+
+    describe('explicit placeholder override', () => {
+      it('explicit placeholder setting overrides driver default', () => {
+        const postgresqlBuilder = new SQLBuilder({ 
+          driver: 'postgresql', 
+          placeholder: '?' 
+        }) as unknown as SQLBuilderPort
+        const [sql, bindings] = postgresqlBuilder
+          .from('users')
+          .where('id', 1)
+          .toSQL()
+        expect(sql).to.be.eql(
+          'SELECT\n  *\nFROM\n  "users"\nWHERE\n  ("id" = ?)'
+        )
+        expect(bindings).to.be.eql([1])
+      })
+    })
+  })
+
   describe('instance methods', () => {
     describe('.createBuilder()', () => {
       it('creates a new SQLBuilder instance', () => {
