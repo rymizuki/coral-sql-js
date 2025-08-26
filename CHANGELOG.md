@@ -1,5 +1,11 @@
 # coral-sql
 
+## 1.5.5
+
+### Patch Changes
+
+- ajust options for feature
+
 ## 1.5.4
 
 ### Patch Changes
