@@ -1,7 +1,6 @@
 import { expect } from 'chai'
 import {
   createBuilder,
-  caseWhen,
   coalesce,
   json_array_aggregate,
   json_object,
