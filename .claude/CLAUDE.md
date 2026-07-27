@@ -1,243 +1,149 @@
-# Coral SQL.js - Development Knowledge Base
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
 
-Coral SQL.js is a TypeScript-based SQL query builder that provides type-safe, fluent API for constructing SQL queries. The library supports complex query operations including joins, subqueries, and JSON functions.
+`coral-sql` is a dependency-free, TypeScript SQL query builder exposing a fluent API.
+`createBuilder()` is the entry point; `toSQL()` returns a `[sql, bindings]` tuple that is
+passed straight to a driver, e.g. `connection.query(sql, bindings)`.
 
-## Recent Major Changes (2025-08-25)
+```ts
+import { createBuilder, unescape } from 'coral-sql'
 
-### JSON Helper Functions Implementation
-
-#### Added Functions
-- **`COALESCE`**: Handles NULL values with fallback options
-- **`JSON_OBJECT`**: Creates JSON objects from key-value pairs
-- **`JSON_ARRAYAGG`**: Aggregates values into JSON arrays
-
-#### Usage Examples
-```typescript
-import { createBuilder, coalesce, json_object, json_array_aggregate } from 'coral-sql'
-
-// JSON Object creation
-const userQuery = createBuilder()
+const [sql, bindings] = createBuilder()
+  .columns('age')
+  .columns(unescape('COUNT(*)'), 'value')
   .from('users')
-  .column(json_object({ 
-    id: 'id', 
-    name: 'name', 
-    email: 'email' 
-  }))
-
-// Complex aggregation with COALESCE
-const orderSummary = createBuilder()
-  .from('users', 'u')
-  .leftJoin('orders', 'o', 'o.user_id = u.id')
-  .column(json_object({
-    user_name: 'u.name',
-    orders: coalesce(
-      json_array_aggregate(
-        json_object({ id: 'o.id', total: 'o.total_amount' })
-      ),
-      '[]'
-    )
-  }))
-  .groupBy('u.id')
+  .where('enabled', true)
+  .groupBy('age')
+  .having('value', '>=', 10)
+  .orderBy('value', 'desc')
+  .toSQL()
+// SELECT `age`, COUNT(*) AS `value` FROM `users` WHERE `enabled` = ? GROUP BY `age` HAVING `value` >= ? ORDER BY `value` DESC
+// bindings: [1, 10]
 ```
 
-### Type System Extensions
-
-#### SQLBuilderConditionExpressionPort Integration
-- Extended `SQLBuilderField` type to support condition expressions
-- Enhanced `Columns.add()` to handle both SQLBuilderPort and SQLBuilderConditionExpressionPort
-- Improved type safety across the codebase
-
-#### Key Type Definitions
-```typescript
-export type SQLBuilderField = string | FieldPort | SQLBuilderPort | SQLBuilderConditionExpressionPort
-```
-
-## Architecture Deep Dive
-
-### Binding Management System
-
-#### Core Components
-- **`Bindings` class**: Manages parameter binding and placeholder generation
-- **`ensureToSQL()` function**: Creates SQL options with binding context
-- **Parameter flow**: Values flow from conditions → bindings → final SQL
-
-#### Key Challenge: Subquery Binding Duplication
-**Problem**: When SQLBuilderPort subqueries are used in columns/groupBy/orderBy, bindings get duplicated because:
-1. Parent query creates bindings object via `ensureToSQL()`
-2. Subquery execution creates its own bindings
-3. Both binding sets get merged, causing duplication
-
-**Attempted Solutions**:
-1. Manual binding integration - partial success
-2. Shared binding context - improved but not perfect
-3. ensureToSQL() reuse logic - better binding management
-
-**Current Status**: Functional but with known binding duplication in complex scenarios
-
-### Code Organization
-
-#### Builder Pattern Implementation
-```
-SQLBuilder (main)
-├── Columns (SELECT fields)
-├── Conditions (WHERE/HAVING)
-├── Groups (GROUP BY)  
-├── Orders (ORDER BY)
-├── Joins (JOIN operations)
-└── Table (FROM clause)
-```
-
-#### Condition Expression Hierarchy
-```
-AbstractConditionExpression
-├── ConditionExpression (basic operations)
-├── ConditionExpressionNull (IS NULL/NOT NULL)
-├── ConditionExpressionExists (EXISTS/NOT EXISTS)
-├── ConditionExpressionCoalesce (COALESCE function)
-├── ConditionExpressionJsonObject (JSON_OBJECT function)
-└── ConditionExpressionJsonArrayAggregate (JSON_ARRAYAGG function)
-```
-
-## Implementation Patterns
-
-### Adding New SQL Functions
-
-1. **Create Expression Class**:
-```typescript
-export class ConditionExpressionMyFunction extends AbstractConditionExpression {
-  constructor(private args: MyFunctionArgs) {
-    super()
-  }
-  
-  toSQL(options?: SQLBuilderToSQLInputOptions): [string, SQLBuilderBindingValue[]] {
-    // Implementation
-  }
-}
-```
-
-2. **Export Helper Function**:
-```typescript
-export const myFunction = (args: MyFunctionArgs): SQLBuilderConditionExpressionPort => {
-  return new ConditionExpressionMyFunction(args)
-}
-```
-
-3. **Add to Index Exports**:
-```typescript
-export { myFunction } from './utils/my-function'
-```
-
-### Subquery Integration Best Practices
-
-#### When handling SQLBuilderPort in field contexts:
-```typescript
-field = {
-  getContent: (options) => {
-    // Use parent bindings context to prevent duplication
-    const [sql] = subquery.toSQL(options)
-    return `(${sql})`
-  }
-}
-```
-
-#### Key insight: 
-Always pass parent `options` to subquery `toSQL()` calls to maintain binding context consistency.
-
-## Testing Strategy
-
-### Test Structure
-- **Unit tests**: Individual function testing
-- **Integration tests**: Full query building scenarios  
-- **Edge cases**: Complex nested queries, binding management
-
-### Critical Test Areas
-1. **JSON function combinations**
-2. **Subquery binding management**
-3. **Type safety validation**
-4. **SQL output correctness**
+The published npm package name is `coral-sql` (the GitHub repository is `coral-sql-js`).
 
 ## Development Commands
 
+⚠️ **Tests import the build output, not the source.** Every spec does `from '../../dist'`
+(see `src/specs/*.spec.ts`), so **you must `npm run build` before `npm test`** or you will be
+testing a stale `dist/`. CI (`.github/workflows/main.yml`) runs `build` → `lint` → `test` in that order.
+
 ```bash
-# Build
-npm run build
-
-# Test
-npm test
-
-# Lint (includes TypeScript check)
-npm run lint
-
-# Format
-npm run format
+npm run build && npm test   # the reliable local loop — build first, always
 ```
 
-## Known Issues & Limitations
+- **`npm run build`** — `tsup` (`tsup.config.ts`). Emits ESM + CJS + `.d.ts` into `dist/`,
+  using `tsconfig.build.json` (which excludes `src/specs/**`).
+- **`npm test`** — Mocha + Chai + ts-node (`.mocharc.json`). Specs live in `src/specs/**/*.spec.ts`
+  and use Chai's `expect`. There is no Jest/Vitest.
+  - **Single test**: `npx mocha src/specs/<name>.spec.ts`, or add `.only()` to a `describe`/`it`.
+    (Still reads the built `dist/`, so build first.)
+- **`npm run lint`** — `eslint src/**/*.ts && tsc --noEmit`. Type checking is folded into lint;
+  there is no separate `typecheck` script.
+- **`npm run format`** — Prettier (`.prettierrc.js`: no semicolons, single quotes, no trailing commas).
 
-### 1. Subquery Binding Duplication
-- **Symptom**: Duplicate values in bindings array for complex subqueries
-- **Impact**: Functional but inefficient parameter binding
-- **Workaround**: Use unescape() for field references where appropriate
+Package manager: **npm** (`package-lock.json`). Node version is pinned in `.node-version` (`22.1.0`).
 
-### 2. Type Inference Limitations
-- **Issue**: Some complex nested queries may require explicit typing
-- **Solution**: Use type annotations when TypeScript inference fails
+Releases use Changesets: `npm run changeset` to record a change, `npm run version` to bump +
+regenerate CHANGELOG/lockfile, and a published GitHub Release triggers `publish.yml` → `changeset publish`.
 
-## Future Enhancement Opportunities
+## Architecture
 
-### 1. Additional JSON Functions
-- `JSON_EXTRACT`
-- `JSON_SET` 
-- `JSON_MERGE`
+The big picture lives across `src/index.ts`, `src/builder.ts`, and `src/options.ts`.
 
-### 2. Window Functions
-- `ROW_NUMBER()`
-- `RANK()`
-- `DENSE_RANK()`
+### Public contract vs. internals
 
-### 3. Binding Management Optimization
-- Implement binding deduplication
-- Cache subquery results
-- Optimize parameter placeholder generation
+`src/index.ts` is the only barrel. It re-exports **Port interfaces** (`XxxPort` types) and
+**factory functions** — `createBuilder`, `createConditions`, `unescape`, `exists`/`not_exists`,
+`is_null`/`is_not_null`, `case_when`, `coalesce`, `json_object`, `json_array_aggregate`.
+The implementation classes under `builder/` (`Columns`, `Table`, `Join`, `Condition`, …) are
+**not exported** — they are private. Interfaces are named `XxxPort` and live in `src/types.ts`
+(the single source of truth for all types); the implementing class drops the `Port` suffix
+(`FieldPort` ⇔ `Field`, `BindingsPort` ⇔ `Bindings`).
 
-## Debugging Tips
+### SQLBuilder is a composition hub (`src/builder.ts`)
 
-### Common Issues
+The constructor initializes one collection object per SQL clause — `Columns`, two `Conditions`
+(one for WHERE, one for HAVING — the **same class is reused** for both), `Groups`, `Orders`,
+`Join[]`, `Table`. Each fluent method (`column`/`from`/`join`/`where`/`having`/`groupBy`/`orderBy`)
+delegates to its collection and returns `this` to chain. `toSQL()` just calls each clause's
+`toSQL()`, drops the `null` sections, and `join('\n')`s them.
 
-1. **"Missing support for operator"**:
-   - Check if operator is defined in `ConditionExpression.createOperator()`
-   - Verify operator type in `SQLBuilderOperator`
+### Option propagation via `ensureToSQL()` (`src/options.ts`) — the crux of the design
 
-2. **Binding count mismatch**:
-   - Debug with standalone subquery testing
-   - Check `ensureToSQL()` binding context
-   - Verify field reference vs parameter binding
+`ensureToSQL()` normalizes `SQLBuilderToSQLInputOptions` (partial, user-facing) into a resolved
+`SQLBuilderToSQLOptions`. **Every** `toSQL()` implementation calls it first. Crucially, a **single
+`bindings` instance is threaded through the whole tree via the shared `options` object** — child
+components never create their own `Bindings`, they push onto `options.bindings`. This is what keeps
+bind-parameter order consistent across nested subqueries and expressions. If `input.bindings`
+already exists, `ensureToSQL()` reuses it rather than allocating a new one.
 
-3. **Type errors with new functions**:
-   - Ensure proper export in `index.ts`
-   - Check `SQLBuilderConditionExpressionPort` implementation
-   - Verify type imports in consuming code
+### Driver-dependent dialect differences (a common gotcha)
 
-### Debugging Commands
-```bash
-# Test specific functionality
-npm test -- --grep "your-test-pattern"
+`driver: 'mysql' | 'postgresql' | 'sqlite'` (default `mysql`) changes generated SQL. This is
+confined to two places:
 
-# Debug binding issues
-node -e "const {createBuilder} = require('./dist'); console.log(builder.toSQL())"
+- `src/options.ts`: `getDefaultPlaceholder` (postgresql → `$N` numbered, mysql/sqlite → `?`) and
+  `getDefaultQuote` (postgresql → `"`, others → `` ` ``). Driver is resolved **before** placeholder
+  so the placeholder default can depend on it.
+- Each `ConditionExpression*.toSQL()`: `JSON_ARRAYAGG` vs `json_agg`, `JSON_OBJECT` vs
+  `json_build_object`, and a `::json` cast on `coalesce('[]' | '{}')` for postgresql.
+
+An explicit `placeholder`/`quote` in options always wins over the driver default.
+
+### Duck-typed field normalization
+
+A field may be a `string`, `FieldPort`, `SQLBuilderPort` (a nested builder → subquery), or
+`SQLBuilderConditionExpressionPort`. Each component runs the same guard sequence from
+`src/utils/type-guards.ts` and normalizes to a `FieldPort`-compatible object.
+
+### Condition expression hierarchy (`src/builder/condition-expression.ts`)
+
+```
+Conditions (AND/OR set)
+  └─ Condition (field + expr)
+       └─ AbstractConditionExpression
+            ├─ ConditionExpression (operators: =, in, between, like, …)
+            ├─ ConditionExpressionNull / Exists / NotExists
+            ├─ ConditionExpressionCoalesce
+            ├─ ConditionExpressionJsonObject / JsonArrayAggregate
+            └─ ConditionExpressionCaseWhen
 ```
 
-## Contributing Guidelines
+`case_when` is the exception: it has its own `when()`/`then()`/`else()` fluent API, and embeds
+THEN/ELSE values **directly into the SQL string** rather than as placeholders.
 
-1. **Follow existing patterns** - Study similar implementations
-2. **Add comprehensive tests** - Cover edge cases and integrations
-3. **Update type definitions** - Maintain type safety
-4. **Document new features** - Include usage examples
-5. **Test with complex scenarios** - Verify binding management works correctly
+### Directory responsibilities
 
----
+- `src/builder/` — one class per SQL clause / expression.
+- `src/utils/` — thin public factory functions wrapping the `builder/` classes
+  (e.g. `utils/json.ts` → `coalesce`/`json_object`/`json_array_aggregate`/`case_when`).
+- `src/types.ts` — all Port interfaces and types.
+- `src/specs/` — Mocha specs.
 
-*Last updated: 2025-08-25*
-*Contributors: Claude Code Assistant*
+## Adding a New SQL Function
+
+1. Add the implementation class to `src/builder/condition-expression.ts`, extending
+   `AbstractConditionExpression`.
+2. Add a thin public factory to the matching `src/utils/*.ts` (JSON helpers go in `utils/json.ts`).
+3. Re-export it from `src/index.ts`.
+4. If it needs dialect differences, branch on `options.driver` inside `toSQL()` — the existing
+   JSON functions are the template.
+
+## Known Issue: Subquery Binding Duplication
+
+Using a `SQLBuilderPort` subquery inside `columns`/`groupBy`/`orderBy` can duplicate bindings.
+Always pass the parent `options` (i.e. the same `bindings` instance) into a subquery's `toSQL()`.
+`Columns.add()`'s expression branch has a workaround that manually merges the returned bindings
+back into the parent.
+
+## Debugging
+
+- **"Missing support for operator"** — check `ConditionExpression.createOperator()` and the
+  `SQLBuilderOperator` type in `src/types.ts`.
+- **Binding count mismatch** — verify subquery `toSQL()` receives the parent `options.bindings`
+  (see the known issue above).
