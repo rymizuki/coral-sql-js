@@ -12,17 +12,33 @@ passed straight to a driver, e.g. `connection.query(sql, bindings)`.
 import { createBuilder, unescape } from 'coral-sql'
 
 const [sql, bindings] = createBuilder()
-  .columns('age')
-  .columns(unescape('COUNT(*)'), 'value')
+  .column('age')
+  .column(unescape('COUNT(*)'), 'value')
   .from('users')
   .where('enabled', true)
   .groupBy('age')
   .having('value', '>=', 10)
   .orderBy('value', 'desc')
   .toSQL()
-// SELECT `age`, COUNT(*) AS `value` FROM `users` WHERE `enabled` = ? GROUP BY `age` HAVING `value` >= ? ORDER BY `value` DESC
+// sql (formatted, WHERE/HAVING conditions are parenthesized):
+//   SELECT
+//     `age`,
+//     COUNT(*) AS `value`
+//   FROM
+//     `users`
+//   WHERE
+//     (`enabled` = ?)
+//   GROUP BY
+//     `age`
+//   HAVING
+//     (`value` >= ?)
+//   ORDER BY
+//     `value` DESC
 // bindings: [1, 10]
 ```
+
+The method is `.column()` (singular). Output is multi-line and WHERE/HAVING conditions are
+wrapped in parentheses — see `src/specs/builder.spec.ts` for the exact expected strings.
 
 The published npm package name is `coral-sql` (the GitHub repository is `coral-sql-js`).
 
@@ -57,13 +73,16 @@ The big picture lives across `src/index.ts`, `src/builder.ts`, and `src/options.
 
 ### Public contract vs. internals
 
-`src/index.ts` is the only barrel. It re-exports **Port interfaces** (`XxxPort` types) and
-**factory functions** — `createBuilder`, `createConditions`, `unescape`, `exists`/`not_exists`,
-`is_null`/`is_not_null`, `case_when`, `coalesce`, `json_object`, `json_array_aggregate`.
-The implementation classes under `builder/` (`Columns`, `Table`, `Join`, `Condition`, …) are
-**not exported** — they are private. Interfaces are named `XxxPort` and live in `src/types.ts`
-(the single source of truth for all types); the implementing class drops the `Port` suffix
-(`FieldPort` ⇔ `Field`, `BindingsPort` ⇔ `Bindings`).
+`src/index.ts` is the only barrel. It re-exports:
+
+- **Factory functions** — `createBuilder`, `createConditions`, `unescape`, `exists`/`not_exists`,
+  `is_null`/`is_not_null`, `case_when`, `coalesce`, `json_object`, `json_array_aggregate`.
+- **A few implementation classes** — `Field`, `Condition` (as `SQLBuilderCondition`), and
+  `Conditions` (as `SQLBuilderConditions`) are part of the public surface. Most clause classes
+  (`Columns`, `Table`, `Join`, `Groups`, `Orders`, …) stay private.
+- **Port interfaces** (`XxxPort` types) from `src/types.ts`, the single source of truth for all
+  types. A `Port` interface and its implementing class share a name minus the suffix
+  (`FieldPort` ⇔ `Field`, `BindingsPort` ⇔ `Bindings`).
 
 ### SQLBuilder is a composition hub (`src/builder.ts`)
 
@@ -76,11 +95,16 @@ delegates to its collection and returns `this` to chain. `toSQL()` just calls ea
 ### Option propagation via `ensureToSQL()` (`src/options.ts`) — the crux of the design
 
 `ensureToSQL()` normalizes `SQLBuilderToSQLInputOptions` (partial, user-facing) into a resolved
-`SQLBuilderToSQLOptions`. **Every** `toSQL()` implementation calls it first. Crucially, a **single
-`bindings` instance is threaded through the whole tree via the shared `options` object** — child
-components never create their own `Bindings`, they push onto `options.bindings`. This is what keeps
-bind-parameter order consistent across nested subqueries and expressions. If `input.bindings`
-already exists, `ensureToSQL()` reuses it rather than allocating a new one.
+`SQLBuilderToSQLOptions`. Most `toSQL()` implementations call it first to pull out the resolved
+`bindings`/`driver`/`quote`. Some pure pass-through nodes do **not** call it and just forward the
+raw `options` downstream — `Table.toSQL()`, `Join.toSQL()`, and the `EXISTS`/`NOT EXISTS`
+expressions (`src/builder/condition-expression.ts`) delegate straight to the subquery/`escape()`.
+
+Crucially, a **single `bindings` instance is threaded through the whole tree via the shared
+`options` object** — child components never create their own `Bindings`, they push onto
+`options.bindings`. This is what keeps bind-parameter order consistent across nested subqueries
+and expressions. `new Bindings` appears in exactly one place (`src/options.ts`); if
+`input.bindings` already exists, `ensureToSQL()` reuses it rather than allocating a new one.
 
 ### Driver-dependent dialect differences (a common gotcha)
 
