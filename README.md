@@ -18,11 +18,11 @@ The nodejs module for building SQL by complec and related like coral.
 ## Usage
 
 ```ts
-import { createBuilder } from 'coral-sql'
+import { createBuilder, unescape } from 'coral-sql'
 
 const [sql, bindings] = createBuilder()
-  .columns('age')
-  .columns(unescape('COUNT(*)'), 'value')
+  .column('age')
+  .column(unescape('COUNT(*)'), 'value')
   .from('users')
   .where('enabled', true)
   .groupBy('age')
@@ -31,8 +31,22 @@ const [sql, bindings] = createBuilder()
   .toSQL()
 
 const query = await connection.query(sql, bindings)
-// SELECT `age`, COUNT(*) AS `value` FROM `users` WHERE `enabled` = ? GROUP BY `age` HAVING `value` >= ? ORDER BY `value` DESC
-// [1, 10]
+
+// sql:
+//   SELECT
+//     `age`,
+//     COUNT(*) AS `value`
+//   FROM
+//     `users`
+//   WHERE
+//     (`enabled` = ?)
+//   GROUP BY
+//     `age`
+//   HAVING
+//     (`value` >= ?)
+//   ORDER BY
+//     `value` DESC
+// bindings: [1, 10]
 ```
 
 ## Documentation
