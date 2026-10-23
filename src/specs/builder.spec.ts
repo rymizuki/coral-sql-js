@@ -386,12 +386,17 @@ describe('builder', () => {
         expect(() => builder.limit(0)).not.to.throw()
       })
 
+      it('accepts Number.MAX_SAFE_INTEGER', () => {
+        expect(() => builder.limit(Number.MAX_SAFE_INTEGER)).not.to.throw()
+      })
+
       const invalid_values: [string, unknown][] = [
         ['a string', '1; DROP TABLE users'],
         ['a negative number', -1],
         ['a fraction', 1.5],
         ['NaN', NaN],
-        ['Infinity', Infinity]
+        ['Infinity', Infinity],
+        ['an unsafe integer', 2 ** 53]
       ]
       invalid_values.forEach(([name, value]) => {
         it(`throws for ${name}`, () => {
@@ -413,12 +418,17 @@ describe('builder', () => {
         expect(() => builder.offset(0)).not.to.throw()
       })
 
+      it('accepts Number.MAX_SAFE_INTEGER', () => {
+        expect(() => builder.offset(Number.MAX_SAFE_INTEGER)).not.to.throw()
+      })
+
       const invalid_values: [string, unknown][] = [
         ['a string', '1; DROP TABLE users'],
         ['a negative number', -1],
         ['a fraction', 1.5],
         ['NaN', NaN],
-        ['Infinity', Infinity]
+        ['Infinity', Infinity],
+        ['an unsafe integer', 2 ** 53]
       ]
       invalid_values.forEach(([name, value]) => {
         it(`throws for ${name}`, () => {

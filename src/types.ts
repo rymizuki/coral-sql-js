@@ -477,6 +477,7 @@ export interface SQLBuilderPort {
    * ```
    *
    * @param value
+   * @throws {Error} when value is not a non-negative safe integer
    */
   limit(value: number): SQLBuilderPort
   /**
@@ -487,6 +488,7 @@ export interface SQLBuilderPort {
    * ```
    *
    * @param value
+   * @throws {Error} when value is not a non-negative safe integer
    */
   offset(value: number): SQLBuilderPort
   /**
