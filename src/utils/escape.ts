@@ -1,5 +1,6 @@
 import { Field } from '../builder/field'
-import { FieldPort } from '../types'
+import { RawSQL } from '../builder/raw-sql'
+import { FieldPort, RawSQLPort } from '../types'
 
 /**
  * Mark the field not to be escaped.
@@ -18,10 +19,10 @@ import { FieldPort } from '../types'
  * ```
  *
  * @param field field's name. (e.g.) COUNT(*)
- * @returns FieldPort
+ * @returns RawSQLPort
  */
-export const unescape = (field: string): FieldPort => {
-  return new Field(field, true)
+export const unescape = (field: string): RawSQLPort => {
+  return new RawSQL(field)
 }
 
 /**

@@ -4,6 +4,7 @@ import {
   column_ref,
   createBuilder,
   createConditions,
+  Field,
   unescape
 } from '../../dist'
 
@@ -66,7 +67,11 @@ describe('join conditions', () => {
     })
   })
 
-  describe('FieldPort condition', () => {
+  describe('unescape() condition', () => {
+    it('returns a Field instance', () => {
+      expect(unescape('x')).to.be.instanceOf(Field)
+    })
+
     it('writes unescape() as raw SQL', () => {
       const [sql, bindings] = createBuilder()
         .from('users', 'u')

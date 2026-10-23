@@ -15,7 +15,8 @@ import {
   SQLBuilderOperator,
   SQLBuilderOrderDirection,
   SQLBuilderPort,
-  SQLBuilderToSQLInputOptions
+  SQLBuilderToSQLInputOptions,
+  RawSQLPort
 } from './types'
 import { column_ref, unescape } from './utils/escape'
 import { exists, not_exists } from './utils/exists'
@@ -34,6 +35,7 @@ export {
   json_array_aggregate,
   json_object,
   not_exists,
+  RawSQLPort,
   SQLBuilder,
   SQLBuilderBindingValue,
   SQLBuilderCondition,

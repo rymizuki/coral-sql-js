@@ -47,7 +47,7 @@ export type SQLBuilderJoinDirection =
 export type SQLBuilderJoinCondition =
   | string
   | SQLBuilderConditionsPort
-  | FieldPort
+  | RawSQLPort
 
 export type SQLBuilderOrderDirection = 'asc' | 'desc'
 export type JsonArrayAggregateCoalesceOption = 'with_coalesce' | 'without_coalesce'
@@ -74,6 +74,13 @@ export interface FieldPort {
    * @return string
    */
   getContent(options?: SQLBuilderToSQLInputOptions): string
+}
+
+/**
+ * Raw SQL fragment returned by unescape(). It is written as-is without escaping.
+ */
+export interface RawSQLPort extends FieldPort {
+  readonly kind: 'raw_sql'
 }
 
 export interface BindingsPort {
@@ -233,7 +240,7 @@ export interface SQLBuilderPort {
    */
   leftJoin(
     table_name: string,
-    condition: SQLBuilderConditionsPort | FieldPort
+    condition: SQLBuilderConditionsPort | RawSQLPort
   ): SQLBuilderPort
   /**
    * Sepcified left join
@@ -266,7 +273,7 @@ export interface SQLBuilderPort {
   leftJoin(
     subquery: SQLBuilderPort,
     as: string,
-    condition: SQLBuilderConditionsPort | FieldPort
+    condition: SQLBuilderConditionsPort | RawSQLPort
   ): SQLBuilderPort
   /**
    * Specified left join with SQLBuilder subquery
@@ -301,7 +308,7 @@ export interface SQLBuilderPort {
   leftJoin(
     table_name: string,
     as: string,
-    condition: SQLBuilderConditionsPort | FieldPort
+    condition: SQLBuilderConditionsPort | RawSQLPort
   ): SQLBuilderPort
   /**
    * Specified left join with table alias.
@@ -327,7 +334,7 @@ export interface SQLBuilderPort {
   join(
     direction: SQLBuilderJoinDirection,
     table_name: string,
-    condition: SQLBuilderConditionsPort | FieldPort
+    condition: SQLBuilderConditionsPort | RawSQLPort
   ): SQLBuilderPort
   /**
    * Specified join.
@@ -355,7 +362,7 @@ export interface SQLBuilderPort {
     direction: SQLBuilderJoinDirection,
     table_name: string,
     as: string,
-    condition: SQLBuilderConditionsPort | FieldPort
+    condition: SQLBuilderConditionsPort | RawSQLPort
   ): SQLBuilderPort
   /**
    * Specified join with direction.
@@ -385,7 +392,7 @@ export interface SQLBuilderPort {
     direction: SQLBuilderJoinDirection,
     subquery: SQLBuilderPort,
     as: string,
-    condition: SQLBuilderConditionsPort | FieldPort
+    condition: SQLBuilderConditionsPort | RawSQLPort
   ): SQLBuilderPort
   /**
    * Specified join with SQLBuilder subquery.

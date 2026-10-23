@@ -18,7 +18,8 @@ import {
   SQLBuilderJoinDirection,
   SQLBuilderConditionValue,
   SQLBuilderOperator,
-  FieldPort
+  FieldPort,
+  RawSQLPort
 } from './types'
 
 export class SQLBuilder implements SQLBuilderPort {
@@ -62,7 +63,7 @@ export class SQLBuilder implements SQLBuilderPort {
 
   leftJoin(
     table_name: string,
-    condition: SQLBuilderConditionsPort | FieldPort
+    condition: SQLBuilderConditionsPort | RawSQLPort
   ): SQLBuilderPort
   /**
    * @deprecated Pass createConditions() (use column_ref() for column references) or unescape() for raw SQL. String conditions will require unescape() in the next major version.
@@ -71,7 +72,7 @@ export class SQLBuilder implements SQLBuilderPort {
   leftJoin(
     subquery: SQLBuilderPort,
     as: string,
-    condition: SQLBuilderConditionsPort | FieldPort
+    condition: SQLBuilderConditionsPort | RawSQLPort
   ): SQLBuilderPort
   /**
    * @deprecated Pass createConditions() (use column_ref() for column references) or unescape() for raw SQL. String conditions will require unescape() in the next major version.
@@ -84,7 +85,7 @@ export class SQLBuilder implements SQLBuilderPort {
   leftJoin(
     table_name: string,
     as: string,
-    condition: SQLBuilderConditionsPort | FieldPort
+    condition: SQLBuilderConditionsPort | RawSQLPort
   ): SQLBuilderPort
   /**
    * @deprecated Pass createConditions() (use column_ref() for column references) or unescape() for raw SQL. String conditions will require unescape() in the next major version.
@@ -103,7 +104,7 @@ export class SQLBuilder implements SQLBuilderPort {
   join(
     direction: SQLBuilderJoinDirection,
     table_name: string,
-    condition: SQLBuilderConditionsPort | FieldPort
+    condition: SQLBuilderConditionsPort | RawSQLPort
   ): SQLBuilderPort
   /**
    * @deprecated Pass createConditions() (use column_ref() for column references) or unescape() for raw SQL. String conditions will require unescape() in the next major version.
@@ -117,7 +118,7 @@ export class SQLBuilder implements SQLBuilderPort {
     direction: SQLBuilderJoinDirection,
     table_name: string,
     as: string,
-    condition: SQLBuilderConditionsPort | FieldPort
+    condition: SQLBuilderConditionsPort | RawSQLPort
   ): SQLBuilderPort
   /**
    * @deprecated Pass createConditions() (use column_ref() for column references) or unescape() for raw SQL. String conditions will require unescape() in the next major version.
@@ -132,7 +133,7 @@ export class SQLBuilder implements SQLBuilderPort {
     direction: SQLBuilderJoinDirection,
     subquery: SQLBuilderPort,
     as: string,
-    condition: SQLBuilderConditionsPort | FieldPort
+    condition: SQLBuilderConditionsPort | RawSQLPort
   ): SQLBuilderPort
   /**
    * @deprecated Pass createConditions() (use column_ref() for column references) or unescape() for raw SQL. String conditions will require unescape() in the next major version.
