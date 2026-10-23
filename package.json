@@ -23,8 +23,8 @@
     "format": "prettier . -w --check",
     "ncu": "ncu",
     "changeset": "changeset",
-    "version": "npm run lint && npm test && changeset version && npm install --package-lock-only",
-    "publish": "changeset publish"
+    "version-packages": "npm run lint && npm test && changeset version && npm install --package-lock-only",
+    "release": "changeset publish"
   },
   "keywords": [
     "sql",
@@ -32,6 +32,10 @@
   ],
   "author": "mizuki_r <ry.mizuki@gmail.com>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rymizuki/coral-sql-js.git"
+  },
   "devDependencies": {
     "@changesets/cli": "^2.27.10",
     "@eslint/js": "^9.16.0",

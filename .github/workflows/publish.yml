@@ -5,18 +5,23 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
           registry-url: 'https://registry.npmjs.org'
+      - run: npm install -g npm@11.21.1
       - run: npm ci
       - run: npm run build
       - name: Publish to npm
         run: |
           set -o pipefail
-          if npm run publish 2>&1 | tee publish.log; then
+          npm --version
+          if npm run release 2>&1 | tee publish.log; then
             if grep -q "No unpublished projects to publish" publish.log; then
               echo "::warning::No unpublished version found, skipping..."
             else
@@ -28,7 +33,9 @@ jobs:
             echo "::warning::Package version already published, skipping..."
             exit 0
           fi
+          if grep -q "Cannot publish over previously staged version" publish.log; then
+            echo "::error::Version is staged on npm but not confirmed as published; check it with npm view"
+            exit 1
+          fi
           echo "::error::Publish failed with unexpected error"
           exit 1
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

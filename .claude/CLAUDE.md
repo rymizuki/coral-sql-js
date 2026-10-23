@@ -62,10 +62,12 @@ npm run build && npm test   # the reliable local loop — build first, always
   there is no separate `typecheck` script.
 - **`npm run format`** — Prettier (`.prettierrc.js`: no semicolons, single quotes, no trailing commas).
 
-Package manager: **npm** (`package-lock.json`). Node version is pinned in `.node-version` (`22.1.0`).
+Package manager: **npm** (`package-lock.json`). Node version is pinned in `.node-version` (`22.23.4`).
 
-Releases use Changesets: `npm run changeset` to record a change, `npm run version` to bump +
-regenerate CHANGELOG/lockfile, and a published GitHub Release triggers `publish.yml` → `changeset publish`.
+Releases use Changesets: `npm run changeset` to record a change, `npm run version-packages` to bump +
+regenerate CHANGELOG/lockfile, and a published GitHub Release triggers `publish.yml` → `npm run release` (`changeset publish`), authenticated
+via npm Trusted Publishing (OIDC) — no `NPM_TOKEN`. Do not name scripts after npm lifecycle events
+(`publish`, `version`, …): npm runs them implicitly, e.g. a `publish` script re-runs after `npm publish`.
 
 ## Architecture
 
