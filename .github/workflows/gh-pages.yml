@@ -1,4 +1,4 @@
-name: GitBub pages
+name: GitHub Pages
 
 on:
   workflow_run:
@@ -7,36 +7,64 @@ on:
     types:
       - completed
 
+concurrency:
+  group: gh-pages
+  cancel-in-progress: false
+
 jobs:
-  deploy:
+  check-tip:
     if: >-
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-latest
     permissions:
+      contents: read
+    outputs:
+      is-tip: ${{ steps.tip.outputs.is-tip }}
+
+    steps:
+      - name: Check the tested commit is still the tip of main
+        id: tip
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          tip=$(gh api "repos/${GITHUB_REPOSITORY}/commits/main" --jq .sha)
+          if [ "$tip" = "$HEAD_SHA" ]; then
+            echo "is-tip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::main is at $tip; skipping deploy of $HEAD_SHA"
+            echo "is-tip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  deploy:
+    needs: check-tip
+    if: needs.check-tip.outputs.is-tip == 'true'
+    runs-on: ubuntu-latest
+    permissions:
       contents: write
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout the commit that passed Test
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
 
-      # setup project
-      - run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-      # build docs
-      - name: Build
+      - name: Build docs
         run: npm run build:docs
 
-      # deploy
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Deploy docs to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs
