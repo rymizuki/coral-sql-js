@@ -15,17 +15,20 @@ jobs:
       - run: npm run build
       - name: Publish to npm
         run: |
-          npm run publish 2>&1 | tee publish.log
-          # Check if the error is about package already being published
+          set -o pipefail
+          if npm run publish 2>&1 | tee publish.log; then
+            if grep -q "No unpublished projects to publish" publish.log; then
+              echo "::warning::No unpublished version found, skipping..."
+            else
+              echo "::notice::Package published successfully"
+            fi
+            exit 0
+          fi
           if grep -q "You cannot publish over the previously published versions" publish.log; then
             echo "::warning::Package version already published, skipping..."
             exit 0
           fi
-          # Check the actual exit code of the publish command
-          if [ ${PIPESTATUS[0]} -ne 0 ]; then
-            echo "::error::Publish failed with unexpected error"
-            exit 1
-          fi
-          echo "::notice::Package published successfully"
+          echo "::error::Publish failed with unexpected error"
+          exit 1
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
