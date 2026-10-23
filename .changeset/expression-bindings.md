@@ -10,3 +10,4 @@ case_when / coalesce / json_object が、バインド値を他の条件と同じ
 - case_when / coalesce を WHERE で使うとバインド値が消える、postgresql で `?` と `$N` が混在する、case_when に Conditions を渡すと値が二重に積まれる、という不整合を直した
 - サブクエリや exists() を WHERE の左辺に置いて右辺に値を渡したとき、MySQL / sqlite でバインド値の順序が入れ替わっていた不具合を修正
 - `SQLBuilderConditionExpressionPort` を自前で実装している場合は、値を `options.bindings.create()` で共有の bindings に積む必要がある。`toSQL()` が戻り値で返したバインド値は、親に積み直されなくなった
+- case_when の then() / else() の型が null を受け付けるようになった（`THEN NULL` / `ELSE NULL` を生成する。実装は従来から null を扱っていた）

@@ -250,16 +250,24 @@ export class ConditionExpressionJsonArrayAggregate extends AbstractConditionExpr
   }
 }
 
+type CaseWhenCondition =
+  | [string, SQLBuilderOperator, SQLBuilderConditionValue]
+  | SQLBuilderConditionExpressionPort
+  | SQLBuilderConditionsPort
+  | Condition
+
+type CaseWhenResult = SQLBuilderConditionValue | FieldPort | SQLBuilderConditionExpressionPort | null
+
 export class ConditionExpressionCaseWhen extends AbstractConditionExpression {
   private conditions: Array<{
-    condition: [string, SQLBuilderOperator, SQLBuilderConditionValue] | SQLBuilderConditionExpressionPort | SQLBuilderConditionsPort | Condition
-    then: SQLBuilderConditionValue | FieldPort | SQLBuilderConditionExpressionPort
+    condition: CaseWhenCondition
+    then: CaseWhenResult
   }> = []
-  private elseValue?: SQLBuilderConditionValue | FieldPort | SQLBuilderConditionExpressionPort
-  private pendingCondition?: [string, SQLBuilderOperator, SQLBuilderConditionValue] | SQLBuilderConditionExpressionPort | SQLBuilderConditionsPort | Condition
+  private elseValue?: CaseWhenResult
+  private pendingCondition?: CaseWhenCondition
 
   when(...args: SQLBuilderConditionInputPattern): this {
-    let condition: [string, SQLBuilderOperator, SQLBuilderConditionValue] | SQLBuilderConditionExpressionPort | SQLBuilderConditionsPort | Condition
+    let condition: CaseWhenCondition
 
     // Use the same logic as Conditions.createCondition but keep simple cases as arrays
     if (
@@ -314,7 +322,7 @@ export class ConditionExpressionCaseWhen extends AbstractConditionExpression {
     return this
   }
 
-  then(value: SQLBuilderConditionValue | FieldPort | SQLBuilderConditionExpressionPort): this {
+  then(value: CaseWhenResult): this {
     if (!this.pendingCondition) {
       throw new Error('then() must be called after when()')
     }
@@ -328,7 +336,7 @@ export class ConditionExpressionCaseWhen extends AbstractConditionExpression {
     return this
   }
 
-  else(value: SQLBuilderConditionValue | FieldPort | SQLBuilderConditionExpressionPort): this {
+  else(value: CaseWhenResult): this {
     if (this.pendingCondition) {
       throw new Error('Cannot call else() with pending when() condition. Call then() first.')
     }
@@ -361,7 +369,7 @@ export class ConditionExpressionCaseWhen extends AbstractConditionExpression {
   }
 
   private conditionToSQL(
-    condition: ConditionExpressionCaseWhen['conditions'][number]['condition'],
+    condition: CaseWhenCondition,
     resolved: SQLBuilderToSQLOptions
   ): string {
     if (Array.isArray(condition)) {
@@ -386,7 +394,7 @@ export class ConditionExpressionCaseWhen extends AbstractConditionExpression {
 }
 
 function caseResultToSQL(
-  value: SQLBuilderConditionValue | FieldPort | SQLBuilderConditionExpressionPort,
+  value: CaseWhenResult,
   resolved: SQLBuilderToSQLOptions
 ): string {
   if (isSQLBuilderConditionExpressionPort(value)) {

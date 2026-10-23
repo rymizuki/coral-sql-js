@@ -344,10 +344,19 @@ describe('case_when() function', () => {
     it('THEN に 0 / false / null を渡すと直接書かれ bindings に入らない', () => {
       const [sql, bindings] = createBuilder()
         .from('t')
-        .column(case_when().when('a', 1).then(0).when('a', 2).then(false).when('a', 3).then(null as unknown as string))
+        .column(case_when().when('a', 1).then(0).when('a', 2).then(false).when('a', 3).then(null))
         .toSQL()
       expect(sql).to.contain('THEN 0 WHEN `a` = ? THEN false WHEN `a` = ? THEN NULL')
       expect(bindings).to.be.eql([1, 2, 3])
+    })
+
+    it('ELSE に null を渡すと ELSE NULL になり bindings に入らない', () => {
+      const [sql, bindings] = createBuilder()
+        .from('t')
+        .column(case_when().when('a', 1).then('x').else(null))
+        .toSQL()
+      expect(sql).to.contain('ELSE NULL')
+      expect(bindings).to.be.eql([1, 'x'])
     })
   })
 })
