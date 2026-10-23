@@ -3,6 +3,7 @@ import { Condition as SQLBuilderCondition } from './builder/condition'
 import { Conditions as SQLBuilderConditions } from './builder/conditions'
 import { Field } from './builder/field'
 import {
+  FieldPort,
   JsonArrayAggregateCoalesceOption,
   SQLBuilderBindingValue,
   SQLBuilderConditionConjunction,
@@ -15,9 +16,10 @@ import {
   SQLBuilderOperator,
   SQLBuilderOrderDirection,
   SQLBuilderPort,
-  SQLBuilderToSQLInputOptions
+  SQLBuilderToSQLInputOptions,
+  RawSQLPort
 } from './types'
-import { unescape } from './utils/escape'
+import { column_ref, unescape } from './utils/escape'
 import { exists, not_exists } from './utils/exists'
 import { case_when, coalesce, json_array_aggregate, json_object } from './utils/json'
 import { is_not_null, is_null } from './utils/null'
@@ -25,14 +27,17 @@ import { is_not_null, is_null } from './utils/null'
 export {
   case_when,
   coalesce,
+  column_ref,
   exists,
   Field,
+  FieldPort,
   is_not_null,
   is_null,
   JsonArrayAggregateCoalesceOption,
   json_array_aggregate,
   json_object,
   not_exists,
+  RawSQLPort,
   SQLBuilder,
   SQLBuilderBindingValue,
   SQLBuilderCondition,

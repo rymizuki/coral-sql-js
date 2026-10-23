@@ -1,10 +1,12 @@
 import { SQLBuilderToSQLInputOptions } from '..'
 import {
   SQLBuilderBindingValue,
+  SQLBuilderJoinCondition,
   SQLBuilderJoinDirection,
   SQLBuilderPort
 } from '../types'
 import { escape } from '../utils/escape'
+import { isFieldPort, isRawSQLPort } from '../utils/type-guards'
 import { Table } from './table'
 
 export class Join {
@@ -12,14 +14,14 @@ export class Join {
   private table?: Table
   private subquery?: SQLBuilderPort
   private alias?: string
-  private condition: string
+  private condition: SQLBuilderJoinCondition
 
   constructor(
     direction: SQLBuilderJoinDirection,
     ...args:
-      | [string, string]
-      | [string, string, string]
-      | [SQLBuilderPort, string, string]
+      | [string, SQLBuilderJoinCondition]
+      | [string, string, SQLBuilderJoinCondition]
+      | [SQLBuilderPort, string, SQLBuilderJoinCondition]
   ) {
     this.direction = direction
 
@@ -66,9 +68,32 @@ export class Join {
       'JOIN',
       table_sql,
       'ON',
-      this.condition
+      this.createCondition(options)
     ].join(' ')
     return [sql, bindings]
+  }
+
+  private createCondition(options: SQLBuilderToSQLInputOptions): string {
+    if (typeof this.condition === 'string') {
+      return this.condition
+    }
+    if (isRawSQLPort(this.condition)) {
+      return this.requireNonEmpty(this.condition.getContent(options))
+    }
+    if (isFieldPort(this.condition)) {
+      throw new Error(
+        'coral-sql join condition must be createConditions() or unescape()'
+      )
+    }
+    const [sql] = this.condition.toSQL(options)
+    return this.requireNonEmpty(sql)
+  }
+
+  private requireNonEmpty(sql: string | null): string {
+    if (!sql) {
+      throw new Error('coral-sql join requires a non-empty condition')
+    }
+    return sql
   }
 
   private createDirection(direction: SQLBuilderJoinDirection) {

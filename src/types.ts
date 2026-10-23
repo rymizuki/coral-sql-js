@@ -44,6 +44,11 @@ export type SQLBuilderJoinDirection =
   | 'outer'
   | null
 
+export type SQLBuilderJoinCondition =
+  | string
+  | SQLBuilderConditionsPort
+  | RawSQLPort
+
 export type SQLBuilderOrderDirection = 'asc' | 'desc'
 export type JsonArrayAggregateCoalesceOption = 'with_coalesce' | 'without_coalesce'
 export type SQLBuilderToSQLInputOptions = {
@@ -69,6 +74,13 @@ export interface FieldPort {
    * @return string
    */
   getContent(options?: SQLBuilderToSQLInputOptions): string
+}
+
+/**
+ * Raw SQL fragment returned by unescape(). It is written as-is without escaping.
+ */
+export interface RawSQLPort extends FieldPort {
+  readonly kind: 'raw_sql'
 }
 
 export interface BindingsPort {
@@ -216,6 +228,21 @@ export interface SQLBuilderPort {
    */
   from(name: string, as: string): SQLBuilderPort
   /**
+   * Specified left join
+   *
+   * ```typescript
+   * builder.leftJoin('passport', createConditions().and('passport.id', '=', column_ref('user.passport_id')))
+   * // LEFT JOIN `passport` ON (`passport`.`id` = `user`.`passport_id`)
+   * ```
+   *
+   * @param table_name
+   * @param condition
+   */
+  leftJoin(
+    table_name: string,
+    condition: SQLBuilderConditionsPort | RawSQLPort
+  ): SQLBuilderPort
+  /**
    * Sepcified left join
    *
    * ```typescript
@@ -223,10 +250,31 @@ export interface SQLBuilderPort {
    * // LEFT JOIN `passport` ON passport.id = user.passport_id
    * ```
    *
+   * @deprecated Pass createConditions() (use column_ref() for column references) or unescape() for raw SQL. String conditions will require unescape() in the next major version.
    * @param table_name
    * @param condition
    */
   leftJoin(table_name: string, condition: string): SQLBuilderPort
+  /**
+   * Specified left join with SQLBuilder subquery
+   *
+   * ```typescript
+   * builder.leftJoin(
+   *   createBuilder().from('user_logged').column(unescape('MAX(logged_at)'), 'last_logged_at').column('user_id').groupBy('user_id'),
+   *   'ul',
+   *   createConditions().and('ul.user_id', '=', column_ref('u.id'))
+   * )
+   * ```
+   *
+   * @param subquery
+   * @param as
+   * @param condition
+   */
+  leftJoin(
+    subquery: SQLBuilderPort,
+    as: string,
+    condition: SQLBuilderConditionsPort | RawSQLPort
+  ): SQLBuilderPort
   /**
    * Specified left join with SQLBuilder subquery
    *
@@ -239,6 +287,7 @@ export interface SQLBuilderPort {
    * // LEFT JOIN (SELECT MAX(logged_at) AS `last_logged_at` FROM `user_logged` WHERE `user_id` = u.id GROUP BY `user_id`) AS `ul` ON ul.user_id = u.id
    * ```
    *
+   * @deprecated Pass createConditions() (use column_ref() for column references) or unescape() for raw SQL. String conditions will require unescape() in the next major version.
    * @param subquery
    * @param as
    * @param condition
@@ -248,10 +297,28 @@ export interface SQLBuilderPort {
    * Specified left join with table alias.
    *
    * ```typescript
+   * builder.leftJoin('passport', 'p', createConditions().and('p.id', '=', column_ref('user.passport_id')))
+   * // LEFT JOIN `passport` AS `p` ON (`p`.`id` = `user`.`passport_id`)
+   * ```
+   *
+   * @param table_name
+   * @param as
+   * @param condition
+   */
+  leftJoin(
+    table_name: string,
+    as: string,
+    condition: SQLBuilderConditionsPort | RawSQLPort
+  ): SQLBuilderPort
+  /**
+   * Specified left join with table alias.
+   *
+   * ```typescript
    * builder.leftJoin('passport', 'p', 'p.id = user.passport_id')
    * // LEFT JOIN `passport` AS `p` ON p.id = user.passport_id
    * ```
    *
+   * @deprecated Pass createConditions() (use column_ref() for column references) or unescape() for raw SQL. String conditions will require unescape() in the next major version.
    * @param table_name
    * @param as
    * @param condition
@@ -259,6 +326,20 @@ export interface SQLBuilderPort {
   leftJoin(table_name: string, as: string, condition: string): SQLBuilderPort
   /**
    * Specified join.
+   *
+   * @param direction
+   * @param table_name
+   * @param condition
+   */
+  join(
+    direction: SQLBuilderJoinDirection,
+    table_name: string,
+    condition: SQLBuilderConditionsPort | RawSQLPort
+  ): SQLBuilderPort
+  /**
+   * Specified join.
+   *
+   * @deprecated Pass createConditions() (use column_ref() for column references) or unescape() for raw SQL. String conditions will require unescape() in the next major version.
    *
    * @param direction
    * @param table_name
@@ -281,10 +362,42 @@ export interface SQLBuilderPort {
     direction: SQLBuilderJoinDirection,
     table_name: string,
     as: string,
+    condition: SQLBuilderConditionsPort | RawSQLPort
+  ): SQLBuilderPort
+  /**
+   * Specified join with direction.
+   *
+   * @deprecated Pass createConditions() (use column_ref() for column references) or unescape() for raw SQL. String conditions will require unescape() in the next major version.
+   *
+   * @param direction
+   * @param table_name
+   * @param as
+   * @param condition
+   */
+  join(
+    direction: SQLBuilderJoinDirection,
+    table_name: string,
+    as: string,
     condition: string
   ): SQLBuilderPort
   /**
    * Specified join with SQLBuilder subquery.
+   *
+   * @param direction
+   * @param subquery
+   * @param as
+   * @param condition
+   */
+  join(
+    direction: SQLBuilderJoinDirection,
+    subquery: SQLBuilderPort,
+    as: string,
+    condition: SQLBuilderConditionsPort | RawSQLPort
+  ): SQLBuilderPort
+  /**
+   * Specified join with SQLBuilder subquery.
+   *
+   * @deprecated Pass createConditions() (use column_ref() for column references) or unescape() for raw SQL. String conditions will require unescape() in the next major version.
    *
    * @param direction
    * @param subquery

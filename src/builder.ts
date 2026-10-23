@@ -14,10 +14,12 @@ import {
   SQLBuilderConditionInputPattern,
   SQLBuilderConditionsPort,
   SQLBuilderBindingValue,
+  SQLBuilderJoinCondition,
   SQLBuilderJoinDirection,
   SQLBuilderConditionValue,
   SQLBuilderOperator,
-  FieldPort
+  FieldPort,
+  RawSQLPort
 } from './types'
 
 export class SQLBuilder implements SQLBuilderPort {
@@ -60,21 +62,94 @@ export class SQLBuilder implements SQLBuilderPort {
   }
 
   leftJoin(
+    table_name: string,
+    condition: SQLBuilderConditionsPort | RawSQLPort
+  ): SQLBuilderPort
+  /**
+   * @deprecated Pass createConditions() (use column_ref() for column references) or unescape() for raw SQL. String conditions will require unescape() in the next major version.
+   */
+  leftJoin(table_name: string, condition: string): SQLBuilderPort
+  leftJoin(
+    subquery: SQLBuilderPort,
+    as: string,
+    condition: SQLBuilderConditionsPort | RawSQLPort
+  ): SQLBuilderPort
+  /**
+   * @deprecated Pass createConditions() (use column_ref() for column references) or unescape() for raw SQL. String conditions will require unescape() in the next major version.
+   */
+  leftJoin(
+    subquery: SQLBuilderPort,
+    as: string,
+    condition: string
+  ): SQLBuilderPort
+  leftJoin(
+    table_name: string,
+    as: string,
+    condition: SQLBuilderConditionsPort | RawSQLPort
+  ): SQLBuilderPort
+  /**
+   * @deprecated Pass createConditions() (use column_ref() for column references) or unescape() for raw SQL. String conditions will require unescape() in the next major version.
+   */
+  leftJoin(table_name: string, as: string, condition: string): SQLBuilderPort
+  leftJoin(
     ...args:
-      | [string, string]
-      | [string, string, string]
-      | [SQLBuilderPort, string, string]
+      | [string, SQLBuilderJoinCondition]
+      | [string, string, SQLBuilderJoinCondition]
+      | [SQLBuilderPort, string, SQLBuilderJoinCondition]
   ): SQLBuilderPort {
-    this.join('left', ...args)
+    this.joins.push(new Join('left', ...args))
     return this
   }
 
   join(
     direction: SQLBuilderJoinDirection,
+    table_name: string,
+    condition: SQLBuilderConditionsPort | RawSQLPort
+  ): SQLBuilderPort
+  /**
+   * @deprecated Pass createConditions() (use column_ref() for column references) or unescape() for raw SQL. String conditions will require unescape() in the next major version.
+   */
+  join(
+    direction: SQLBuilderJoinDirection,
+    table_name: string,
+    condition: string
+  ): SQLBuilderPort
+  join(
+    direction: SQLBuilderJoinDirection,
+    table_name: string,
+    as: string,
+    condition: SQLBuilderConditionsPort | RawSQLPort
+  ): SQLBuilderPort
+  /**
+   * @deprecated Pass createConditions() (use column_ref() for column references) or unescape() for raw SQL. String conditions will require unescape() in the next major version.
+   */
+  join(
+    direction: SQLBuilderJoinDirection,
+    table_name: string,
+    as: string,
+    condition: string
+  ): SQLBuilderPort
+  join(
+    direction: SQLBuilderJoinDirection,
+    subquery: SQLBuilderPort,
+    as: string,
+    condition: SQLBuilderConditionsPort | RawSQLPort
+  ): SQLBuilderPort
+  /**
+   * @deprecated Pass createConditions() (use column_ref() for column references) or unescape() for raw SQL. String conditions will require unescape() in the next major version.
+   */
+  join(
+    direction: SQLBuilderJoinDirection,
+    subquery: SQLBuilderPort,
+    as: string,
+    condition: string
+  ): SQLBuilderPort
+  join(
+    direction: SQLBuilderJoinDirection,
     ...args:
-      | [string, string]
-      | [string, string, string]
-      | [SQLBuilderPort, string, string]
+      | [string, SQLBuilderJoinCondition]
+      | [string, string, SQLBuilderJoinCondition]
+      | [SQLBuilderPort, string, SQLBuilderJoinCondition]
   ): SQLBuilderPort {
     this.joins.push(new Join(direction, ...args))
     return this
@@ -86,10 +161,21 @@ export class SQLBuilder implements SQLBuilderPort {
   }
 
   having(conditions: SQLBuilderConditionsPort): SQLBuilderPort
-  having(field: SQLBuilderField, value: SQLBuilderConditionValue): SQLBuilderPort
+  having(
+    field: SQLBuilderField,
+    value: SQLBuilderConditionValue
+  ): SQLBuilderPort
   having(field: SQLBuilderField, value: FieldPort): SQLBuilderPort
-  having(field: SQLBuilderField, operator: SQLBuilderOperator, value: SQLBuilderConditionValue): SQLBuilderPort
-  having(field: SQLBuilderField, operator: SQLBuilderOperator, value: FieldPort): SQLBuilderPort
+  having(
+    field: SQLBuilderField,
+    operator: SQLBuilderOperator,
+    value: SQLBuilderConditionValue
+  ): SQLBuilderPort
+  having(
+    field: SQLBuilderField,
+    operator: SQLBuilderOperator,
+    value: FieldPort
+  ): SQLBuilderPort
   having(
     conditionsOrField: SQLBuilderConditionsPort | SQLBuilderField,
     operatorOrValue?: SQLBuilderOperator | SQLBuilderConditionValue | FieldPort,
@@ -103,7 +189,11 @@ export class SQLBuilder implements SQLBuilderPort {
     // 通常の条件の場合
     if (value !== undefined) {
       // 3つの引数: field, operator, value
-      ;(this.conditions_having as any).and(conditionsOrField, operatorOrValue, value)
+      ;(this.conditions_having as any).and(
+        conditionsOrField,
+        operatorOrValue,
+        value
+      )
     } else {
       // 2つの引数: field, value
       ;(this.conditions_having as any).and(conditionsOrField, operatorOrValue)
@@ -116,7 +206,10 @@ export class SQLBuilder implements SQLBuilderPort {
     return this
   }
 
-  orderBy(field: SQLBuilderField, direction: SQLBuilderOrderDirection): SQLBuilderPort {
+  orderBy(
+    field: SQLBuilderField,
+    direction: SQLBuilderOrderDirection
+  ): SQLBuilderPort {
     this.orders.add(field, direction)
     return this
   }

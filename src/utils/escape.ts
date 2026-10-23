@@ -1,5 +1,6 @@
 import { Field } from '../builder/field'
-import { FieldPort } from '../types'
+import { RawSQL } from '../builder/raw-sql'
+import { FieldPort, RawSQLPort } from '../types'
 
 /**
  * Mark the field not to be escaped.
@@ -18,10 +19,27 @@ import { FieldPort } from '../types'
  * ```
  *
  * @param field field's name. (e.g.) COUNT(*)
+ * @returns RawSQLPort
+ */
+export const unescape = (field: string): RawSQLPort => {
+  return new RawSQL(field)
+}
+
+/**
+ * Column reference for the right-hand side of a condition.
+ *
+ * ```typescript
+ * import { createConditions, column_ref } from 'coral-sql'
+ *
+ * createConditions().and('p.id', '=', column_ref('u.passport_id'))
+ * // (`p`.`id` = `u`.`passport_id`)
+ * ```
+ *
+ * @param column column's name. (e.g.) u.passport_id
  * @returns FieldPort
  */
-export const unescape = (field: string): FieldPort => {
-  return new Field(field, true)
+export const column_ref = (column: string): FieldPort => {
+  return new Field(column)
 }
 
 export const escape = (
