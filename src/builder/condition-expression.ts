@@ -345,36 +345,13 @@ export class ConditionExpressionCaseWhen extends AbstractConditionExpression {
     const parts: string[] = ['(CASE']
 
     for (const { condition, then } of this.conditions) {
-      let conditionSql: string
-
-      if (Array.isArray(condition)) {
-        const [field, operator, value] = condition
-        const fieldContent = getFieldContent(field, resolved)
-
-        if (value === null && (operator === '=' || operator === '!=')) {
-          conditionSql = operator === '='
-            ? `${fieldContent} IS NULL`
-            : `${fieldContent} IS NOT NULL`
-        } else {
-          const sqlOperator = toSQLOperator(operator)
-          conditionSql = `${fieldContent} ${sqlOperator} ${resolved.bindings.create(value as SQLBuilderBindingValue)}`
-        }
-      } else if (condition instanceof Condition) {
-        const [sql] = condition.toSQL(resolved)
-        conditionSql = sql.startsWith('(') && sql.endsWith(')')
-          ? sql.slice(1, -1)
-          : sql
-      } else {
-        const [sql] = condition.toSQL(resolved)
-        conditionSql = sql || ''
-      }
-
-      const thenSql = processCaseValue(then, resolved)
+      const conditionSql = this.conditionToSQL(condition, resolved)
+      const thenSql = caseResultToSQL(then, resolved)
       parts.push(`WHEN ${conditionSql} THEN ${thenSql}`)
     }
 
     if (this.elseValue !== undefined) {
-      const elseSql = processCaseValue(this.elseValue, resolved)
+      const elseSql = caseResultToSQL(this.elseValue, resolved)
       parts.push(`ELSE ${elseSql}`)
     }
 
@@ -382,9 +359,33 @@ export class ConditionExpressionCaseWhen extends AbstractConditionExpression {
     const sql = parts.join(' ')
     return [sql, resolved.bindings.getBindParameters()]
   }
+
+  private conditionToSQL(
+    condition: ConditionExpressionCaseWhen['conditions'][number]['condition'],
+    resolved: SQLBuilderToSQLOptions
+  ): string {
+    if (Array.isArray(condition)) {
+      const [field, operator, value] = condition
+      const fieldContent = getFieldContent(field, resolved)
+      if (value === null && operator === '=') {
+        return `${fieldContent} IS NULL`
+      }
+      if (value === null && operator === '!=') {
+        return `${fieldContent} IS NOT NULL`
+      }
+      const [expressionSql] = new ConditionExpression(operator, value).toSQL(resolved)
+      return `${fieldContent} ${expressionSql}`
+    }
+    if (condition instanceof Condition) {
+      const [sql] = condition.toSQL(resolved)
+      return sql.startsWith('(') && sql.endsWith(')') ? sql.slice(1, -1) : sql
+    }
+    const [sql] = condition.toSQL(resolved)
+    return sql || ''
+  }
 }
 
-function processCaseValue(
+function caseResultToSQL(
   value: SQLBuilderConditionValue | FieldPort | SQLBuilderConditionExpressionPort,
   resolved: SQLBuilderToSQLOptions
 ): string {
