@@ -111,7 +111,21 @@ describe('escape (identifier quoting via the public builder)', () => {
         .where("'a\\'", 1)
         .where("' OR 1=1 -- '", 2)
         .toSQL()
-      expect(sql).to.include("(`'a\\'` = ?)")
+      expect(sql).to.include("(`'a\\'` = ?)\n  AND (' OR 1=1 -- ' = ?)")
+    })
+
+    it('where() quotes a double-quoted fragment containing a backslash', () => {
+      const [sql] = createBuilder()
+        .column('id')
+        .from('t')
+        .where('"a\\"', 1)
+        .where('" OR 1=1 -- "', 2)
+        .toSQL()
+      expect(sql).to.include('(`"a\\"` = ?)\n  AND (" OR 1=1 -- " = ?)')
+    })
+
+    it('column() quotes a backtick-quoted fragment containing a backslash', () => {
+      expect(selectedColumn('`a\\`')).to.equal('```a\\```')
     })
 
     it('column() alias doubles the quote character', () => {
