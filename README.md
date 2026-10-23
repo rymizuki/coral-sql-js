@@ -86,6 +86,27 @@ Pass `unescape()` for raw SQL, e.g. `unescape('p.id = u.passport_id')`.
 A plain string ON condition (`.leftJoin('passport', 'p', 'p.id = u.passport_id')`) is deprecated.
 It is still written as-is, so never put user input in it. The next major version will require `unescape()`.
 
+### Custom SELECT
+
+Pass `unescape()` to replace the SELECT clause with raw SQL.
+
+```ts
+import { createBuilder, unescape } from 'coral-sql'
+
+const [sql] = createBuilder()
+  .select(unescape('SELECT COUNT(*) AS total'))
+  .from('users')
+  .toSQL()
+
+// sql:
+//   SELECT COUNT(*) AS total
+//   FROM
+//     `users`
+```
+
+A plain string (`.select('SELECT COUNT(*) AS total')`) is deprecated.
+It is still written as-is, so never put user input in it. The next major version will require `unescape()`.
+
 ## Documentation
 
 Document is [here](https://rymizuki.github.io/coral-sql-js/).

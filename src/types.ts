@@ -174,11 +174,15 @@ export interface SQLBuilderPort {
    * Set a custom SELECT statement.
    *
    * ```typescript
-   * builder.select('COUNT(*) AS total')
+   * builder.select(unescape('SELECT COUNT(*) AS total'))
    * // SELECT COUNT(*) AS total
    * ```
    *
    * @param statement Custom SELECT statement
+   */
+  select(statement: RawSQLPort): SQLBuilderPort
+  /**
+   * @deprecated Pass unescape() for raw SQL. String statements will require unescape() in the next major version.
    */
   select(statement: string): SQLBuilderPort
   /**
