@@ -131,7 +131,7 @@ It is still written as-is, so never put user input in it. The next major version
 | `.where('"users"."id"', 1)` on mysql / sqlite          | `.where('users.id', 1)`                                           |
 | `let f = unescape('COUNT(*)'); f = column_ref('u.id')` | `let f: FieldPort = unescape('COUNT(*)'); f = column_ref('u.id')` |
 
-- A part wrapped in a quote other than the configured one (`"x"` / `'x'` on mysql / sqlite) is now quoted again instead of written as-is, so the database reports an unknown column.
+- A part wrapped in a quote other than the configured one (`'x'` on every driver, `"x"` on mysql / sqlite) is now quoted again instead of written as-is, so the database reports an unknown column.
 - `unescape()` now returns `RawSQLPort`. Widen variables that are later assigned other fields to `FieldPort`.
 - An ON condition now throws when it is empty (`createConditions()` with no condition, or `unescape()` of an empty or whitespace-only string) or when it is `column_ref()`, `Field` or an expression such as `exists()`.
 - If you implement `SQLBuilderPort` yourself, add the `select(RawSQLPort)` overload and the `join()` / `leftJoin()` overloads that take `SQLBuilderConditionsPort | RawSQLPort`.
