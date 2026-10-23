@@ -303,5 +303,51 @@ describe('case_when() function', () => {
       )
       expect(bindings).to.be.eql([1])
     })
+
+    it('when の IN は IN (?,?) になり値が出現順にバインドされる', () => {
+      const [sql, bindings] = createBuilder()
+        .from('t')
+        .column(case_when().when('a', 'in', [1, 2]).then('x'))
+        .toSQL()
+      expect(sql).to.contain('`a` IN (?,?) THEN ?')
+      expect(bindings).to.be.eql([1, 2, 'x'])
+    })
+
+    it('when の BETWEEN は BETWEEN ? AND ? になる', () => {
+      const [sql, bindings] = createBuilder()
+        .from('t')
+        .column(case_when().when('a', 'between', [1, 9]).then('x'))
+        .toSQL()
+      expect(sql).to.contain('`a` BETWEEN ? AND ? THEN ?')
+      expect(bindings).to.be.eql([1, 9, 'x'])
+    })
+
+    it('postgresql では IN の $1,$2 と THEN の $3 が出現順に並ぶ', () => {
+      const [sql, bindings] = createBuilder({ driver: 'postgresql' })
+        .from('t')
+        .column(case_when().when('a', 'in', [1, 2]).then('x'))
+        .toSQL()
+      expect(sql).to.contain('"a" IN ($1,$2) THEN $3')
+      expect(bindings).to.be.eql([1, 2, 'x'])
+    })
+
+    it('THEN に NaN / Infinity / Date を渡すと埋め込まれずバインドされる', () => {
+      const date = new Date(0)
+      const [sql, bindings] = createBuilder()
+        .from('t')
+        .column(case_when().when('a', 1).then(NaN).when('a', 2).then(Infinity).when('a', 3).then(date))
+        .toSQL()
+      expect(sql).to.contain('WHEN `a` = ? THEN ? WHEN `a` = ? THEN ? WHEN `a` = ? THEN ?')
+      expect(bindings).to.be.eql([1, NaN, 2, Infinity, 3, date])
+    })
+
+    it('THEN に 0 / false / null を渡すと直接書かれ bindings に入らない', () => {
+      const [sql, bindings] = createBuilder()
+        .from('t')
+        .column(case_when().when('a', 1).then(0).when('a', 2).then(false).when('a', 3).then(null as unknown as string))
+        .toSQL()
+      expect(sql).to.contain('THEN 0 WHEN `a` = ? THEN false WHEN `a` = ? THEN NULL')
+      expect(bindings).to.be.eql([1, 2, 3])
+    })
   })
 })
