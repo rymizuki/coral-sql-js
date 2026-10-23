@@ -7,7 +7,7 @@ export class Field implements FieldPort {
 
   constructor(field: string)
   /** @deprecated Use unescape() for raw SQL. The unescape flag will be removed in the next major version. */
-  constructor(field: string, unescape: boolean)
+  constructor(field: string, unescape?: boolean)
   constructor(field: string, unescape?: boolean) {
     this.field = field
     this.unescape = !!unescape

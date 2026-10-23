@@ -291,7 +291,6 @@ export class SQLBuilder implements SQLBuilderPort {
       throw new Error('table does not setted.')
     }
 
-    // Use custom select statement if provided
     if (this.custom_select) {
       return [
         this.renderCustomSelect(this.custom_select, options),
