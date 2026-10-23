@@ -8,20 +8,22 @@ const selectedColumn = (field: string, options?: Options): string => {
   return sql.split('\n')[1].trim()
 }
 
-const whenField = (field: string, options?: Options): string => {
+const whenSQL = (field: string, options?: Options): string => {
   const [sql] = createBuilder(options)
     .column(case_when().when(field, '=', 1).then(1))
     .from('t')
     .toSQL()
-  const line = sql.split('\n').find((l) => l.includes('WHEN')) as string
-  return line.trim().replace(/^\(CASE WHEN /, '').replace(/ = [?$]\d*.*$/, '')
+  return sql
 }
 
-const fieldCases: Array<[string, string, string?]> = [
+const requoteCases: Array<[string, string]> = [
   ['t`x', '`t``x`'],
   ['a`b', '`a``b`'],
   ['`t`x', '```t``x`'],
-  ['"a\\"""', '`"a\\"""`'],
+  ['"a\\"""', '`"a\\"""`']
+]
+
+const passthroughCases: Array<[string, string]> = [
   ['`users`.id', '`users`.`id`'],
   ['"users"."id"', '"users"."id"'],
   ["'lit'", "'lit'"],
@@ -31,13 +33,15 @@ const fieldCases: Array<[string, string, string?]> = [
 const postgresqlCases: Array<[string, string]> = [
   ['a"b', '"a""b"'],
   ['`t`x', '"`t`x"'],
-  ['"users"."id"', '"users"."id"']
+  ['"users"."id"', '"users"."id"'],
+  ['`x; DROP TABLE users; --`', '"`x; DROP TABLE users; --`"'],
+  ['"a""b"', '"""a""""b"""']
 ]
 
 describe('escape (identifier quoting via the public builder)', () => {
   describe('column() with mysql driver (default)', () => {
     describe('fragment contains the quote character', () => {
-      fieldCases.slice(0, 4).forEach(([input, expected]) => {
+      requoteCases.forEach(([input, expected]) => {
         it(`${input} -> ${expected}`, () => {
           expect(selectedColumn(input)).to.be.eql(expected)
         })
@@ -45,7 +49,7 @@ describe('escape (identifier quoting via the public builder)', () => {
     })
 
     describe('fragment is fully quoted or a plain identifier', () => {
-      fieldCases.slice(4).forEach(([input, expected]) => {
+      passthroughCases.forEach(([input, expected]) => {
         it(`${input} -> ${expected}`, () => {
           expect(selectedColumn(input)).to.be.eql(expected)
         })
@@ -60,6 +64,12 @@ describe('escape (identifier quoting via the public builder)', () => {
           expected
         )
       })
+    })
+  })
+
+  describe('column() with mysql driver and an already doubled quote', () => {
+    it('`a``b` is doubled again', () => {
+      expect(selectedColumn('`a``b`')).to.be.eql('```a````b```')
     })
   })
 
@@ -85,6 +95,25 @@ describe('escape (identifier quoting via the public builder)', () => {
       expect(bindings).to.be.eql([1])
     })
 
+    it('where() on postgresql wraps a backtick fragment in double quotes', () => {
+      const [sql] = createBuilder({ driver: 'postgresql' })
+        .column('id')
+        .from('t')
+        .where('`1=1) OR (1`', 1)
+        .toSQL()
+      expect(sql).to.include('("`1=1) OR (1`" = $1)')
+    })
+
+    it('where() quotes a fragment containing a backslash', () => {
+      const [sql] = createBuilder()
+        .column('id')
+        .from('t')
+        .where("'a\\'", 1)
+        .where("' OR 1=1 -- '", 2)
+        .toSQL()
+      expect(sql).to.include("(`'a\\'` = ?)")
+    })
+
     it('column() alias doubles the quote character', () => {
       const [sql] = createBuilder().column('id', 'a`b').from('t').toSQL()
       expect(sql).to.include('`id` AS `a``b`')
@@ -93,21 +122,23 @@ describe('escape (identifier quoting via the public builder)', () => {
 
   describe('case_when().when() field', () => {
     it('mysql: `users`.id -> `users`.`id`', () => {
-      expect(whenField('`users`.id')).to.be.eql('`users`.`id`')
+      expect(whenSQL('`users`.id')).to.include('WHEN `users`.`id` = ?')
     })
 
     it('postgresql: "users"."id" is kept', () => {
-      expect(whenField('"users"."id"', { driver: 'postgresql' })).to.be.eql(
-        '"users"."id"'
+      expect(whenSQL('"users"."id"', { driver: 'postgresql' })).to.include(
+        'WHEN "users"."id" = $1'
       )
     })
 
     it('mysql: a`b is escaped by doubling', () => {
-      expect(whenField('a`b')).to.be.eql('`a``b`')
+      expect(whenSQL('a`b')).to.include('WHEN `a``b` = ?')
     })
 
     it('postgresql: a"b is escaped by doubling', () => {
-      expect(whenField('a"b', { driver: 'postgresql' })).to.be.eql('"a""b"')
+      expect(whenSQL('a"b', { driver: 'postgresql' })).to.include(
+        'WHEN "a""b" = $1'
+      )
     })
   })
 })

@@ -35,9 +35,13 @@ export const escape = (
       : options.quote !== undefined
       ? options.quote
       : '`'
+  const quoted =
+    quote === '`'
+      ? /^(?:`[^`\\]+`|"[^"\\]+"|'[^'\\]+')$/
+      : /^(?:"[^"\\]+"|'[^'\\]+')$/
   const output = fragments
     .map((fragment) => {
-      if (/^(?:`[^`\\]+`|"[^"\\]+"|'[^'\\]+')$/.test(fragment)) {
+      if (quoted.test(fragment)) {
         return fragment
       }
       return quote + fragment.split(quote).join(quote + quote) + quote
