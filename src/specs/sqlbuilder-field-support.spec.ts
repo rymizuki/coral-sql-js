@@ -270,7 +270,7 @@ describe('SQLBuilder field support for subqueries', () => {
       expect(sql).to.be.eql(
         'SELECT\n  `id`,\n  `name`\nFROM\n  `users`\nWHERE\n  ((SELECT COUNT(*)\nFROM\n  `orders`\nWHERE\n  (`user_id` = users.id)\n  AND (`status` = ?)) = ?)'
       )
-      expect(bindings).to.be.eql([5, 'completed'])
+      expect(bindings).to.be.eql(['completed', 5])
     })
 
     it('subquery with comparison operator in WHERE', () => {
@@ -315,7 +315,7 @@ describe('SQLBuilder field support for subqueries', () => {
       expect(sql).to.be.eql(
         'SELECT\n  `id`\nFROM\n  `users`\nWHERE\n  (`active` = ?)\n  AND ((SELECT COUNT(*)\nFROM\n  `orders`\nWHERE\n  (`user_id` = users.id)) > ?)\n  AND ((SELECT AVG(amount)\nFROM\n  `orders`\nWHERE\n  (`user_id` = users.id)\n  AND (`status` = ?)) >= ?)'
       )
-      expect(bindings).to.be.eql([1, 0, 50, 'completed'])
+      expect(bindings).to.be.eql([1, 0, 'completed', 50])
     })
 
     it('subquery with IN operator', () => {

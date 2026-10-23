@@ -1,5 +1,12 @@
 import { expect } from 'chai'
-import { createConditions, is_not_null, is_null } from '../../dist'
+import {
+  case_when,
+  createBuilder,
+  createConditions,
+  is_not_null,
+  is_null,
+  SQLBuilderOperator
+} from '../../dist'
 
 describe('operators', () => {
   describe('comparison', () => {
@@ -128,6 +135,30 @@ describe('operators', () => {
         .toSQL()
       expect(sql).to.be.eql('(`a` REGEXP ?)')
       expect(bindings).to.be.eql(['^a'])
+    })
+  })
+
+  describe('未対応の演算子', () => {
+    it('where() に渡すと unsupported operator を投げる', () => {
+      expect(() =>
+        createBuilder()
+          .from('t')
+          .where('id', '= 1 OR 1=1 OR id =' as SQLBuilderOperator, 5)
+          .toSQL()
+      ).to.throw('unsupported operator')
+    })
+
+    it('case_when() の when に渡すと unsupported operator を投げる', () => {
+      expect(() =>
+        createBuilder()
+          .from('t')
+          .column(
+            case_when()
+              .when('a', '= 1 OR 1=1 OR a =' as SQLBuilderOperator, 1)
+              .then('y')
+          )
+          .toSQL()
+      ).to.throw('unsupported operator')
     })
   })
 })

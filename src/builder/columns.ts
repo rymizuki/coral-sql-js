@@ -25,21 +25,8 @@ export class Columns {
       // SQLBuilderPort or SQLBuilderConditionExpressionPort の場合
       field = {
         getContent: (options) => {
-          if (isSQLBuilderPort(name)) {
-            // SQLBuilderPortの場合（サブクエリ）
-            // サブクエリの場合は、toSQL内部でbindingsが適切に処理されるので
-            // ここでは手動でbindingsを追加しない
-            const [sql] = name.toSQL(options)
-            return `(${sql})`
-          } else {
-            // SQLBuilderConditionExpressionPortの場合（JSON関数など）
-            // 独立した関数の場合はbindingsを手動で追加する必要がある
-            const [sql, bindings] = name.toSQL(options)
-            if (bindings && bindings.length > 0 && options?.bindings) {
-              bindings.forEach((binding) => options.bindings!.create(binding))
-            }
-            return sql
-          }
+          const [sql] = name.toSQL(options)
+          return isSQLBuilderPort(name) ? `(${sql})` : sql
         }
       }
     } else {

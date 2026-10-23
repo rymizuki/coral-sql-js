@@ -26,9 +26,9 @@ describe('JSON functions', () => {
           .column(json_object({ id: 'id', name: 'name' }))
           .toSQL()
         expect(sql).to.be.eql(
-          "SELECT\n  JSON_OBJECT('id', `id`, 'name', `name`)\nFROM\n  `users`"
+          "SELECT\n  JSON_OBJECT(?, `id`, ?, `name`)\nFROM\n  `users`"
         )
-        expect(bindings).to.be.eql([])
+        expect(bindings).to.be.eql(['id', 'name'])
       })
 
       it("SELECT JSON_OBJECT('id', `id`, 'name', `name`, 'email', `email`, 'created', `created_at`) FROM `users`", () => {
@@ -44,9 +44,9 @@ describe('JSON functions', () => {
           )
           .toSQL()
         expect(sql).to.be.eql(
-          "SELECT\n  JSON_OBJECT('id', `id`, 'name', `name`, 'email', `email`, 'created', `created_at`)\nFROM\n  `users`"
+          "SELECT\n  JSON_OBJECT(?, `id`, ?, `name`, ?, `email`, ?, `created_at`)\nFROM\n  `users`"
         )
-        expect(bindings).to.be.eql([])
+        expect(bindings).to.be.eql(['id', 'name', 'email', 'created'])
       })
     })
 
@@ -57,9 +57,9 @@ describe('JSON functions', () => {
           .column(json_object({ id: 'o.id', ordered_at: 'o.created_at' }))
           .toSQL()
         expect(sql).to.be.eql(
-          "SELECT\n  JSON_OBJECT('id', `o`.`id`, 'ordered_at', `o`.`created_at`)\nFROM\n  `order` AS `o`"
+          "SELECT\n  JSON_OBJECT(?, `o`.`id`, ?, `o`.`created_at`)\nFROM\n  `order` AS `o`"
         )
-        expect(bindings).to.be.eql([])
+        expect(bindings).to.be.eql(['id', 'ordered_at'])
       })
 
       it("SELECT JSON_OBJECT('order_id', `o`.`id`, 'user_name', `u`.`name`, 'user_email', `u`.`email`) FROM `orders` AS `o` INNER JOIN `users` AS `u` ON `o`.`user_id` = `u`.`id`", () => {
@@ -75,9 +75,9 @@ describe('JSON functions', () => {
           )
           .toSQL()
         expect(sql).to.be.eql(
-          "SELECT\n  JSON_OBJECT('order_id', `o`.`id`, 'user_name', `u`.`name`, 'user_email', `u`.`email`)\nFROM\n  `orders` AS `o`\nINNER JOIN `users` AS `u` ON `o`.`user_id` = `u`.`id`"
+          "SELECT\n  JSON_OBJECT(?, `o`.`id`, ?, `u`.`name`, ?, `u`.`email`)\nFROM\n  `orders` AS `o`\nINNER JOIN `users` AS `u` ON `o`.`user_id` = `u`.`id`"
         )
-        expect(bindings).to.be.eql([])
+        expect(bindings).to.be.eql(['order_id', 'user_name', 'user_email'])
       })
     })
 
@@ -93,9 +93,9 @@ describe('JSON functions', () => {
           )
           .toSQL()
         expect(sql).to.be.eql(
-          "SELECT\n  JSON_OBJECT('id', `id`, 'count', COUNT(*))\nFROM\n  `users`"
+          "SELECT\n  JSON_OBJECT(?, `id`, ?, COUNT(*))\nFROM\n  `users`"
         )
-        expect(bindings).to.be.eql([])
+        expect(bindings).to.be.eql(['id', 'count'])
       })
 
       it("SELECT JSON_OBJECT('total', SUM(amount), 'average', AVG(amount), 'max', MAX(amount)) FROM `sales`", () => {
@@ -110,9 +110,9 @@ describe('JSON functions', () => {
           )
           .toSQL()
         expect(sql).to.be.eql(
-          "SELECT\n  JSON_OBJECT('total', SUM(amount), 'average', AVG(amount), 'max', MAX(amount))\nFROM\n  `sales`"
+          "SELECT\n  JSON_OBJECT(?, SUM(amount), ?, AVG(amount), ?, MAX(amount))\nFROM\n  `sales`"
         )
-        expect(bindings).to.be.eql([])
+        expect(bindings).to.be.eql(['total', 'average', 'max'])
       })
 
       it("SELECT JSON_OBJECT('product_id', `oi`.`product_id`, 'total', oi.quantity * oi.unit_price) FROM `order_items` AS `oi`", () => {
@@ -126,9 +126,9 @@ describe('JSON functions', () => {
           )
           .toSQL()
         expect(sql).to.be.eql(
-          "SELECT\n  JSON_OBJECT('product_id', `oi`.`product_id`, 'total', oi.quantity * oi.unit_price)\nFROM\n  `order_items` AS `oi`"
+          "SELECT\n  JSON_OBJECT(?, `oi`.`product_id`, ?, oi.quantity * oi.unit_price)\nFROM\n  `order_items` AS `oi`"
         )
-        expect(bindings).to.be.eql([])
+        expect(bindings).to.be.eql(['product_id', 'total'])
       })
     })
   })
@@ -143,9 +143,9 @@ describe('JSON functions', () => {
           )
           .toSQL()
         expect(sql).to.be.eql(
-          "SELECT\n  JSON_ARRAYAGG(JSON_OBJECT('sku', `sku`, 'price', `price`))\nFROM\n  `products`"
+          "SELECT\n  JSON_ARRAYAGG(JSON_OBJECT(?, `sku`, ?, `price`))\nFROM\n  `products`"
         )
-        expect(bindings).to.be.eql([])
+        expect(bindings).to.be.eql(['sku', 'price'])
       })
 
       it('SELECT JSON_ARRAYAGG(name) FROM `users`', () => {
@@ -174,9 +174,9 @@ describe('JSON functions', () => {
           )
           .toSQL()
         expect(sql).to.be.eql(
-          "SELECT\n  JSON_ARRAYAGG(JSON_OBJECT('product_id', `oi`.`product_id`, 'quantity', `oi`.`quantity`, 'unit_price', `oi`.`unit_price`, 'total', oi.quantity * oi.unit_price))\nFROM\n  `order_items` AS `oi`"
+          "SELECT\n  JSON_ARRAYAGG(JSON_OBJECT(?, `oi`.`product_id`, ?, `oi`.`quantity`, ?, `oi`.`unit_price`, ?, oi.quantity * oi.unit_price))\nFROM\n  `order_items` AS `oi`"
         )
-        expect(bindings).to.be.eql([])
+        expect(bindings).to.be.eql(['product_id', 'quantity', 'unit_price', 'total'])
       })
     })
 
@@ -196,9 +196,9 @@ describe('JSON functions', () => {
           .groupBy('oi.order_id')
           .toSQL()
         expect(sql).to.be.eql(
-          "SELECT\n  `oi`.`order_id`,\n  JSON_ARRAYAGG(JSON_OBJECT('product_id', `oi`.`product_id`, 'quantity', `oi`.`quantity`))\nFROM\n  `order_items` AS `oi`\nGROUP BY\n  `oi`.`order_id`"
+          "SELECT\n  `oi`.`order_id`,\n  JSON_ARRAYAGG(JSON_OBJECT(?, `oi`.`product_id`, ?, `oi`.`quantity`))\nFROM\n  `order_items` AS `oi`\nGROUP BY\n  `oi`.`order_id`"
         )
-        expect(bindings).to.be.eql([])
+        expect(bindings).to.be.eql(['product_id', 'quantity'])
       })
     })
 
@@ -211,9 +211,9 @@ describe('JSON functions', () => {
           )
           .toSQL()
         expect(sql).to.be.eql(
-          "SELECT\n  COALESCE(JSON_ARRAYAGG(JSON_OBJECT('sku', `sku`, 'price', `price`)), '[]')\nFROM\n  `products`"
+          "SELECT\n  COALESCE(JSON_ARRAYAGG(JSON_OBJECT(?, `sku`, ?, `price`)), '[]')\nFROM\n  `products`"
         )
-        expect(bindings).to.be.eql([])
+        expect(bindings).to.be.eql(['sku', 'price'])
       })
 
       it("New API with 'with_coalesce': SELECT COALESCE(JSON_ARRAYAGG(JSON_OBJECT('sku', `sku`, 'price', `price`)), '[]') FROM `products`", () => {
@@ -224,9 +224,9 @@ describe('JSON functions', () => {
           )
           .toSQL()
         expect(sql).to.be.eql(
-          "SELECT\n  COALESCE(JSON_ARRAYAGG(JSON_OBJECT('sku', `sku`, 'price', `price`)), '[]')\nFROM\n  `products`"
+          "SELECT\n  COALESCE(JSON_ARRAYAGG(JSON_OBJECT(?, `sku`, ?, `price`)), '[]')\nFROM\n  `products`"
         )
-        expect(bindings).to.be.eql([])
+        expect(bindings).to.be.eql(['sku', 'price'])
       })
 
       it("New API with 'without_coalesce': SELECT JSON_ARRAYAGG(JSON_OBJECT('sku', `sku`, 'price', `price`)) FROM `products`", () => {
@@ -237,9 +237,9 @@ describe('JSON functions', () => {
           )
           .toSQL()
         expect(sql).to.be.eql(
-          "SELECT\n  JSON_ARRAYAGG(JSON_OBJECT('sku', `sku`, 'price', `price`))\nFROM\n  `products`"
+          "SELECT\n  JSON_ARRAYAGG(JSON_OBJECT(?, `sku`, ?, `price`))\nFROM\n  `products`"
         )
-        expect(bindings).to.be.eql([])
+        expect(bindings).to.be.eql(['sku', 'price'])
       })
 
       it("SELECT COALESCE(JSON_ARRAYAGG(name), '[]') FROM `users`", () => {
@@ -270,9 +270,9 @@ describe('JSON functions', () => {
           )
           .toSQL()
         expect(sql).to.be.eql(
-          "SELECT\n  COALESCE(json_agg(json_build_object('sku', \"sku\", 'price', \"price\")), '[]'::json)\nFROM\n  \"products\""
+          "SELECT\n  COALESCE(json_agg(json_build_object($1::text, \"sku\", $2::text, \"price\")), '[]'::json)\nFROM\n  \"products\""
         )
-        expect(bindings).to.be.eql([])
+        expect(bindings).to.be.eql(['sku', 'price'])
       })
 
       it("New API with 'with_coalesce': SELECT COALESCE(json_agg(json_build_object('sku', \"sku\", 'price', \"price\")), '[]'::json) FROM \"products\"", () => {
@@ -283,9 +283,9 @@ describe('JSON functions', () => {
           )
           .toSQL()
         expect(sql).to.be.eql(
-          "SELECT\n  COALESCE(json_agg(json_build_object('sku', \"sku\", 'price', \"price\")), '[]'::json)\nFROM\n  \"products\""
+          "SELECT\n  COALESCE(json_agg(json_build_object($1::text, \"sku\", $2::text, \"price\")), '[]'::json)\nFROM\n  \"products\""
         )
-        expect(bindings).to.be.eql([])
+        expect(bindings).to.be.eql(['sku', 'price'])
       })
 
       it("SELECT COALESCE(json_agg(name), '[]'::json) FROM \"users\"", () => {
@@ -353,9 +353,9 @@ describe('JSON functions', () => {
           )
           .toSQL()
         expect(sql).to.be.eql(
-          "SELECT\n  COALESCE(JSON_ARRAYAGG(JSON_OBJECT('id', `o`.`id`, 'ordered_at', `o`.`created_at`)), '[]')\nFROM\n  `order` AS `o`"
+          "SELECT\n  COALESCE(JSON_ARRAYAGG(JSON_OBJECT(?, `o`.`id`, ?, `o`.`created_at`)), '[]')\nFROM\n  `order` AS `o`"
         )
-        expect(bindings).to.be.eql([])
+        expect(bindings).to.be.eql(['id', 'ordered_at'])
       })
 
       it("SELECT COALESCE(JSON_ARRAYAGG(JSON_OBJECT('id', `u`.`id`, 'name', `u`.`name`)), '{}') FROM `users` AS `u`", () => {
@@ -369,9 +369,9 @@ describe('JSON functions', () => {
           )
           .toSQL()
         expect(sql).to.be.eql(
-          "SELECT\n  COALESCE(JSON_ARRAYAGG(JSON_OBJECT('id', `u`.`id`, 'name', `u`.`name`)), '{}')\nFROM\n  `users` AS `u`"
+          "SELECT\n  COALESCE(JSON_ARRAYAGG(JSON_OBJECT(?, `u`.`id`, ?, `u`.`name`)), '{}')\nFROM\n  `users` AS `u`"
         )
-        expect(bindings).to.be.eql([])
+        expect(bindings).to.be.eql(['id', 'name'])
       })
     })
 
@@ -417,9 +417,9 @@ describe('JSON functions', () => {
           .column(coalesce(json_object({ data: 'data' }), '{}'))
           .toSQL()
         expect(sql).to.be.eql(
-          "SELECT\n  COALESCE(JSON_OBJECT('data', `data`), '{}')\nFROM\n  `items`"
+          "SELECT\n  COALESCE(JSON_OBJECT(?, `data`), '{}')\nFROM\n  `items`"
         )
-        expect(bindings).to.be.eql([])
+        expect(bindings).to.be.eql(['data'])
       })
 
       it('Other string values still use placeholders: SELECT COALESCE(title, ?) FROM `articles`', () => {
@@ -453,9 +453,9 @@ describe('JSON functions', () => {
           .limit(5)
           .toSQL()
         expect(sql).to.be.eql(
-          "SELECT\n  COALESCE(JSON_ARRAYAGG(JSON_OBJECT('id', `o`.`id`, 'ordered_at', `o`.`created_at`)), '[]')\nFROM\n  `order` AS `o`\nWHERE\n  (`order`.`user_id` = u.id)\nORDER BY\n  `o`.`created_at` DESC\nLIMIT 5"
+          "SELECT\n  COALESCE(JSON_ARRAYAGG(JSON_OBJECT(?, `o`.`id`, ?, `o`.`created_at`)), '[]')\nFROM\n  `order` AS `o`\nWHERE\n  (`order`.`user_id` = u.id)\nORDER BY\n  `o`.`created_at` DESC\nLIMIT 5"
         )
-        expect(bindings).to.be.eql([])
+        expect(bindings).to.be.eql(['id', 'ordered_at'])
       })
     })
 
@@ -482,9 +482,9 @@ describe('JSON functions', () => {
           .groupBy('u.id')
           .toSQL()
         expect(sql).to.be.eql(
-          "SELECT\n  JSON_OBJECT('user_name', `u`.`name`, 'orders', COALESCE(JSON_ARRAYAGG(JSON_OBJECT('order_id', `o`.`id`, 'total', `o`.`total_amount`, 'date', `o`.`created_at`)), '[]'))\nFROM\n  `orders` AS `o`\nINNER JOIN `users` AS `u` ON `o`.`user_id` = `u`.`id`\nGROUP BY\n  `u`.`id`"
+          "SELECT\n  JSON_OBJECT(?, `u`.`name`, ?, COALESCE(JSON_ARRAYAGG(JSON_OBJECT(?, `o`.`id`, ?, `o`.`total_amount`, ?, `o`.`created_at`)), '[]'))\nFROM\n  `orders` AS `o`\nINNER JOIN `users` AS `u` ON `o`.`user_id` = `u`.`id`\nGROUP BY\n  `u`.`id`"
         )
-        expect(bindings).to.be.eql([])
+        expect(bindings).to.be.eql(['user_name', 'orders', 'order_id', 'total', 'date'])
       })
     })
 
@@ -511,9 +511,9 @@ describe('JSON functions', () => {
           .having(unescape('COUNT(*)'), '>', 0)
           .toSQL()
         expect(sql).to.be.eql(
-          "SELECT\n  `p`.`category`,\n  COALESCE(JSON_ARRAYAGG(JSON_OBJECT('id', `p`.`id`, 'name', `p`.`name`, 'price', `p`.`price`, 'in_stock', `p`.`stock_quantity`)), '[]') AS `products_json`\nFROM\n  `products` AS `p`\nGROUP BY\n  `p`.`category`\nHAVING\n  (COUNT(*) > ?)"
+          "SELECT\n  `p`.`category`,\n  COALESCE(JSON_ARRAYAGG(JSON_OBJECT(?, `p`.`id`, ?, `p`.`name`, ?, `p`.`price`, ?, `p`.`stock_quantity`)), '[]') AS `products_json`\nFROM\n  `products` AS `p`\nGROUP BY\n  `p`.`category`\nHAVING\n  (COUNT(*) > ?)"
         )
-        expect(bindings).to.be.eql([0])
+        expect(bindings).to.be.eql(['id', 'name', 'price', 'in_stock', 0])
       })
     })
   })
@@ -527,9 +527,9 @@ describe('JSON functions', () => {
             .column(json_object({ id: 'id', name: 'name' }))
             .toSQL()
           expect(sql).to.be.eql(
-            'SELECT\n  json_build_object(\'id\', "id", \'name\', "name")\nFROM\n  "users"'
+            'SELECT\n  json_build_object($1::text, "id", $2::text, "name")\nFROM\n  "users"'
           )
-          expect(bindings).to.be.eql([])
+          expect(bindings).to.be.eql(['id', 'name'])
         })
 
         it('SELECT json_build_object(\'id\', "id", \'name\', "name", \'email\', "email", \'created\', "created_at") FROM "users"', () => {
@@ -545,9 +545,9 @@ describe('JSON functions', () => {
             )
             .toSQL()
           expect(sql).to.be.eql(
-            'SELECT\n  json_build_object(\'id\', "id", \'name\', "name", \'email\', "email", \'created\', "created_at")\nFROM\n  "users"'
+            'SELECT\n  json_build_object($1::text, "id", $2::text, "name", $3::text, "email", $4::text, "created_at")\nFROM\n  "users"'
           )
-          expect(bindings).to.be.eql([])
+          expect(bindings).to.be.eql(['id', 'name', 'email', 'created'])
         })
       })
 
@@ -558,9 +558,9 @@ describe('JSON functions', () => {
             .column(json_object({ id: 'o.id', ordered_at: 'o.created_at' }))
             .toSQL()
           expect(sql).to.be.eql(
-            'SELECT\n  json_build_object(\'id\', "o"."id", \'ordered_at\', "o"."created_at")\nFROM\n  "order" AS "o"'
+            'SELECT\n  json_build_object($1::text, "o"."id", $2::text, "o"."created_at")\nFROM\n  "order" AS "o"'
           )
-          expect(bindings).to.be.eql([])
+          expect(bindings).to.be.eql(['id', 'ordered_at'])
         })
       })
     })
@@ -575,9 +575,9 @@ describe('JSON functions', () => {
             )
             .toSQL()
           expect(sql).to.be.eql(
-            'SELECT\n  json_agg(json_build_object(\'sku\', "sku", \'price\', "price"))\nFROM\n  "products"'
+            'SELECT\n  json_agg(json_build_object($1::text, "sku", $2::text, "price"))\nFROM\n  "products"'
           )
-          expect(bindings).to.be.eql([])
+          expect(bindings).to.be.eql(['sku', 'price'])
         })
 
         it('SELECT json_agg(name) FROM "users"', () => {
@@ -589,6 +589,39 @@ describe('JSON functions', () => {
           expect(bindings).to.be.eql([])
         })
       })
+    })
+  })
+
+  describe('bindings', () => {
+    it('coalesce を WHERE の左辺に使うと postgresql で $N の連番になる', () => {
+      const [sql, bindings] = createBuilder()
+        .from('t')
+        .where(coalesce('a', 'b'), '=', 'c')
+        .toSQL({ driver: 'postgresql' })
+      expect(sql).to.be.eql(
+        'SELECT\n  *\nFROM\n  "t"\nWHERE\n  ((COALESCE($1, $2)) = $3)'
+      )
+      expect(bindings).to.be.eql(['a', 'b', 'c'])
+    })
+
+    it('json_object のキーはプレースホルダになり bindings に入る', () => {
+      const key = "a', (SELECT 1), 'b"
+      const [sql, bindings] = createBuilder()
+        .from('t')
+        .column(json_object({ [key]: 'id' }))
+        .toSQL()
+      expect(sql).to.be.eql('SELECT\n  JSON_OBJECT(?, `id`)\nFROM\n  `t`')
+      expect(bindings).to.be.eql([key])
+    })
+
+    it('json_object のキーは postgresql で $N::text になる', () => {
+      const key = "a', (SELECT 1), 'b"
+      const [sql, bindings] = createBuilder()
+        .from('t')
+        .column(json_object({ [key]: 'id' }))
+        .toSQL({ driver: 'postgresql' })
+      expect(sql).to.be.eql('SELECT\n  json_build_object($1::text, "id")\nFROM\n  "t"')
+      expect(bindings).to.be.eql([key])
     })
   })
 })

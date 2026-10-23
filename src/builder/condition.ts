@@ -50,18 +50,15 @@ export class Condition implements SQLBuilderConditionPort {
       }
     }
 
-    const [expr_sql] = this.expr.toSQL(options)
-
-    // Handle different field types
     if (isFieldPort(this.field)) {
-      // It's a FieldPort
-      const sql = `(${this.field.getContent(options)} ${expr_sql})`
-      return [sql, options.bindings!.getBindParameters()]
-    } else {
-      // It's a SQLBuilderConditionExpressionPort
-      const [field_sql] = this.field.toSQL(options)
-      const sql = `((${field_sql}) ${expr_sql})`
+      const field_sql = this.field.getContent(options)
+      const [expr_sql] = this.expr.toSQL(options)
+      const sql = `(${field_sql} ${expr_sql})`
       return [sql, options.bindings!.getBindParameters()]
     }
+    const [field_sql] = this.field.toSQL(options)
+    const [expr_sql] = this.expr.toSQL(options)
+    const sql = `((${field_sql}) ${expr_sql})`
+    return [sql, options.bindings!.getBindParameters()]
   }
 }
