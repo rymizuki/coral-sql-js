@@ -109,8 +109,9 @@ It is still written as-is, so never put user input in it. The next major version
 
 ## Security
 
-- **Values are always bound.** Values in `where()` / `having()`, ON conditions, `case_when()` THEN / ELSE and `json_object()` keys become placeholders.
-- **Identifiers are quoted.** Field and table names are split on `.` and each part is quoted with the driver's quote (`` ` `` for mysql / sqlite, `"` for postgresql); a quote inside a name is doubled.
+- **Values are bound.** Values in `where()` / `having()`, ON conditions, `case_when()` THEN / ELSE and `json_object()` keys become placeholders.
+  `case_when()` writes finite numbers, booleans and `null` directly.
+- **Identifiers are quoted.** Field and table names are split on `.` and each part is quoted with the configured `quote` (default: `` ` `` for mysql / sqlite, `"` for postgresql); a quote inside a name is doubled.
   A part is written as-is only when it is wrapped in that quote and contains neither the quote nor a backslash (e.g. `` `users` `` on mysql, `"users"` on postgresql).
   Quoting stops SQL injection, but a caller-chosen name can still point at any column, so pick names from an allowlist.
 - **`limit()` / `offset()`** accept only non-negative safe integers and throw otherwise.
@@ -118,7 +119,8 @@ It is still written as-is, so never put user input in it. The next major version
   - `unescape()`
   - a plain string passed to `select()` or as an ON condition (deprecated)
   - `new Field(x, true)` (deprecated)
-- **`quote: null`** turns identifier quoting off.
+  - any identifier when `quote: null` (or `''`) is set
+  - what your own `getContent()` / `toSQL()` implementations return
 
 ## Migrating to 1.8
 
