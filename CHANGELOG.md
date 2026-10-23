@@ -1,5 +1,25 @@
 # coral-sql
 
+## 1.8.0
+
+### Minor Changes
+
+- a550521: join / leftJoin の ON 条件に createConditions() と unescape() を渡せるようにした。unescape() の戻り値の型を RawSQLPort（FieldPort の部分型）にした。ON 条件に渡せるのは createConditions() か unescape() で、column_ref() は条件の右辺に置く。値はバインドされ、識別子はエスケープされる。
+  SQLBuilderPort を自前で実装している場合は、ON 条件に Conditions / RawSQLPort を受け取る overload の実装が必要。
+  空の条件（空の createConditions() や unescape('')）を渡すと Error を投げる。
+  ON 条件に column_ref() や Field を渡すと Error を投げる。
+  unescape() の戻り値を受けた変数へ column_ref() や Field を再代入している場合は、型注釈を FieldPort に広げる必要がある。
+  FieldPort を型として公開した（unescape() / column_ref() の戻り値や Field を受ける型を利用側で書けるようにするため）。
+  文字列の ON 条件は非推奨で、次のメジャーバージョンで unescape() が必須になる。
+- c802214: 識別子をクォートせずに出力する条件を絞った。quote: null を除き、設定されたクォート文字で全体が囲まれ、中に同じクォート文字とバックスラッシュを含まない断片だけをそのまま出力する。既定（mysql / sqlite の `` ` ``、postgresql の `"`）では、`'x'` と、mysql / sqlite の `"x"` はクォートし直される。
+  以前は素通しされ、文字列リテラルとして評価されて where("'name'", 'name') のような条件を恒真にできた（外部入力からフィールド名を組む場合に絞り込みを迂回される）。
+  移行: クォートせずに users.id と渡すか、自分の driver のクォート文字でクォートして渡す。
+- 91aac08: select() に unescape() を渡せるようにした。文字列の select() は非推奨で、次のメジャーバージョンで unescape() が必須になる。
+  new Field(x, true)（unescape フラグを渡す 2 引数形）は非推奨にした。生 SQL は unescape() で作る。
+  join / leftJoin の ON 条件に、文字列・createConditions()・unescape() 以外（exists() などの式）を渡すと Error を投げる。空白だけの unescape() も Error になる。
+  SQLBuilderJoinDirection を型として公開した。
+  SQLBuilderPort を自前で実装している場合は、select に RawSQLPort を受け取る overload の実装が必要。
+
 ## 1.7.0
 
 ### Minor Changes

@@ -107,6 +107,33 @@ const [sql] = createBuilder()
 A plain string (`.select('SELECT COUNT(*) AS total')`) is deprecated.
 It is still written as-is, so never put user input in it. The next major version will require `unescape()`.
 
+## Security
+
+- **Values are always bound.** Values in `where()` / `having()`, ON conditions, `case_when()` THEN / ELSE and `json_object()` keys become placeholders.
+- **Identifiers are quoted.** Field and table names are split on `.` and each part is quoted with the driver's quote (`` ` `` for mysql / sqlite, `"` for postgresql); a quote inside a name is doubled.
+  A part is written as-is only when it is wrapped in that quote and contains neither the quote nor a backslash (e.g. `` `users` `` on mysql, `"users"` on postgresql).
+  Quoting stops SQL injection, but a caller-chosen name can still point at any column, so pick names from an allowlist.
+- **`limit()` / `offset()`** accept only non-negative safe integers and throw otherwise.
+- **Raw SQL is written as-is.** Never put user input in:
+  - `unescape()`
+  - a plain string passed to `select()` or as an ON condition (deprecated)
+  - `new Field(x, true)` (deprecated)
+- **`quote: null`** turns identifier quoting off.
+
+## Migrating to 1.8
+
+| Before                                                 | After                                                                                          |
+| ------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| `.select('SELECT COUNT(*) AS total')`                  | `.select(unescape('SELECT COUNT(*) AS total'))`                                                |
+| `.leftJoin('passport', 'p', 'p.id = u.passport_id')`   | `.leftJoin('passport', 'p', createConditions().and('p.id', '=', column_ref('u.passport_id')))` |
+| `new Field('COUNT(*)', true)`                          | `unescape('COUNT(*)')`                                                                         |
+| `.where('"users"."id"', 1)` on mysql / sqlite          | `.where('users.id', 1)`                                                                        |
+| `let f = unescape('COUNT(*)'); f = column_ref('u.id')` | `let f: FieldPort = unescape('COUNT(*)'); f = column_ref('u.id')`                              |
+
+The string forms still work in 1.8 and are deprecated.
+If you implement `SQLBuilderPort` yourself, add the `select(RawSQLPort)` overload and the join overloads that take `SQLBuilderConditionsPort | RawSQLPort`.
+See [CHANGELOG.md](./CHANGELOG.md) for the full list.
+
 ## Documentation
 
 Document is [here](https://rymizuki.github.io/coral-sql-js/).
