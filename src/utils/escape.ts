@@ -42,10 +42,7 @@ export const column_ref = (column: string): FieldPort => {
   return new Field(column)
 }
 
-const isWrappedIn = (fragment: string, quote: string): boolean => {
-  if (quote === '') {
-    return false
-  }
+const isSafePassthrough = (fragment: string, quote: string): boolean => {
   if (fragment.length <= quote.length * 2) {
     return false
   }
@@ -60,16 +57,19 @@ export const escape = (
   field: string,
   options: { quote?: string | null } = {}
 ): string => {
-  const fragments = field.split('.')
   const quote =
     options.quote === null
       ? ''
       : options.quote !== undefined
       ? options.quote
       : '`'
-  const output = fragments
+  if (quote === '') {
+    return field
+  }
+  const output = field
+    .split('.')
     .map((fragment) => {
-      if (isWrappedIn(fragment, quote)) {
+      if (isSafePassthrough(fragment, quote)) {
         return fragment
       }
       return quote + fragment.split(quote).join(quote + quote) + quote

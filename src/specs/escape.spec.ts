@@ -20,7 +20,9 @@ const requoteCases: Array<[string, string]> = [
   ['t`x', '`t``x`'],
   ['a`b', '`a``b`'],
   ['`t`x', '```t``x`'],
-  ['"a\\"""', '`"a\\"""`']
+  ['"a\\"""', '`"a\\"""`'],
+  ['`', '````'],
+  ['``', '``````']
 ]
 
 const passthroughCases: Array<[string, string]> = [
@@ -45,7 +47,9 @@ const postgresqlCases: Array<[string, string]> = [
   ['"users"."id"', '"users"."id"'],
   ["'lit'", `"'lit'"`],
   ['`x; DROP TABLE users; --`', '"`x; DROP TABLE users; --`"'],
-  ['"a""b"', '"""a""""b"""']
+  ['"a""b"', '"""a""""b"""'],
+  ['"', '""""'],
+  ['""', '""""""']
 ]
 
 describe('escape (identifier quoting via the public builder)', () => {
@@ -110,6 +114,14 @@ describe('escape (identifier quoting via the public builder)', () => {
   describe('column() with quote: null', () => {
     it('users.id is output as-is', () => {
       expect(selectedColumn('users.id', { quote: null })).to.be.eql('users.id')
+    })
+
+    it("'x' is output as-is", () => {
+      expect(selectedColumn("'x'", { quote: null })).to.be.eql("'x'")
+    })
+
+    it('a.b is output as-is', () => {
+      expect(selectedColumn('a.b', { quote: null })).to.be.eql('a.b')
     })
   })
 
