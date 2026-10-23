@@ -67,6 +67,40 @@ describe('join conditions', () => {
     })
   })
 
+  describe('non-raw FieldPort condition', () => {
+    it('throws when column_ref() is passed as the condition', () => {
+      expect(() =>
+        createBuilder()
+          .from('users', 'u')
+          .leftJoin(
+            'passport',
+            'p',
+            // @ts-expect-error column_ref() is not a join condition
+            column_ref('u.passport_id')
+          )
+          .toSQL()
+      ).to.throw(
+        'coral-sql join condition must be createConditions() or unescape()'
+      )
+    })
+
+    it('throws when a Field instance is passed as the condition', () => {
+      expect(() =>
+        createBuilder()
+          .from('users', 'u')
+          .leftJoin(
+            'passport',
+            'p',
+            // @ts-expect-error Field is not a join condition
+            new Field('x')
+          )
+          .toSQL()
+      ).to.throw(
+        'coral-sql join condition must be createConditions() or unescape()'
+      )
+    })
+  })
+
   describe('unescape() condition', () => {
     it('returns a Field instance', () => {
       expect(unescape('x')).to.be.instanceOf(Field)

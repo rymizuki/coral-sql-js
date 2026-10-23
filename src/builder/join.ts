@@ -6,7 +6,7 @@ import {
   SQLBuilderPort
 } from '../types'
 import { escape } from '../utils/escape'
-import { isFieldPort } from '../utils/type-guards'
+import { isFieldPort, isRawSQLPort } from '../utils/type-guards'
 import { Table } from './table'
 
 export class Join {
@@ -77,14 +77,19 @@ export class Join {
     if (typeof this.condition === 'string') {
       return this.condition
     }
+    if (isRawSQLPort(this.condition)) {
+      return this.requireNonEmpty(this.condition.getContent(options))
+    }
     if (isFieldPort(this.condition)) {
-      const content = this.condition.getContent(options)
-      if (!content) {
-        throw new Error('coral-sql join requires a non-empty condition')
-      }
-      return content
+      throw new Error(
+        'coral-sql join condition must be createConditions() or unescape()'
+      )
     }
     const [sql] = this.condition.toSQL(options)
+    return this.requireNonEmpty(sql)
+  }
+
+  private requireNonEmpty(sql: string | null): string {
     if (!sql) {
       throw new Error('coral-sql join requires a non-empty condition')
     }

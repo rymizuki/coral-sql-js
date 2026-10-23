@@ -1,5 +1,6 @@
 import {
   FieldPort,
+  RawSQLPort,
   SQLBuilderConditionExpressionPort,
   SQLBuilderPort
 } from '../types'
@@ -14,6 +15,13 @@ export function isFieldPort(value: unknown): value is FieldPort {
     'getContent' in value &&
     typeof (value as FieldPort).getContent === 'function'
   )
+}
+
+/**
+ * Type guard to check if a value is a RawSQLPort (unescape() result)
+ */
+export function isRawSQLPort(value: unknown): value is RawSQLPort {
+  return isFieldPort(value) && (value as RawSQLPort).kind === 'raw_sql'
 }
 
 /**
