@@ -7,43 +7,42 @@ on:
     types:
       - completed
 
-concurrency:
-  group: gh-pages
-  cancel-in-progress: false
-
 jobs:
-  check-tip:
+  check-latest:
     if: >-
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      actions: read
     outputs:
-      is-tip: ${{ steps.tip.outputs.is-tip }}
+      is-latest: ${{ steps.latest.outputs.is-latest }}
 
     steps:
-      - name: Check the tested commit is still the tip of main
-        id: tip
+      - name: Check the commit is the latest one that passed Test on main
+        id: latest
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
-          tip=$(gh api "repos/${GITHUB_REPOSITORY}/commits/main" --jq .sha)
-          if [ "$tip" = "$HEAD_SHA" ]; then
-            echo "is-tip=true" >> "$GITHUB_OUTPUT"
+          latest=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/main.yml/runs?branch=main&event=push&status=success&per_page=1" --jq '.workflow_runs[0].head_sha')
+          if [ "$latest" = "$HEAD_SHA" ]; then
+            echo "is-latest=true" >> "$GITHUB_OUTPUT"
           else
-            echo "::notice::main is at $tip; skipping deploy of $HEAD_SHA"
-            echo "is-tip=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::latest successful Test on main is $latest; skipping deploy of $HEAD_SHA"
+            echo "is-latest=false" >> "$GITHUB_OUTPUT"
           fi
 
   deploy:
-    needs: check-tip
-    if: needs.check-tip.outputs.is-tip == 'true'
+    needs: check-latest
+    if: needs.check-latest.outputs.is-latest == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    concurrency:
+      group: gh-pages
+      cancel-in-progress: false
 
     steps:
       - name: Checkout the commit that passed Test
