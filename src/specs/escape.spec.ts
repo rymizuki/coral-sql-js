@@ -20,22 +20,36 @@ const requoteCases: Array<[string, string]> = [
   ['t`x', '`t``x`'],
   ['a`b', '`a``b`'],
   ['`t`x', '```t``x`'],
-  ['"a\\"""', '`"a\\"""`']
+  ['"a\\"""', '`"a\\"""`'],
+  ['`', '````'],
+  ['``', '``````']
 ]
 
 const passthroughCases: Array<[string, string]> = [
   ['`users`.id', '`users`.`id`'],
-  ['"users"."id"', '"users"."id"'],
-  ["'lit'", "'lit'"],
   ['users.id', '`users`.`id`']
+]
+
+const nonDriverQuoteCases: Array<[string, string]> = [
+  ['"users"."id"', '`"users"`.`"id"`'],
+  ["'lit'", "`'lit'`"]
+]
+
+const doubleQuoteOptionCases: Array<[string, string]> = [
+  ["'lit'", `"'lit'"`],
+  ['`x`', '"`x`"'],
+  ['"users"."id"', '"users"."id"']
 ]
 
 const postgresqlCases: Array<[string, string]> = [
   ['a"b', '"a""b"'],
   ['`t`x', '"`t`x"'],
   ['"users"."id"', '"users"."id"'],
+  ["'lit'", `"'lit'"`],
   ['`x; DROP TABLE users; --`', '"`x; DROP TABLE users; --`"'],
-  ['"a""b"', '"""a""""b"""']
+  ['"a""b"', '"""a""""b"""'],
+  ['"', '""""'],
+  ['""', '""""""']
 ]
 
 describe('escape (identifier quoting via the public builder)', () => {
@@ -48,11 +62,35 @@ describe('escape (identifier quoting via the public builder)', () => {
       })
     })
 
-    describe('fragment is fully quoted or a plain identifier', () => {
+    describe('fragment is quoted with the driver quote or a plain identifier', () => {
       passthroughCases.forEach(([input, expected]) => {
         it(`${input} -> ${expected}`, () => {
           expect(selectedColumn(input)).to.be.eql(expected)
         })
+      })
+    })
+
+    describe('fragment is wrapped in a quote that is not the driver quote', () => {
+      nonDriverQuoteCases.forEach(([input, expected]) => {
+        it(`${input} -> ${expected}`, () => {
+          expect(selectedColumn(input)).to.be.eql(expected)
+        })
+      })
+    })
+  })
+
+  describe('column() with sqlite driver', () => {
+    it('"users"."id" is quoted again', () => {
+      expect(selectedColumn('"users"."id"', { driver: 'sqlite' })).to.be.eql(
+        '`"users"`.`"id"`'
+      )
+    })
+  })
+
+  describe("column() with quote: '\"'", () => {
+    doubleQuoteOptionCases.forEach(([input, expected]) => {
+      it(`${input} -> ${expected}`, () => {
+        expect(selectedColumn(input, { quote: '"' })).to.be.eql(expected)
       })
     })
   })
@@ -76,6 +114,14 @@ describe('escape (identifier quoting via the public builder)', () => {
   describe('column() with quote: null', () => {
     it('users.id is output as-is', () => {
       expect(selectedColumn('users.id', { quote: null })).to.be.eql('users.id')
+    })
+
+    it("'x' is output as-is", () => {
+      expect(selectedColumn("'x'", { quote: null })).to.be.eql("'x'")
+    })
+
+    it('a.b is output as-is', () => {
+      expect(selectedColumn('a.b', { quote: null })).to.be.eql('a.b')
     })
   })
 
@@ -104,6 +150,16 @@ describe('escape (identifier quoting via the public builder)', () => {
       expect(sql).to.include('("`1=1) OR (1`" = $1)')
     })
 
+    it('where() quotes a string-literal-looking fragment so it is not a tautology', () => {
+      const [sql, bindings] = createBuilder()
+        .column('id')
+        .from('t')
+        .where("'name'", 'name')
+        .toSQL()
+      expect(sql).to.include("(`'name'` = ?)")
+      expect(bindings).to.be.eql(['name'])
+    })
+
     it('where() quotes a fragment containing a backslash', () => {
       const [sql] = createBuilder()
         .column('id')
@@ -111,7 +167,7 @@ describe('escape (identifier quoting via the public builder)', () => {
         .where("'a\\'", 1)
         .where("' OR 1=1 -- '", 2)
         .toSQL()
-      expect(sql).to.include("(`'a\\'` = ?)\n  AND (' OR 1=1 -- ' = ?)")
+      expect(sql).to.include("(`'a\\'` = ?)\n  AND (`' OR 1=1 -- '` = ?)")
     })
 
     it('where() quotes a double-quoted fragment containing a backslash', () => {
@@ -121,7 +177,7 @@ describe('escape (identifier quoting via the public builder)', () => {
         .where('"a\\"', 1)
         .where('" OR 1=1 -- "', 2)
         .toSQL()
-      expect(sql).to.include('(`"a\\"` = ?)\n  AND (" OR 1=1 -- " = ?)')
+      expect(sql).to.include('(`"a\\"` = ?)\n  AND (`" OR 1=1 -- "` = ?)')
     })
 
     it('column() quotes a backtick-quoted fragment containing a backslash', () => {
@@ -143,6 +199,10 @@ describe('escape (identifier quoting via the public builder)', () => {
       expect(whenSQL('"users"."id"', { driver: 'postgresql' })).to.include(
         'WHEN "users"."id" = $1'
       )
+    })
+
+    it('mysql: "a" is quoted again', () => {
+      expect(whenSQL('"a"')).to.include('WHEN `"a"` = ?')
     })
 
     it('mysql: a`b is escaped by doubling', () => {
