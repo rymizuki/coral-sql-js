@@ -3,6 +3,7 @@ import { Condition as SQLBuilderCondition } from './builder/condition'
 import { Conditions as SQLBuilderConditions } from './builder/conditions'
 import { Field } from './builder/field'
 import {
+  FieldPort,
   JsonArrayAggregateCoalesceOption,
   SQLBuilderBindingValue,
   SQLBuilderConditionConjunction,
@@ -29,6 +30,7 @@ export {
   column_ref,
   exists,
   Field,
+  FieldPort,
   is_not_null,
   is_null,
   JsonArrayAggregateCoalesceOption,
