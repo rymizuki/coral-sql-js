@@ -42,6 +42,20 @@ export const column_ref = (column: string): FieldPort => {
   return new Field(column)
 }
 
+const isWrappedIn = (fragment: string, quote: string): boolean => {
+  if (quote === '') {
+    return false
+  }
+  if (fragment.length <= quote.length * 2) {
+    return false
+  }
+  if (!fragment.startsWith(quote) || !fragment.endsWith(quote)) {
+    return false
+  }
+  const inner = fragment.slice(quote.length, fragment.length - quote.length)
+  return !inner.includes(quote) && !inner.includes('\\')
+}
+
 export const escape = (
   field: string,
   options: { quote?: string | null } = {}
@@ -53,13 +67,9 @@ export const escape = (
       : options.quote !== undefined
       ? options.quote
       : '`'
-  const quoted =
-    quote === '`'
-      ? /^(?:`[^`\\]+`|"[^"\\]+"|'[^'\\]+')$/
-      : /^(?:"[^"\\]+"|'[^'\\]+')$/
   const output = fragments
     .map((fragment) => {
-      if (quoted.test(fragment)) {
+      if (isWrappedIn(fragment, quote)) {
         return fragment
       }
       return quote + fragment.split(quote).join(quote + quote) + quote
