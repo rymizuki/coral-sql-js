@@ -216,7 +216,7 @@ describe('JSON functions', () => {
         expect(bindings).to.be.eql(['sku', 'price'])
       })
 
-      it("New API with 'with_coalesce': SELECT COALESCE(JSON_ARRAYAGG(JSON_OBJECT('sku', `sku`, 'price', `price`)), '[]') FROM `products`", () => {
+      it("New API with 'with_coalesce': SELECT COALESCE(JSON_ARRAYAGG(JSON_OBJECT(?, `sku`, ?, `price`)), '[]') FROM `products`", () => {
         const [sql, bindings] = builder
           .from('products')
           .column(
@@ -229,7 +229,7 @@ describe('JSON functions', () => {
         expect(bindings).to.be.eql(['sku', 'price'])
       })
 
-      it("New API with 'without_coalesce': SELECT JSON_ARRAYAGG(JSON_OBJECT('sku', `sku`, 'price', `price`)) FROM `products`", () => {
+      it("New API with 'without_coalesce': SELECT JSON_ARRAYAGG(JSON_OBJECT(?, `sku`, ?, `price`)) FROM `products`", () => {
         const [sql, bindings] = builder
           .from('products')
           .column(
@@ -262,7 +262,7 @@ describe('JSON functions', () => {
     })
 
     describe('PostgreSQL auto-coalesce with json type casting', () => {
-      it("SELECT COALESCE(json_agg(json_build_object(?, \"sku\", ?, \"price\")), '[]'::json) FROM \"products\"", () => {
+      it("SELECT COALESCE(json_agg(json_build_object($1::text, \"sku\", $2::text, \"price\")), '[]'::json) FROM \"products\"", () => {
         const [sql, bindings] = postgresqlBuilder
           .from('products')
           .column(
@@ -275,7 +275,7 @@ describe('JSON functions', () => {
         expect(bindings).to.be.eql(['sku', 'price'])
       })
 
-      it("New API with 'with_coalesce': SELECT COALESCE(json_agg(json_build_object('sku', \"sku\", 'price', \"price\")), '[]'::json) FROM \"products\"", () => {
+      it("New API with 'with_coalesce': SELECT COALESCE(json_agg(json_build_object($1::text, \"sku\", $2::text, \"price\")), '[]'::json) FROM \"products\"", () => {
         const [sql, bindings] = postgresqlBuilder
           .from('products')
           .column(
