@@ -1,6 +1,7 @@
 import { expect } from 'chai'
 import {
   case_when,
+  createBuilder,
   createConditions,
   unescape,
   is_not_null,
@@ -28,9 +29,9 @@ describe('case_when() function', () => {
         )
         .toSQL()
       expect(sql).to.be.eql(
-        'SELECT\n  (CASE WHEN `status` = ? THEN \'Active User\' ELSE \'Inactive User\' END)\nFROM\n  `users`'
+        'SELECT\n  (CASE WHEN `status` = ? THEN ? ELSE ? END)\nFROM\n  `users`'
       )
-      expect(bindings).to.be.eql(['active'])
+      expect(bindings).to.be.eql(['active', 'Active User', 'Inactive User'])
     })
 
     it('Multiple WHEN conditions', () => {
@@ -45,9 +46,9 @@ describe('case_when() function', () => {
         )
         .toSQL()
       expect(sql).to.be.eql(
-        'SELECT\n  (CASE WHEN `status` = ? THEN \'Active\' WHEN `status` = ? THEN \'Pending\' WHEN `status` = ? THEN \'Suspended\' ELSE \'Unknown\' END)\nFROM\n  `users`'
+        'SELECT\n  (CASE WHEN `status` = ? THEN ? WHEN `status` = ? THEN ? WHEN `status` = ? THEN ? ELSE ? END)\nFROM\n  `users`'
       )
-      expect(bindings).to.be.eql(['active', 'pending', 'suspended'])
+      expect(bindings).to.be.eql(['active', 'Active', 'pending', 'Pending', 'suspended', 'Suspended', 'Unknown'])
     })
   })
 
@@ -62,9 +63,9 @@ describe('case_when() function', () => {
         )
         .toSQL()
       expect(sql).to.be.eql(
-        'SELECT\n  (CASE WHEN `u`.`status` = ? THEN \'Active\' ELSE \'Inactive\' END)\nFROM\n  `users` AS `u`'
+        'SELECT\n  (CASE WHEN `u`.`status` = ? THEN ? ELSE ? END)\nFROM\n  `users` AS `u`'
       )
-      expect(bindings).to.be.eql(['active'])
+      expect(bindings).to.be.eql(['active', 'Active', 'Inactive'])
     })
   })
 
@@ -80,9 +81,9 @@ describe('case_when() function', () => {
         )
         .toSQL()
       expect(sql).to.be.eql(
-        'SELECT\n  (CASE WHEN `amount` > ? THEN \'High Value\' WHEN `amount` > ? THEN \'Medium Value\' ELSE \'Low Value\' END)\nFROM\n  `orders`'
+        'SELECT\n  (CASE WHEN `amount` > ? THEN ? WHEN `amount` > ? THEN ? ELSE ? END)\nFROM\n  `orders`'
       )
-      expect(bindings).to.be.eql([1000, 100])
+      expect(bindings).to.be.eql([1000, 'High Value', 100, 'Medium Value', 'Low Value'])
     })
 
     it('NULL handling', () => {
@@ -95,9 +96,9 @@ describe('case_when() function', () => {
         )
         .toSQL()
       expect(sql).to.be.eql(
-        'SELECT\n  (CASE WHEN `email` IS NULL THEN \'No Email\' ELSE \'Has Email\' END)\nFROM\n  `users`'
+        'SELECT\n  (CASE WHEN `email` IS NULL THEN ? ELSE ? END)\nFROM\n  `users`'
       )
-      expect(bindings).to.be.eql([])
+      expect(bindings).to.be.eql(['No Email', 'Has Email'])
     })
 
     it('NOT NULL handling', () => {
@@ -110,9 +111,9 @@ describe('case_when() function', () => {
         )
         .toSQL()
       expect(sql).to.be.eql(
-        'SELECT\n  (CASE WHEN `email` IS NOT NULL THEN \'Has Email\' ELSE \'No Email\' END)\nFROM\n  `users`'
+        'SELECT\n  (CASE WHEN `email` IS NOT NULL THEN ? ELSE ? END)\nFROM\n  `users`'
       )
-      expect(bindings).to.be.eql([])
+      expect(bindings).to.be.eql(['Has Email', 'No Email'])
     })
   })
 
@@ -131,9 +132,9 @@ describe('case_when() function', () => {
         )
         .toSQL()
       expect(sql).to.be.eql(
-        'SELECT\n  (CASE WHEN (`age` >= ?)\n  AND (`status` = ?) THEN \'Adult Active User\' ELSE \'Other\' END)\nFROM\n  `users`'
+        'SELECT\n  (CASE WHEN (`age` >= ?)\n  AND (`status` = ?) THEN ? ELSE ? END)\nFROM\n  `users`'
       )
-      expect(bindings).to.be.eql([18, 'active', 18, 'active'])
+      expect(bindings).to.be.eql([18, 'active', 'Adult Active User', 'Other'])
     })
   })
 
@@ -148,9 +149,9 @@ describe('case_when() function', () => {
         )
         .toSQL()
       expect(sql).to.be.eql(
-        'SELECT\n  (CASE WHEN `status` = ? THEN UPPER(name) ELSE \'Unknown\' END)\nFROM\n  `users`'
+        'SELECT\n  (CASE WHEN `status` = ? THEN UPPER(name) ELSE ? END)\nFROM\n  `users`'
       )
-      expect(bindings).to.be.eql(['active'])
+      expect(bindings).to.be.eql(['active', 'Unknown'])
     })
   })
 
@@ -166,9 +167,9 @@ describe('case_when() function', () => {
         )
         .toSQL()
       expect(sql).to.be.eql(
-        'SELECT\n  (CASE WHEN `status` = ? THEN \'Active\' ELSE \'Inactive\' END) AS `status_label`\nFROM\n  `users`'
+        'SELECT\n  (CASE WHEN `status` = ? THEN ? ELSE ? END) AS `status_label`\nFROM\n  `users`'
       )
-      expect(bindings).to.be.eql(['active'])
+      expect(bindings).to.be.eql(['active', 'Active', 'Inactive'])
     })
   })
 
@@ -183,9 +184,9 @@ describe('case_when() function', () => {
         )
         .toSQL()
       expect(sql).to.be.eql(
-        'SELECT\n  (CASE WHEN "status" = ? THEN \'Active\' ELSE \'Inactive\' END)\nFROM\n  "users"'
+        'SELECT\n  (CASE WHEN "status" = $1 THEN $2 ELSE $3 END)\nFROM\n  "users"'
       )
-      expect(bindings).to.be.eql(['active'])
+      expect(bindings).to.be.eql(['active', 'Active', 'Inactive'])
     })
   })
 
@@ -200,9 +201,9 @@ describe('case_when() function', () => {
         )
         .toSQL()
       expect(sql).to.be.eql(
-        'SELECT\n  (CASE WHEN `email` IS NOT NULL THEN \'Has Email\' ELSE \'No Email\' END)\nFROM\n  `users`'
+        'SELECT\n  (CASE WHEN `email` IS NOT NULL THEN ? ELSE ? END)\nFROM\n  `users`'
       )
-      expect(bindings).to.be.eql([])
+      expect(bindings).to.be.eql(['Has Email', 'No Email'])
     })
   })
 
@@ -240,9 +241,122 @@ describe('case_when() function', () => {
         )
         .toSQL()
       expect(sql).to.be.eql(
-        'SELECT\n  (CASE WHEN `status` = ? THEN \'Active User\' END)\nFROM\n  `users`'
+        'SELECT\n  (CASE WHEN `status` = ? THEN ? END)\nFROM\n  `users`'
       )
-      expect(bindings).to.be.eql(['active'])
+      expect(bindings).to.be.eql(['active', 'Active User'])
+    })
+  })
+
+  describe('bindings', () => {
+    it('THEN / ELSE の文字列は SQL に埋め込まれずバインドされる', () => {
+      const [sql, bindings] = createBuilder()
+        .from('t')
+        .column(
+          case_when().when('a', 1).then("\\' OR 1=1 -- ").else('z')
+        )
+        .toSQL()
+      expect(sql).to.be.eql(
+        'SELECT\n  (CASE WHEN `a` = ? THEN ? ELSE ? END)\nFROM\n  `t`'
+      )
+      expect(bindings).to.be.eql([1, "\\' OR 1=1 -- ", 'z'])
+    })
+
+    it('WHERE で使ってもプレースホルダと bindings の数が一致する', () => {
+      const [sql, bindings] = createBuilder()
+        .from('t')
+        .where(case_when().when('a', 1).then('x').else('y'), 'x')
+        .where('b', 2)
+        .toSQL()
+      expect(sql.match(/\?/g)).to.have.length(bindings.length)
+      expect(bindings).to.be.eql([1, 'x', 'y', 'x', 2])
+    })
+
+    it('postgresql では $1 から連番になり ? が混ざらない', () => {
+      const [sql, bindings] = createBuilder()
+        .from('t')
+        .column(case_when().when('a', 1).then('x'))
+        .where('b', 2)
+        .toSQL({ driver: 'postgresql' })
+      expect(sql).to.include('$1').and.to.include('$2').and.to.include('$3')
+      expect(sql).to.not.include('?')
+      expect(bindings).to.be.eql([1, 'x', 2])
+    })
+
+    it('Conditions を when に渡しても値が二重に積まれない', () => {
+      const [, bindings] = createBuilder()
+        .from('t')
+        .column(
+          case_when().when(createConditions().and('a', 1)).then('x')
+        )
+        .where('b', 2)
+        .toSQL()
+      expect(bindings).to.be.eql([1, 'x', 2])
+    })
+
+    it('THEN / ELSE の数値は SQL に直接書かれ bindings に入らない', () => {
+      const [sql, bindings] = createBuilder()
+        .from('t')
+        .column(case_when().when('a', 1).then(1).else(0))
+        .toSQL()
+      expect(sql).to.be.eql(
+        'SELECT\n  (CASE WHEN `a` = ? THEN 1 ELSE 0 END)\nFROM\n  `t`'
+      )
+      expect(bindings).to.be.eql([1])
+    })
+
+    it('when の IN は IN (?,?) になり値が出現順にバインドされる', () => {
+      const [sql, bindings] = createBuilder()
+        .from('t')
+        .column(case_when().when('a', 'in', [1, 2]).then('x'))
+        .toSQL()
+      expect(sql).to.contain('`a` IN (?,?) THEN ?')
+      expect(bindings).to.be.eql([1, 2, 'x'])
+    })
+
+    it('when の BETWEEN は BETWEEN ? AND ? になる', () => {
+      const [sql, bindings] = createBuilder()
+        .from('t')
+        .column(case_when().when('a', 'between', [1, 9]).then('x'))
+        .toSQL()
+      expect(sql).to.contain('`a` BETWEEN ? AND ? THEN ?')
+      expect(bindings).to.be.eql([1, 9, 'x'])
+    })
+
+    it('postgresql では IN の $1,$2 と THEN の $3 が出現順に並ぶ', () => {
+      const [sql, bindings] = createBuilder({ driver: 'postgresql' })
+        .from('t')
+        .column(case_when().when('a', 'in', [1, 2]).then('x'))
+        .toSQL()
+      expect(sql).to.contain('"a" IN ($1,$2) THEN $3')
+      expect(bindings).to.be.eql([1, 2, 'x'])
+    })
+
+    it('THEN に NaN / Infinity / Date を渡すと埋め込まれずバインドされる', () => {
+      const date = new Date(0)
+      const [sql, bindings] = createBuilder()
+        .from('t')
+        .column(case_when().when('a', 1).then(NaN).when('a', 2).then(Infinity).when('a', 3).then(date))
+        .toSQL()
+      expect(sql).to.contain('WHEN `a` = ? THEN ? WHEN `a` = ? THEN ? WHEN `a` = ? THEN ?')
+      expect(bindings).to.be.eql([1, NaN, 2, Infinity, 3, date])
+    })
+
+    it('THEN に 0 / false / null を渡すと直接書かれ bindings に入らない', () => {
+      const [sql, bindings] = createBuilder()
+        .from('t')
+        .column(case_when().when('a', 1).then(0).when('a', 2).then(false).when('a', 3).then(null))
+        .toSQL()
+      expect(sql).to.contain('THEN 0 WHEN `a` = ? THEN false WHEN `a` = ? THEN NULL')
+      expect(bindings).to.be.eql([1, 2, 3])
+    })
+
+    it('ELSE に null を渡すと ELSE NULL になり bindings に入らない', () => {
+      const [sql, bindings] = createBuilder()
+        .from('t')
+        .column(case_when().when('a', 1).then('x').else(null))
+        .toSQL()
+      expect(sql).to.contain('ELSE NULL')
+      expect(bindings).to.be.eql([1, 'x'])
     })
   })
 })

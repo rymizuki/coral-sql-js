@@ -9,7 +9,8 @@ import {
   SQLBuilderConditionInputPattern,
   SQLBuilderOperator,
   SQLBuilderPort,
-  SQLBuilderToSQLInputOptions
+  SQLBuilderToSQLInputOptions,
+  SQLBuilderToSQLOptions
 } from '../types'
 import { escape } from '../utils/escape'
 import {
@@ -17,6 +18,33 @@ import {
   isSQLBuilderConditionExpressionPort
 } from '../utils/type-guards'
 import { Condition } from './condition'
+
+const toSQLOperator = (operator: SQLBuilderOperator): string => {
+  switch (operator) {
+    case '=':
+    case '!=':
+    case '<>':
+    case '<':
+    case '<=':
+    case '>=':
+    case '>':
+      return operator
+    case 'in':
+      return 'IN'
+    case 'not in':
+      return 'NOT IN'
+    case 'like':
+      return 'LIKE'
+    case 'not like':
+      return 'NOT LIKE'
+    case 'between':
+      return 'BETWEEN'
+    case 'regexp':
+      return 'REGEXP'
+    default:
+      throw new Error('unsupported operator')
+  }
+}
 
 export abstract class AbstractConditionExpression
   implements SQLBuilderConditionExpressionPort
@@ -56,7 +84,7 @@ export class ConditionExpression extends AbstractConditionExpression {
     // Handle FieldPort value
     if (isFieldPort(this.value)) {
       const fieldContent = this.value.getContent(options)
-      return `${this.createOperator(operator)} ${fieldContent}`
+      return `${toSQLOperator(operator)} ${fieldContent}`
     }
 
     if (Array.isArray(this.value)) {
@@ -66,13 +94,13 @@ export class ConditionExpression extends AbstractConditionExpression {
         this.value.forEach((value) => {
           values.push(bindings.create(value))
         })
-        return `${this.createOperator(operator)} (${values.join(',')})`
+        return `${toSQLOperator(operator)} (${values.join(',')})`
       }
 
       // BETWEEN
       if (operator === 'between') {
         const [start, end] = this.value.map((value) => bindings.create(value))
-        return `${this.createOperator(operator)} ${start} AND ${end}`
+        return `${toSQLOperator(operator)} ${start} AND ${end}`
       }
 
       // arienai
@@ -86,26 +114,7 @@ export class ConditionExpression extends AbstractConditionExpression {
         `operator "${operator}" does not support array value in this context.`
       )
     }
-    return `${this.createOperator(operator)} ${bindings.create(conditionValue)}`
-  }
-
-  private createOperator(operator: SQLBuilderOperator) {
-    switch (operator) {
-      case 'in':
-        return 'IN'
-      case 'not in':
-        return 'NOT IN'
-      case 'like':
-        return 'LIKE'
-      case 'not like':
-        return 'NOT LIKE'
-      case 'between':
-        return 'BETWEEN'
-      case 'regexp':
-        return 'REGEXP'
-      default:
-        return operator
-    }
+    return `${toSQLOperator(operator)} ${bindings.create(conditionValue)}`
   }
 }
 
@@ -186,35 +195,27 @@ export class ConditionExpressionCoalesce extends AbstractConditionExpression {
   toSQL(
     options?: SQLBuilderToSQLInputOptions
   ): [string, SQLBuilderBindingValue[]] {
-    const allBindings: SQLBuilderBindingValue[] = []
+    const resolved = ensureToSQL(options)
 
     const argStrings = this.args.map((arg) => {
-      // Handle SQLBuilderConditionExpressionPort
       if (isSQLBuilderConditionExpressionPort(arg)) {
-        const [sql, argBindings] = arg.toSQL(options)
-        allBindings.push(...argBindings)
+        const [sql] = arg.toSQL(resolved)
         return sql
       }
-      // Handle FieldPort
       if (isFieldPort(arg)) {
-        return arg.getContent(options)
+        return arg.getContent(resolved)
       }
-      // Special handling for JSON literals '[]' and '{}'
       if (arg === '[]' || arg === '{}') {
-        const { driver } = ensureToSQL(options)
-        if (driver === 'postgresql') {
+        if (resolved.driver === 'postgresql') {
           return `'${arg}'::json`
         }
         return `'${arg}'`
       }
-      // Handle regular values (all strings are treated as literal values)
-      // For field names, use unescape() or FieldPort explicitly
-      allBindings.push(arg as SQLBuilderBindingValue)
-      return '?'
+      return resolved.bindings.create(arg as SQLBuilderBindingValue)
     })
 
     const sql = `COALESCE(${argStrings.join(', ')})`
-    return [sql, allBindings]
+    return [sql, resolved.bindings.getBindParameters()]
   }
 }
 
@@ -229,39 +230,44 @@ export class ConditionExpressionJsonArrayAggregate extends AbstractConditionExpr
   toSQL(
     options?: SQLBuilderToSQLInputOptions
   ): [string, SQLBuilderBindingValue[]] {
-    let innerSql: string
-    let bindings: SQLBuilderBindingValue[] = []
-
-    // Handle SQLBuilderConditionExpressionPort
-    if (isSQLBuilderConditionExpressionPort(this.expression)) {
-      const [sql, exprBindings] = this.expression.toSQL(options)
-      innerSql = sql
-      bindings = exprBindings
-    }
-    // Handle FieldPort
-    else if (isFieldPort(this.expression)) {
-      innerSql = this.expression.getContent(options)
-    } else {
-      throw new Error('Invalid expression type for JSON_ARRAY_AGG')
-    }
-
-    const { driver } = ensureToSQL(options)
-    const functionName = driver === 'postgresql' ? 'json_agg' : 'JSON_ARRAYAGG'
+    const resolved = ensureToSQL(options)
+    const innerSql = this.buildInnerSql(resolved)
+    const functionName =
+      resolved.driver === 'postgresql' ? 'json_agg' : 'JSON_ARRAYAGG'
     const sql = `${functionName}(${innerSql})`
-    return [sql, bindings]
+    return [sql, resolved.bindings.getBindParameters()]
+  }
+
+  private buildInnerSql(resolved: SQLBuilderToSQLOptions): string {
+    if (isSQLBuilderConditionExpressionPort(this.expression)) {
+      const [sql] = this.expression.toSQL(resolved)
+      return sql
+    }
+    if (isFieldPort(this.expression)) {
+      return this.expression.getContent(resolved)
+    }
+    throw new Error('Invalid expression type for JSON_ARRAY_AGG')
   }
 }
 
+type CaseWhenCondition =
+  | [string, SQLBuilderOperator, SQLBuilderConditionValue]
+  | SQLBuilderConditionExpressionPort
+  | SQLBuilderConditionsPort
+  | Condition
+
+type CaseWhenResult = SQLBuilderConditionValue | FieldPort | SQLBuilderConditionExpressionPort | null
+
 export class ConditionExpressionCaseWhen extends AbstractConditionExpression {
   private conditions: Array<{
-    condition: [string, SQLBuilderOperator, SQLBuilderConditionValue] | SQLBuilderConditionExpressionPort | SQLBuilderConditionsPort | Condition
-    then: SQLBuilderConditionValue | FieldPort | SQLBuilderConditionExpressionPort
+    condition: CaseWhenCondition
+    then: CaseWhenResult
   }> = []
-  private elseValue?: SQLBuilderConditionValue | FieldPort | SQLBuilderConditionExpressionPort
-  private pendingCondition?: [string, SQLBuilderOperator, SQLBuilderConditionValue] | SQLBuilderConditionExpressionPort | SQLBuilderConditionsPort | Condition
+  private elseValue?: CaseWhenResult
+  private pendingCondition?: CaseWhenCondition
 
   when(...args: SQLBuilderConditionInputPattern): this {
-    let condition: [string, SQLBuilderOperator, SQLBuilderConditionValue] | SQLBuilderConditionExpressionPort | SQLBuilderConditionsPort | Condition
+    let condition: CaseWhenCondition
 
     // Use the same logic as Conditions.createCondition but keep simple cases as arrays
     if (
@@ -316,7 +322,7 @@ export class ConditionExpressionCaseWhen extends AbstractConditionExpression {
     return this
   }
 
-  then(value: SQLBuilderConditionValue | FieldPort | SQLBuilderConditionExpressionPort): this {
+  then(value: CaseWhenResult): this {
     if (!this.pendingCondition) {
       throw new Error('then() must be called after when()')
     }
@@ -330,7 +336,7 @@ export class ConditionExpressionCaseWhen extends AbstractConditionExpression {
     return this
   }
 
-  else(value: SQLBuilderConditionValue | FieldPort | SQLBuilderConditionExpressionPort): this {
+  else(value: CaseWhenResult): this {
     if (this.pendingCondition) {
       throw new Error('Cannot call else() with pending when() condition. Call then() first.')
     }
@@ -343,87 +349,73 @@ export class ConditionExpressionCaseWhen extends AbstractConditionExpression {
       throw new Error('Incomplete case expression. Missing then() call.')
     }
     
-    const allBindings: SQLBuilderBindingValue[] = []
+    const resolved = ensureToSQL(options)
     const parts: string[] = ['(CASE']
 
-    // Process WHEN conditions
     for (const { condition, then } of this.conditions) {
-      let conditionSql: string
-
-      if (Array.isArray(condition)) {
-        // Simple condition: [field, operator, value]
-        const [field, operator, value] = condition
-        const fieldContent = getFieldContent(field, options)
-        
-        if (value === null && (operator === '=' || operator === '!=')) {
-          conditionSql = operator === '=' 
-            ? `${fieldContent} IS NULL`
-            : `${fieldContent} IS NOT NULL`
-        } else {
-          allBindings.push(value as SQLBuilderBindingValue)
-          conditionSql = `${fieldContent} ${operator} ?`
-        }
-      } else if (condition instanceof Condition) {
-        // Condition object (handles field + expression cases like 'field', is_not_null())
-        const [sql, conditionBindings] = condition.toSQL(options)
-        allBindings.push(...conditionBindings)
-        // Remove parentheses from Condition's output
-        conditionSql = sql.startsWith('(') && sql.endsWith(')') 
-          ? sql.slice(1, -1) 
-          : sql
-      } else {
-        // Complex condition: SQLBuilderConditionExpressionPort or SQLBuilderConditionsPort
-        const [sql, conditionBindings] = condition.toSQL(options)
-        allBindings.push(...conditionBindings)
-        conditionSql = sql || ''
-      }
-
-      // Process THEN value (no bindings needed as values are embedded directly)
-      const thenSql = processCaseValue(then, options, [])
+      const conditionSql = this.conditionToSQL(condition, resolved)
+      const thenSql = caseResultToSQL(then, resolved)
       parts.push(`WHEN ${conditionSql} THEN ${thenSql}`)
     }
 
-    // Process ELSE value if present (no bindings needed as values are embedded directly)
     if (this.elseValue !== undefined) {
-      const elseSql = processCaseValue(this.elseValue, options, [])
+      const elseSql = caseResultToSQL(this.elseValue, resolved)
       parts.push(`ELSE ${elseSql}`)
     }
 
     parts.push('END)')
     const sql = parts.join(' ')
-    return [sql, allBindings]
+    return [sql, resolved.bindings.getBindParameters()]
+  }
+
+  private conditionToSQL(
+    condition: CaseWhenCondition,
+    resolved: SQLBuilderToSQLOptions
+  ): string {
+    if (Array.isArray(condition)) {
+      const [field, operator, value] = condition
+      const fieldContent = getFieldContent(field, resolved)
+      if (value === null && operator === '=') {
+        return `${fieldContent} IS NULL`
+      }
+      if (value === null && operator === '!=') {
+        return `${fieldContent} IS NOT NULL`
+      }
+      const [expressionSql] = new ConditionExpression(operator, value).toSQL(resolved)
+      return `${fieldContent} ${expressionSql}`
+    }
+    if (condition instanceof Condition) {
+      const [sql] = condition.toSQL(resolved)
+      return sql.startsWith('(') && sql.endsWith(')') ? sql.slice(1, -1) : sql
+    }
+    const [sql] = condition.toSQL(resolved)
+    return sql || ''
   }
 }
 
-// Helper function to process CASE values (THEN/ELSE)
-function processCaseValue(
-  value: SQLBuilderConditionValue | FieldPort | SQLBuilderConditionExpressionPort,
-  options: SQLBuilderToSQLInputOptions | undefined,
-  bindings: SQLBuilderBindingValue[]
+function caseResultToSQL(
+  value: CaseWhenResult,
+  resolved: SQLBuilderToSQLOptions
 ): string {
   if (isSQLBuilderConditionExpressionPort(value)) {
-    const [sql, valueBindings] = value.toSQL(options)
-    bindings.push(...valueBindings)
+    const [sql] = value.toSQL(resolved)
     return sql
   }
-  
+
   if (isFieldPort(value)) {
-    return value.getContent(options)
+    return value.getContent(resolved)
   }
-  
-  // For regular values, embed them directly in SQL instead of using placeholders
-  if (typeof value === 'string') {
-    // Escape single quotes in strings
-    const escaped = value.replace(/'/g, "''")
-    return `'${escaped}'`
-  } else if (value === null) {
+
+  if (value === null || value === undefined) {
     return 'NULL'
-  } else if (value === undefined) {
-    return 'NULL'
-  } else {
-    // Numbers, booleans, etc.
+  }
+  if (typeof value === 'number' && Number.isFinite(value)) {
     return String(value)
   }
+  if (typeof value === 'boolean') {
+    return String(value)
+  }
+  return resolved.bindings.create(value as SQLBuilderBindingValue)
 }
 
 // Helper function to get field content
@@ -458,32 +450,33 @@ export class ConditionExpressionJsonObject extends AbstractConditionExpression {
   toSQL(
     options?: SQLBuilderToSQLInputOptions
   ): [string, SQLBuilderBindingValue[]] {
+    const resolved = ensureToSQL(options)
+    const keySuffix = resolved.driver === 'postgresql' ? '::text' : ''
     const pairs: string[] = []
-    const allBindings: SQLBuilderBindingValue[] = []
 
     for (const [key, value] of Object.entries(this.fields)) {
-      let fieldContent: string
-      // Handle SQLBuilderConditionExpressionPort
-      if (isSQLBuilderConditionExpressionPort(value)) {
-        const [sql, bindings] = value.toSQL(options)
-        fieldContent = sql
-        allBindings.push(...bindings)
-      }
-      // Handle FieldPort
-      else if (isFieldPort(value)) {
-        fieldContent = value.getContent(options)
-      } else {
-        // Treat string as a field name that should be escaped
-        const { quote } = ensureToSQL(options)
-        fieldContent = escape(value as string, { quote })
-      }
-      pairs.push(`'${key}', ${fieldContent}`)
+      const keyPlaceholder = `${resolved.bindings.create(key)}${keySuffix}`
+      pairs.push(`${keyPlaceholder}, ${this.buildValueSql(value, resolved)}`)
     }
 
-    const { driver } = ensureToSQL(options)
-    const functionName = driver === 'postgresql' ? 'json_build_object' : 'JSON_OBJECT'
+    const functionName =
+      resolved.driver === 'postgresql' ? 'json_build_object' : 'JSON_OBJECT'
     const sql = `${functionName}(${pairs.join(', ')})`
-    return [sql, allBindings]
+    return [sql, resolved.bindings.getBindParameters()]
+  }
+
+  private buildValueSql(
+    value: string | FieldPort | SQLBuilderConditionExpressionPort,
+    resolved: SQLBuilderToSQLOptions
+  ): string {
+    if (isSQLBuilderConditionExpressionPort(value)) {
+      const [sql] = value.toSQL(resolved)
+      return sql
+    }
+    if (isFieldPort(value)) {
+      return value.getContent(resolved)
+    }
+    return escape(value, { quote: resolved.quote })
   }
 }
 

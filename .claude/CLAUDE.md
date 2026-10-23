@@ -138,8 +138,10 @@ Conditions (AND/OR set)
             └─ ConditionExpressionCaseWhen
 ```
 
-`case_when` is the exception: it has its own `when()`/`then()`/`else()` fluent API, and embeds
-THEN/ELSE values **directly into the SQL string** rather than as placeholders.
+`case_when` has its own `when()`/`then()`/`else()` fluent API. Array-form `when()` conditions
+are rendered by delegating to `ConditionExpression`, so they match `where()` (`IN (?,?)`,
+`BETWEEN ? AND ?`). THEN/ELSE values are bound as placeholders, except finite numbers, booleans
+and `null`, which are written directly.
 
 ### Directory responsibilities
 
@@ -152,22 +154,25 @@ THEN/ELSE values **directly into the SQL string** rather than as placeholders.
 ## Adding a New SQL Function
 
 1. Add the implementation class to `src/builder/condition-expression.ts`, extending
-   `AbstractConditionExpression`.
+   `AbstractConditionExpression`. Push every value with `options.bindings.create()` (see
+   "Binding Convention" below).
 2. Add a thin public factory to the matching `src/utils/*.ts` (JSON helpers go in `utils/json.ts`).
 3. Re-export it from `src/index.ts`.
 4. If it needs dialect differences, branch on `options.driver` inside `toSQL()` — the existing
    JSON functions are the template.
 
-## Known Issue: Subquery Binding Duplication
+## Binding Convention
 
-Using a `SQLBuilderPort` subquery inside `columns`/`groupBy`/`orderBy` can duplicate bindings.
-Always pass the parent `options` (i.e. the same `bindings` instance) into a subquery's `toSQL()`.
-`Columns.add()`'s expression branch has a workaround that manually merges the returned bindings
-back into the parent.
+Bind values flow **only** through the shared `options.bindings`. Every `toSQL()` that emits a
+value must call `options.bindings.create(value)` and use the returned placeholder; the
+`SQLBuilderBindingValue[]` in a `toSQL()` return value is never merged back into the parent.
+Always pass the parent `options` (resolved by `ensureToSQL()`) into a child's or subquery's
+`toSQL()` — this is what keeps placeholder numbering (`$N`) and bind order aligned with the SQL.
 
 ## Debugging
 
-- **"Missing support for operator"** — check `ConditionExpression.createOperator()` and the
-  `SQLBuilderOperator` type in `src/types.ts`.
-- **Binding count mismatch** — verify subquery `toSQL()` receives the parent `options.bindings`
-  (see the known issue above).
+- **`unsupported operator`** — check `toSQLOperator()` in `src/builder/condition-expression.ts`
+  and the `SQLBuilderOperator` type in `src/types.ts`.
+- **Binding count mismatch** — a component is likely returning values instead of pushing them
+  with `options.bindings.create()`, or calling a child's `toSQL()` without the parent `options`
+  (see the binding convention above).

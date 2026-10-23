@@ -69,7 +69,7 @@ describe('exists', () => {
       expect(sql).to.be.eql(
         'SELECT\n  *\nFROM\n  `users`\nWHERE\n  ((EXISTS (SELECT\n  *\nFROM\n  `orders`\nWHERE\n  (`orders`.`user_id` = ?)\n  AND (`orders`.`status` = ?))) = ?)'
       )
-      expect(bindings).to.be.eql([1, 'users.id', 'completed'])
+      expect(bindings).to.be.eql(['users.id', 'completed', 1])
     })
 
     it('exists(..., false) syntax', () => {
@@ -85,7 +85,18 @@ describe('exists', () => {
       expect(sql).to.be.eql(
         'SELECT\n  *\nFROM\n  `users`\nWHERE\n  ((EXISTS (SELECT\n  *\nFROM\n  `orders`\nWHERE\n  (`orders`.`user_id` = ?))) = ?)'
       )
-      expect(bindings).to.be.eql([0, 'users.id'])
+      expect(bindings).to.be.eql(['users.id', 0])
+    })
+
+    it('exists(subquery) を左辺にして値を渡すと、bindings が SQL 上の出現順になる', () => {
+      const subquery = createBuilder().from('u').where('x', 'X')
+
+      const [, bindings] = createBuilder()
+        .from('users')
+        .where(exists(subquery), true)
+        .toSQL()
+
+      expect(bindings).to.be.eql(['X', 1])
     })
   })
 
