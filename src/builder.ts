@@ -122,11 +122,17 @@ export class SQLBuilder implements SQLBuilderPort {
   }
 
   limit(value: number): SQLBuilderPort {
+    if (!Number.isSafeInteger(value) || value < 0) {
+      throw new Error('limit() requires a non-negative safe integer')
+    }
     this.limit_value = value
     return this
   }
 
   offset(value: number): SQLBuilderPort {
+    if (!Number.isSafeInteger(value) || value < 0) {
+      throw new Error('offset() requires a non-negative safe integer')
+    }
     this.offset_value = value
     return this
   }
