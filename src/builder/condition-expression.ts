@@ -374,7 +374,7 @@ export class ConditionExpressionCaseWhen extends AbstractConditionExpression {
   ): string {
     if (Array.isArray(condition)) {
       const [field, operator, value] = condition
-      const fieldContent = getFieldContent(field, resolved)
+      const fieldContent = escape(field, { quote: resolved.quote })
       if (value === null && operator === '=') {
         return `${fieldContent} IS NULL`
       }
@@ -416,19 +416,6 @@ function caseResultToSQL(
     return String(value)
   }
   return resolved.bindings.create(value as SQLBuilderBindingValue)
-}
-
-// Helper function to get field content
-function getFieldContent(field: string, options: SQLBuilderToSQLInputOptions | undefined): string {
-  const { quote } = ensureToSQL(options)
-  if (quote) {
-    // Handle table.column format
-    if (field.includes('.')) {
-      return field.split('.').map(part => `${quote}${part}${quote}`).join('.')
-    }
-    return `${quote}${field}${quote}`
-  }
-  return field
 }
 
 export class ConditionExpressionJsonObject extends AbstractConditionExpression {

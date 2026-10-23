@@ -37,10 +37,10 @@ export const escape = (
       : '`'
   const output = fragments
     .map((fragment) => {
-      if (/(?:"(?:.+?)")|(?:'(?:.+?)')|(?:`(?:.+?)`)/.test(fragment)) {
+      if (/^(?:`[^`\\]+`|"[^"\\]+"|'[^'\\]+')$/.test(fragment)) {
         return fragment
       }
-      return quote + fragment + quote
+      return quote + fragment.split(quote).join(quote + quote) + quote
     })
     .join('.')
   return output
