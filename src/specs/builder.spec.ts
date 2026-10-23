@@ -381,6 +381,30 @@ describe('builder', () => {
         expect(sql).to.be.eql('SELECT\n  *\nFROM\n  `users`\nLIMIT 10')
         expect(bindings).to.be.eql([])
       })
+
+      it('accepts 0', () => {
+        expect(() => builder.limit(0)).not.to.throw()
+      })
+
+      it('accepts Number.MAX_SAFE_INTEGER', () => {
+        expect(() => builder.limit(Number.MAX_SAFE_INTEGER)).not.to.throw()
+      })
+
+      const invalid_values: [string, unknown][] = [
+        ['a string', '1; DROP TABLE users'],
+        ['a negative number', -1],
+        ['a fraction', 1.5],
+        ['NaN', NaN],
+        ['Infinity', Infinity],
+        ['an unsafe integer', 2 ** 53]
+      ]
+      invalid_values.forEach(([name, value]) => {
+        it(`throws for ${name}`, () => {
+          expect(() => builder.limit(value as number)).to.throw(
+            'limit() requires a non-negative safe integer'
+          )
+        })
+      })
     })
 
     describe('.offset', () => {
@@ -388,6 +412,30 @@ describe('builder', () => {
         const [sql, bindings] = builder.from('users').offset(10).toSQL()
         expect(sql).to.be.eql('SELECT\n  *\nFROM\n  `users`\nOFFSET 10')
         expect(bindings).to.be.eql([])
+      })
+
+      it('accepts 0', () => {
+        expect(() => builder.offset(0)).not.to.throw()
+      })
+
+      it('accepts Number.MAX_SAFE_INTEGER', () => {
+        expect(() => builder.offset(Number.MAX_SAFE_INTEGER)).not.to.throw()
+      })
+
+      const invalid_values: [string, unknown][] = [
+        ['a string', '1; DROP TABLE users'],
+        ['a negative number', -1],
+        ['a fraction', 1.5],
+        ['NaN', NaN],
+        ['Infinity', Infinity],
+        ['an unsafe integer', 2 ** 53]
+      ]
+      invalid_values.forEach(([name, value]) => {
+        it(`throws for ${name}`, () => {
+          expect(() => builder.offset(value as number)).to.throw(
+            'offset() requires a non-negative safe integer'
+          )
+        })
       })
     })
   })
