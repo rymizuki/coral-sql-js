@@ -20,6 +20,7 @@ jobs:
       - name: Publish to npm
         run: |
           set -o pipefail
+          npm --version
           if npm run release 2>&1 | tee publish.log; then
             if grep -q "No unpublished projects to publish" publish.log; then
               echo "::warning::No unpublished version found, skipping..."
@@ -28,9 +29,13 @@ jobs:
             fi
             exit 0
           fi
-          if grep -qE "You cannot publish over the previously published versions|Cannot publish over previously staged version" publish.log; then
+          if grep -q "You cannot publish over the previously published versions" publish.log; then
             echo "::warning::Package version already published, skipping..."
             exit 0
+          fi
+          if grep -q "Cannot publish over previously staged version" publish.log; then
+            echo "::error::Version is staged on npm but not confirmed as published; check it with npm view"
+            exit 1
           fi
           echo "::error::Publish failed with unexpected error"
           exit 1
