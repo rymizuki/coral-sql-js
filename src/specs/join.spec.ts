@@ -4,7 +4,9 @@ import {
   column_ref,
   createBuilder,
   createConditions,
+  exists,
   Field,
+  SQLBuilderPort,
   unescape
 } from '../../dist'
 
@@ -95,6 +97,57 @@ describe('join conditions', () => {
             new Field('x')
           )
           .toSQL()
+      ).to.throw(
+        'coral-sql join condition must be createConditions() or unescape()'
+      )
+    })
+  })
+
+  describe('non-Conditions condition expression', () => {
+    it('throws when exists() is passed as the condition', () => {
+      expect(() =>
+        createBuilder()
+          .from('users', 'u')
+          .leftJoin(
+            'passport',
+            'p',
+            // @ts-expect-error exists() is not a join condition
+            exists(createBuilder().from('x'))
+          )
+          .toSQL()
+      ).to.throw(
+        'coral-sql join condition must be createConditions() or unescape()'
+      )
+    })
+
+    it('throws when unescape() is whitespace only', () => {
+      expect(() =>
+        createBuilder()
+          .from('users', 'u')
+          .leftJoin('passport', 'p', unescape('  '))
+          .toSQL()
+      ).to.throw('coral-sql join requires a non-empty condition')
+    })
+  })
+
+  describe('non-raw FieldPort condition via SQLBuilderPort', () => {
+    const build = (): SQLBuilderPort => createBuilder().from('users', 'u')
+
+    it('throws when column_ref() is passed to leftJoin', () => {
+      const builder = build()
+      expect(() =>
+        // @ts-expect-error column_ref() is not a join condition
+        builder.leftJoin('passport', 'p', column_ref('x')).toSQL()
+      ).to.throw(
+        'coral-sql join condition must be createConditions() or unescape()'
+      )
+    })
+
+    it('throws when column_ref() is passed to join', () => {
+      const builder = build()
+      expect(() =>
+        // @ts-expect-error column_ref() is not a join condition
+        builder.join('inner', 'passport', column_ref('x')).toSQL()
       ).to.throw(
         'coral-sql join condition must be createConditions() or unescape()'
       )

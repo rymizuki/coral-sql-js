@@ -21,6 +21,7 @@ import {
   FieldPort,
   RawSQLPort
 } from './types'
+import { isRawSQLPort } from './utils/type-guards'
 
 export class SQLBuilder implements SQLBuilderPort {
   private columns: Columns
@@ -33,7 +34,7 @@ export class SQLBuilder implements SQLBuilderPort {
   private limit_value?: number
   private offset_value?: number
   private options: SQLBuilderToSQLInputOptions
-  private custom_select?: string
+  private custom_select?: string | RawSQLPort
 
   constructor(options: SQLBuilderToSQLInputOptions = {}) {
     this.options = options
@@ -51,7 +52,12 @@ export class SQLBuilder implements SQLBuilderPort {
     return this
   }
 
-  select(statement: string): SQLBuilderPort {
+  select(statement: RawSQLPort): SQLBuilderPort
+  /**
+   * @deprecated Pass unescape() for raw SQL. String statements will require unescape() in the next major version.
+   */
+  select(statement: string): SQLBuilderPort
+  select(statement: string | RawSQLPort): SQLBuilderPort {
     this.custom_select = statement
     return this
   }
@@ -288,7 +294,7 @@ export class SQLBuilder implements SQLBuilderPort {
     // Use custom select statement if provided
     if (this.custom_select) {
       return [
-        this.custom_select,
+        this.renderCustomSelect(this.custom_select, options),
         'FROM',
         `${options.indent}${this.table.toSQL(options)}`
       ].join('\n')
@@ -300,6 +306,23 @@ export class SQLBuilder implements SQLBuilderPort {
       'FROM',
       `${options.indent}${this.table.toSQL(options)}`
     ].join('\n')
+  }
+
+  private renderCustomSelect(
+    statement: string | RawSQLPort,
+    options: SQLBuilderToSQLOptions
+  ): string {
+    if (typeof statement === 'string') {
+      return statement
+    }
+    if (!isRawSQLPort(statement)) {
+      throw new Error('coral-sql select statement must be unescape()')
+    }
+    const sql = statement.getContent(options)
+    if (!sql.trim()) {
+      throw new Error('coral-sql select requires a non-empty statement')
+    }
+    return sql
   }
 
   private getJoin(options: SQLBuilderToSQLOptions) {
