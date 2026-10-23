@@ -17,7 +17,7 @@ import {
   SQLBuilderPort,
   SQLBuilderToSQLInputOptions
 } from './types'
-import { unescape } from './utils/escape'
+import { column_ref, unescape } from './utils/escape'
 import { exists, not_exists } from './utils/exists'
 import { case_when, coalesce, json_array_aggregate, json_object } from './utils/json'
 import { is_not_null, is_null } from './utils/null'
@@ -25,6 +25,7 @@ import { is_not_null, is_null } from './utils/null'
 export {
   case_when,
   coalesce,
+  column_ref,
   exists,
   Field,
   is_not_null,

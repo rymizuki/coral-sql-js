@@ -49,6 +49,43 @@ const query = await connection.query(sql, bindings)
 // bindings: [1, 10]
 ```
 
+### Join
+
+Build the ON condition with `createConditions()`. Values are bound and identifiers are escaped.
+Use `column_ref()` on the right-hand side to compare two columns.
+
+```ts
+import { createBuilder, createConditions, column_ref } from 'coral-sql'
+
+const [sql, bindings] = createBuilder()
+  .from('users', 'u')
+  .leftJoin(
+    'passport',
+    'p',
+    createConditions()
+      .and('p.id', '=', column_ref('u.passport_id'))
+      .and('p.deleted', 0)
+  )
+  .where('u.id', 1)
+  .toSQL()
+
+// sql:
+//   SELECT
+//     *
+//   FROM
+//     `users` AS `u`
+//   LEFT JOIN `passport` AS `p` ON (`p`.`id` = `u`.`passport_id`)
+//     AND (`p`.`deleted` = ?)
+//   WHERE
+//     (`u`.`id` = ?)
+// bindings: [0, 1]
+```
+
+Pass `unescape()` for raw SQL, e.g. `unescape('p.id = u.passport_id')`.
+
+A plain string ON condition (`.leftJoin('passport', 'p', 'p.id = u.passport_id')`) is deprecated.
+It is still written as-is, so never put user input in it. The next major version will require `unescape()`.
+
 ## Documentation
 
 Document is [here](https://rymizuki.github.io/coral-sql-js/).

@@ -24,6 +24,23 @@ export const unescape = (field: string): FieldPort => {
   return new Field(field, true)
 }
 
+/**
+ * Column reference for the right-hand side of a condition.
+ *
+ * ```typescript
+ * import { createConditions, column_ref } from 'coral-sql'
+ *
+ * createConditions().and('p.id', '=', column_ref('u.passport_id'))
+ * // (`p`.`id` = `u`.`passport_id`)
+ * ```
+ *
+ * @param column column's name. (e.g.) u.passport_id
+ * @returns FieldPort
+ */
+export const column_ref = (column: string): FieldPort => {
+  return new Field(column)
+}
+
 export const escape = (
   field: string,
   options: { quote?: string | null } = {}
