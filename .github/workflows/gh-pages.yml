@@ -1,4 +1,4 @@
-name: GitBub pages
+name: GitHub Pages
 
 on:
   workflow_run:
@@ -8,35 +8,64 @@ on:
       - completed
 
 jobs:
-  deploy:
+  check-last-passing:
     if: >-
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      actions: read
+    outputs:
+      is-last-passing: ${{ steps.last-passing.outputs.is-last-passing }}
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Check the commit is the latest one that passed Test on main
+        id: last-passing
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          TEST_WORKFLOW_ID: ${{ github.event.workflow_run.workflow_id }}
+          TEST_CREATED_AT: ${{ github.event.workflow_run.created_at }}
+        run: |
+          newer=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/${TEST_WORKFLOW_ID}/runs?branch=main&event=push&status=success&created=>${TEST_CREATED_AT}" --jq '.total_count')
+          if [ "$newer" = 0 ]; then
+            echo "is-last-passing=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::$newer newer commit(s) passed Test on main; skipping deploy of $HEAD_SHA"
+            echo "is-last-passing=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  deploy:
+    needs: check-last-passing
+    if: needs.check-last-passing.outputs.is-last-passing == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: gh-pages
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout the commit that passed Test
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
 
-      # setup project
-      - run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-      # build docs
-      - name: Build
+      - name: Build docs
         run: npm run build:docs
 
-      # deploy
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Deploy docs to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs
