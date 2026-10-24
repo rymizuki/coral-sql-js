@@ -427,9 +427,9 @@ describe('builder', () => {
         expect(bindings).to.be.eql([])
       })
 
-      it('"SELECT * FROM users OFFSET 0", []', () => {
+      it('"SELECT * FROM users", [] when offset is 0', () => {
         const [sql, bindings] = builder.from('users').offset(0).toSQL()
-        expect(sql).to.be.eql('SELECT\n  *\nFROM\n  `users`\nOFFSET 0')
+        expect(sql).to.be.eql('SELECT\n  *\nFROM\n  `users`')
         expect(bindings).to.be.eql([])
       })
 
