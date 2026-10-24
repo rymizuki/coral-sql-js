@@ -206,9 +206,6 @@ export class ConditionExpressionCoalesce extends AbstractConditionExpression {
         return arg.getContent(resolved)
       }
       if (arg === '[]' || arg === '{}') {
-        if (resolved.driver === 'postgresql') {
-          return `'${arg}'::json`
-        }
         return `'${arg}'`
       }
       return resolved.bindings.create(arg as SQLBuilderBindingValue)
