@@ -2,6 +2,7 @@ import { expect } from 'chai'
 import {
   createBuilder,
   coalesce,
+  column_ref,
   json_array_aggregate,
   json_object,
   unescape,
@@ -261,8 +262,8 @@ describe('JSON functions', () => {
       })
     })
 
-    describe('PostgreSQL auto-coalesce with json type casting', () => {
-      it("SELECT COALESCE(json_agg(json_build_object($1::text, \"sku\", $2::text, \"price\")), '[]'::json) FROM \"products\"", () => {
+    describe('PostgreSQL auto-coalesce', () => {
+      it("SELECT COALESCE(json_agg(json_build_object($1::text, \"sku\", $2::text, \"price\")), '[]') FROM \"products\"", () => {
         const [sql, bindings] = postgresqlBuilder
           .from('products')
           .column(
@@ -270,12 +271,12 @@ describe('JSON functions', () => {
           )
           .toSQL()
         expect(sql).to.be.eql(
-          "SELECT\n  COALESCE(json_agg(json_build_object($1::text, \"sku\", $2::text, \"price\")), '[]'::json)\nFROM\n  \"products\""
+          "SELECT\n  COALESCE(json_agg(json_build_object($1::text, \"sku\", $2::text, \"price\")), '[]')\nFROM\n  \"products\""
         )
         expect(bindings).to.be.eql(['sku', 'price'])
       })
 
-      it("New API with 'with_coalesce': SELECT COALESCE(json_agg(json_build_object($1::text, \"sku\", $2::text, \"price\")), '[]'::json) FROM \"products\"", () => {
+      it("New API with 'with_coalesce': SELECT COALESCE(json_agg(json_build_object($1::text, \"sku\", $2::text, \"price\")), '[]') FROM \"products\"", () => {
         const [sql, bindings] = postgresqlBuilder
           .from('products')
           .column(
@@ -283,17 +284,17 @@ describe('JSON functions', () => {
           )
           .toSQL()
         expect(sql).to.be.eql(
-          "SELECT\n  COALESCE(json_agg(json_build_object($1::text, \"sku\", $2::text, \"price\")), '[]'::json)\nFROM\n  \"products\""
+          "SELECT\n  COALESCE(json_agg(json_build_object($1::text, \"sku\", $2::text, \"price\")), '[]')\nFROM\n  \"products\""
         )
         expect(bindings).to.be.eql(['sku', 'price'])
       })
 
-      it("SELECT COALESCE(json_agg(name), '[]'::json) FROM \"users\"", () => {
+      it("SELECT COALESCE(json_agg(name), '[]') FROM \"users\"", () => {
         const [sql, bindings] = postgresqlBuilder
           .from('users')
           .column(json_array_aggregate(unescape('name'), true))
           .toSQL()
-        expect(sql).to.be.eql("SELECT\n  COALESCE(json_agg(name), '[]'::json)\nFROM\n  \"users\"")
+        expect(sql).to.be.eql("SELECT\n  COALESCE(json_agg(name), '[]')\nFROM\n  \"users\"")
         expect(bindings).to.be.eql([])
       })
     })
@@ -565,6 +566,41 @@ describe('JSON functions', () => {
       })
     })
 
+    describe('coalesce() function with PostgreSQL driver', () => {
+      it('COALESCE("profile", \'{}\') has no type cast', () => {
+        const [sql, bindings] = postgresqlBuilder
+          .from('users')
+          .column(coalesce(column_ref('profile'), '{}'))
+          .toSQL()
+        expect(sql).to.be.eql(
+          'SELECT\n  COALESCE("profile", \'{}\')\nFROM\n  "users"'
+        )
+        expect(bindings).to.be.eql([])
+      })
+
+      it("COALESCE($1, '[]'::json) casts the literal when the other arguments are values", () => {
+        const [sql, bindings] = postgresqlBuilder
+          .from('users')
+          .column(coalesce('fallback', '[]'))
+          .toSQL()
+        expect(sql).to.be.eql(
+          "SELECT\n  COALESCE($1, '[]'::json)\nFROM\n  \"users\""
+        )
+        expect(bindings).to.be.eql(['fallback'])
+      })
+
+      it("COALESCE(NULL, '[]') has no cast when the other argument is raw SQL", () => {
+        const [sql, bindings] = postgresqlBuilder
+          .from('users')
+          .column(coalesce(unescape('NULL'), '[]'))
+          .toSQL()
+        expect(sql).to.be.eql(
+          "SELECT\n  COALESCE(NULL, '[]')\nFROM\n  \"users\""
+        )
+        expect(bindings).to.be.eql([])
+      })
+    })
+
     describe('json_array_aggregate() function with PostgreSQL driver', () => {
       describe('basic usage', () => {
         it('SELECT json_agg(json_build_object(\'sku\', "sku", \'price\', "price")) FROM "products"', () => {
@@ -588,6 +624,51 @@ describe('JSON functions', () => {
           expect(sql).to.be.eql('SELECT\n  json_agg(name)\nFROM\n  "users"')
           expect(bindings).to.be.eql([])
         })
+      })
+    })
+  })
+
+  describe('SQLite driver', () => {
+    let sqliteBuilder: SQLBuilderPort
+
+    beforeEach(() => {
+      sqliteBuilder = new SQLBuilder({ driver: 'sqlite' }) as unknown as SQLBuilderPort
+    })
+
+    describe('json_object() function with SQLite driver', () => {
+      it('SELECT JSON_OBJECT(?, `id`) FROM `users`', () => {
+        const [sql, bindings] = sqliteBuilder
+          .from('users')
+          .column(json_object({ id: 'id' }))
+          .toSQL()
+        expect(sql).to.be.eql(
+          'SELECT\n  JSON_OBJECT(?, `id`)\nFROM\n  `users`'
+        )
+        expect(bindings).to.be.eql(['id'])
+      })
+    })
+
+    describe('json_array_aggregate() function with SQLite driver', () => {
+      it('SELECT json_group_array(`name`) FROM `users`', () => {
+        const [sql, bindings] = sqliteBuilder
+          .from('users')
+          .column(json_array_aggregate(column_ref('name')))
+          .toSQL()
+        expect(sql).to.be.eql(
+          'SELECT\n  json_group_array(`name`)\nFROM\n  `users`'
+        )
+        expect(bindings).to.be.eql([])
+      })
+
+      it("with 'with_coalesce': SELECT COALESCE(json_group_array(`name`), '[]') FROM `users`", () => {
+        const [sql, bindings] = sqliteBuilder
+          .from('users')
+          .column(json_array_aggregate(column_ref('name'), 'with_coalesce'))
+          .toSQL()
+        expect(sql).to.be.eql(
+          "SELECT\n  COALESCE(json_group_array(`name`), '[]')\nFROM\n  `users`"
+        )
+        expect(bindings).to.be.eql([])
       })
     })
   })

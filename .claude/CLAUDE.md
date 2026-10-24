@@ -116,8 +116,12 @@ confined to two places:
 - `src/options.ts`: `getDefaultPlaceholder` (postgresql → `$N` numbered, mysql/sqlite → `?`) and
   `getDefaultQuote` (postgresql → `"`, others → `` ` ``). Driver is resolved **before** placeholder
   so the placeholder default can depend on it.
-- Each `ConditionExpression*.toSQL()`: `JSON_ARRAYAGG` vs `json_agg`, `JSON_OBJECT` vs
-  `json_build_object`, and a `::json` cast on `coalesce('[]' | '{}')` for postgresql.
+- `ConditionExpressionJsonArrayAggregate` and `ConditionExpressionJsonObject`: look up the
+  function name (and the key cast for `json_object`) in per-driver tables,
+  `jsonArrayAggregateFunctionNames` / `jsonObjectDialects`.
+- `ConditionExpressionCoalesce`: on postgresql, `'[]'` / `'{}'` get a `::json` cast only when
+  every other argument is a bound value; with a field or an expression the type comes from
+  that argument, so no cast is written.
 
 An explicit `placeholder`/`quote` in options always wins over the driver default.
 

@@ -382,6 +382,12 @@ describe('builder', () => {
         expect(bindings).to.be.eql([])
       })
 
+      it('"SELECT * FROM users LIMIT 0", []', () => {
+        const [sql, bindings] = builder.from('users').limit(0).toSQL()
+        expect(sql).to.be.eql('SELECT\n  *\nFROM\n  `users`\nLIMIT 0')
+        expect(bindings).to.be.eql([])
+      })
+
       it('accepts 0', () => {
         expect(() => builder.limit(0)).not.to.throw()
       })
@@ -407,10 +413,23 @@ describe('builder', () => {
       })
     })
 
+    describe('without .limit and .offset', () => {
+      it('"SELECT * FROM users" has no LIMIT or OFFSET', () => {
+        const [sql] = builder.from('users').toSQL()
+        expect(sql).to.be.eql('SELECT\n  *\nFROM\n  `users`')
+      })
+    })
+
     describe('.offset', () => {
       it('"SELECT * FROM users OFFSET 10", []', () => {
         const [sql, bindings] = builder.from('users').offset(10).toSQL()
         expect(sql).to.be.eql('SELECT\n  *\nFROM\n  `users`\nOFFSET 10')
+        expect(bindings).to.be.eql([])
+      })
+
+      it('"SELECT * FROM users", [] when offset is 0', () => {
+        const [sql, bindings] = builder.from('users').offset(0).toSQL()
+        expect(sql).to.be.eql('SELECT\n  *\nFROM\n  `users`')
         expect(bindings).to.be.eql([])
       })
 

@@ -196,6 +196,14 @@ export class ConditionExpressionCoalesce extends AbstractConditionExpression {
     options?: SQLBuilderToSQLInputOptions
   ): [string, SQLBuilderBindingValue[]] {
     const resolved = ensureToSQL(options)
+    const castJsonLiteral =
+      resolved.driver === 'postgresql' &&
+      this.args.every(
+        (arg) =>
+          arg === '[]' ||
+          arg === '{}' ||
+          !(isSQLBuilderConditionExpressionPort(arg) || isFieldPort(arg))
+      )
 
     const argStrings = this.args.map((arg) => {
       if (isSQLBuilderConditionExpressionPort(arg)) {
@@ -206,10 +214,7 @@ export class ConditionExpressionCoalesce extends AbstractConditionExpression {
         return arg.getContent(resolved)
       }
       if (arg === '[]' || arg === '{}') {
-        if (resolved.driver === 'postgresql') {
-          return `'${arg}'::json`
-        }
-        return `'${arg}'`
+        return castJsonLiteral ? `'${arg}'::json` : `'${arg}'`
       }
       return resolved.bindings.create(arg as SQLBuilderBindingValue)
     })
@@ -217,6 +222,15 @@ export class ConditionExpressionCoalesce extends AbstractConditionExpression {
     const sql = `COALESCE(${argStrings.join(', ')})`
     return [sql, resolved.bindings.getBindParameters()]
   }
+}
+
+const jsonArrayAggregateFunctionNames: Record<
+  SQLBuilderToSQLOptions['driver'],
+  string
+> = {
+  mysql: 'JSON_ARRAYAGG',
+  postgresql: 'json_agg',
+  sqlite: 'json_group_array'
 }
 
 export class ConditionExpressionJsonArrayAggregate extends AbstractConditionExpression {
@@ -232,8 +246,7 @@ export class ConditionExpressionJsonArrayAggregate extends AbstractConditionExpr
   ): [string, SQLBuilderBindingValue[]] {
     const resolved = ensureToSQL(options)
     const innerSql = this.buildInnerSql(resolved)
-    const functionName =
-      resolved.driver === 'postgresql' ? 'json_agg' : 'JSON_ARRAYAGG'
+    const functionName = jsonArrayAggregateFunctionNames[resolved.driver]
     const sql = `${functionName}(${innerSql})`
     return [sql, resolved.bindings.getBindParameters()]
   }
@@ -418,6 +431,15 @@ function caseResultToSQL(
   return resolved.bindings.create(value as SQLBuilderBindingValue)
 }
 
+const jsonObjectDialects: Record<
+  SQLBuilderToSQLOptions['driver'],
+  { functionName: string; keyCast: string }
+> = {
+  mysql: { functionName: 'JSON_OBJECT', keyCast: '' },
+  postgresql: { functionName: 'json_build_object', keyCast: '::text' },
+  sqlite: { functionName: 'JSON_OBJECT', keyCast: '' }
+}
+
 export class ConditionExpressionJsonObject extends AbstractConditionExpression {
   private fields: Record<
     string,
@@ -438,16 +460,14 @@ export class ConditionExpressionJsonObject extends AbstractConditionExpression {
     options?: SQLBuilderToSQLInputOptions
   ): [string, SQLBuilderBindingValue[]] {
     const resolved = ensureToSQL(options)
-    const keySuffix = resolved.driver === 'postgresql' ? '::text' : ''
+    const { functionName, keyCast } = jsonObjectDialects[resolved.driver]
     const pairs: string[] = []
 
     for (const [key, value] of Object.entries(this.fields)) {
-      const keyPlaceholder = `${resolved.bindings.create(key)}${keySuffix}`
+      const keyPlaceholder = `${resolved.bindings.create(key)}${keyCast}`
       pairs.push(`${keyPlaceholder}, ${this.buildValueSql(value, resolved)}`)
     }
 
-    const functionName =
-      resolved.driver === 'postgresql' ? 'json_build_object' : 'JSON_OBJECT'
     const sql = `${functionName}(${pairs.join(', ')})`
     return [sql, resolved.bindings.getBindParameters()]
   }

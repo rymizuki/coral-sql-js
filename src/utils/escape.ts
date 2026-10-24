@@ -57,15 +57,10 @@ export const escape = (
   field: string,
   options: { quote?: string | null } = {}
 ): string => {
-  const quote =
-    options.quote === null
-      ? ''
-      : options.quote !== undefined
-      ? options.quote
-      : '`'
-  if (quote === '') {
+  if (options.quote === null || options.quote === '') {
     return field
   }
+  const quote = options.quote ?? '`'
   const output = field
     .split('.')
     .map((fragment) => {

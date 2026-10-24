@@ -62,7 +62,7 @@ describe('escape (identifier quoting via the public builder)', () => {
       })
     })
 
-    describe('fragment is quoted with the driver quote or a plain identifier', () => {
+    describe('fragment is quoted with the configured quote or a plain identifier', () => {
       passthroughCases.forEach(([input, expected]) => {
         it(`${input} -> ${expected}`, () => {
           expect(selectedColumn(input)).to.be.eql(expected)
@@ -70,7 +70,7 @@ describe('escape (identifier quoting via the public builder)', () => {
       })
     })
 
-    describe('fragment is wrapped in a quote that is not the driver quote', () => {
+    describe('fragment is wrapped in a quote that is not the configured quote', () => {
       nonDriverQuoteCases.forEach(([input, expected]) => {
         it(`${input} -> ${expected}`, () => {
           expect(selectedColumn(input)).to.be.eql(expected)
@@ -122,6 +122,12 @@ describe('escape (identifier quoting via the public builder)', () => {
 
     it('a.b is output as-is', () => {
       expect(selectedColumn('a.b', { quote: null })).to.be.eql('a.b')
+    })
+  })
+
+  describe("column() with quote: ''", () => {
+    it('users.id is output as-is', () => {
+      expect(selectedColumn('users.id', { quote: '' })).to.be.eql('users.id')
     })
   })
 
