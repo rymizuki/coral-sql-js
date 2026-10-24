@@ -2,6 +2,7 @@ import { expect } from 'chai'
 import {
   createBuilder,
   coalesce,
+  column_ref,
   json_array_aggregate,
   json_object,
   unescape,
@@ -588,6 +589,38 @@ describe('JSON functions', () => {
           expect(sql).to.be.eql('SELECT\n  json_agg(name)\nFROM\n  "users"')
           expect(bindings).to.be.eql([])
         })
+      })
+    })
+  })
+
+  describe('SQLite driver', () => {
+    let sqliteBuilder: SQLBuilderPort
+
+    beforeEach(() => {
+      sqliteBuilder = new SQLBuilder({ driver: 'sqlite' }) as unknown as SQLBuilderPort
+    })
+
+    describe('json_array_aggregate() function with SQLite driver', () => {
+      it('SELECT json_group_array(`name`) FROM `users`', () => {
+        const [sql, bindings] = sqliteBuilder
+          .from('users')
+          .column(json_array_aggregate(column_ref('name')))
+          .toSQL()
+        expect(sql).to.be.eql(
+          'SELECT\n  json_group_array(`name`)\nFROM\n  `users`'
+        )
+        expect(bindings).to.be.eql([])
+      })
+
+      it("with 'with_coalesce': SELECT COALESCE(json_group_array(`name`), '[]') FROM `users`", () => {
+        const [sql, bindings] = sqliteBuilder
+          .from('users')
+          .column(json_array_aggregate(column_ref('name'), 'with_coalesce'))
+          .toSQL()
+        expect(sql).to.be.eql(
+          "SELECT\n  COALESCE(json_group_array(`name`), '[]')\nFROM\n  `users`"
+        )
+        expect(bindings).to.be.eql([])
       })
     })
   })

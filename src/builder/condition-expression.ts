@@ -219,6 +219,15 @@ export class ConditionExpressionCoalesce extends AbstractConditionExpression {
   }
 }
 
+const jsonArrayAggregateFunctionNames: Record<
+  SQLBuilderToSQLOptions['driver'],
+  string
+> = {
+  mysql: 'JSON_ARRAYAGG',
+  postgresql: 'json_agg',
+  sqlite: 'json_group_array'
+}
+
 export class ConditionExpressionJsonArrayAggregate extends AbstractConditionExpression {
   private expression: SQLBuilderConditionExpressionPort | FieldPort
 
@@ -232,8 +241,7 @@ export class ConditionExpressionJsonArrayAggregate extends AbstractConditionExpr
   ): [string, SQLBuilderBindingValue[]] {
     const resolved = ensureToSQL(options)
     const innerSql = this.buildInnerSql(resolved)
-    const functionName =
-      resolved.driver === 'postgresql' ? 'json_agg' : 'JSON_ARRAYAGG'
+    const functionName = jsonArrayAggregateFunctionNames[resolved.driver]
     const sql = `${functionName}(${innerSql})`
     return [sql, resolved.bindings.getBindParameters()]
   }
