@@ -252,8 +252,8 @@ export class SQLBuilder implements SQLBuilderPort {
       this.getGroupBy(options),
       this.getHaving(options),
       this.orders.toSQL(options),
-      this.limit_value ? `LIMIT ${this.limit_value}` : null,
-      this.offset_value ? `OFFSET ${this.offset_value}` : null
+      this.limit_value !== undefined ? `LIMIT ${this.limit_value}` : null,
+      this.offset_value !== undefined ? `OFFSET ${this.offset_value}` : null
     ]
       .filter((section) => section)
       .join('\n')
