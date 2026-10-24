@@ -577,6 +577,28 @@ describe('JSON functions', () => {
         )
         expect(bindings).to.be.eql([])
       })
+
+      it("COALESCE($1, '[]'::json) casts the literal when the other arguments are values", () => {
+        const [sql, bindings] = postgresqlBuilder
+          .from('users')
+          .column(coalesce('fallback', '[]'))
+          .toSQL()
+        expect(sql).to.be.eql(
+          "SELECT\n  COALESCE($1, '[]'::json)\nFROM\n  \"users\""
+        )
+        expect(bindings).to.be.eql(['fallback'])
+      })
+
+      it("COALESCE(NULL, '[]') has no cast when the other argument is raw SQL", () => {
+        const [sql, bindings] = postgresqlBuilder
+          .from('users')
+          .column(coalesce(unescape('NULL'), '[]'))
+          .toSQL()
+        expect(sql).to.be.eql(
+          "SELECT\n  COALESCE(NULL, '[]')\nFROM\n  \"users\""
+        )
+        expect(bindings).to.be.eql([])
+      })
     })
 
     describe('json_array_aggregate() function with PostgreSQL driver', () => {

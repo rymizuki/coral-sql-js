@@ -196,6 +196,14 @@ export class ConditionExpressionCoalesce extends AbstractConditionExpression {
     options?: SQLBuilderToSQLInputOptions
   ): [string, SQLBuilderBindingValue[]] {
     const resolved = ensureToSQL(options)
+    const castJsonLiteral =
+      resolved.driver === 'postgresql' &&
+      this.args.every(
+        (arg) =>
+          arg === '[]' ||
+          arg === '{}' ||
+          !(isSQLBuilderConditionExpressionPort(arg) || isFieldPort(arg))
+      )
 
     const argStrings = this.args.map((arg) => {
       if (isSQLBuilderConditionExpressionPort(arg)) {
@@ -206,7 +214,7 @@ export class ConditionExpressionCoalesce extends AbstractConditionExpression {
         return arg.getContent(resolved)
       }
       if (arg === '[]' || arg === '{}') {
-        return `'${arg}'`
+        return castJsonLiteral ? `'${arg}'::json` : `'${arg}'`
       }
       return resolved.bindings.create(arg as SQLBuilderBindingValue)
     })
