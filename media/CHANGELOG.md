@@ -1,5 +1,16 @@
 # coral-sql
 
+## 1.8.1
+
+### Patch Changes
+
+- 92ee993: limit(0) を指定したときに LIMIT 0 を出力するようにした（以前は句が消え、全件を返した）。offset(0) は結果が変わらないので、これまでどおり出力しない（limit なしの OFFSET 0 は sqlite / mysql で構文エラーになるため）。#49
+- 92ee993: postgresql の coalesce() で、列や式（json_agg など）と組み合わせた '[]' / '{}' に ::json を付けないようにした。型が他の引数から決まるので jsonb 列にも使える（以前は COALESCE could not convert type json to jsonb で失敗した）。#46
+
+  他の引数が値だけのときは、これまでどおり ::json を付ける。unescape() で書いた生 SQL（unescape('NULL') など）と組み合わせると型は付かないので、json として扱うには生 SQL 側でキャストする。
+
+- 92ee993: sqlite で json_array_aggregate() が json_group_array() を出力するようにした（以前は JSON_ARRAYAGG を出力して実行できなかった）。#45
+
 ## 1.8.0
 
 ### Minor Changes
