@@ -43,4 +43,4 @@ jobs:
 
       # execution tests
       - run: npm run lint
-      - run: npm test
+      - run: npm test -- --forbid-only
