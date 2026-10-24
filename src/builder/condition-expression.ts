@@ -431,6 +431,15 @@ function caseResultToSQL(
   return resolved.bindings.create(value as SQLBuilderBindingValue)
 }
 
+const jsonObjectDialects: Record<
+  SQLBuilderToSQLOptions['driver'],
+  { functionName: string; keyCast: string }
+> = {
+  mysql: { functionName: 'JSON_OBJECT', keyCast: '' },
+  postgresql: { functionName: 'json_build_object', keyCast: '::text' },
+  sqlite: { functionName: 'JSON_OBJECT', keyCast: '' }
+}
+
 export class ConditionExpressionJsonObject extends AbstractConditionExpression {
   private fields: Record<
     string,
@@ -451,16 +460,14 @@ export class ConditionExpressionJsonObject extends AbstractConditionExpression {
     options?: SQLBuilderToSQLInputOptions
   ): [string, SQLBuilderBindingValue[]] {
     const resolved = ensureToSQL(options)
-    const keySuffix = resolved.driver === 'postgresql' ? '::text' : ''
+    const { functionName, keyCast } = jsonObjectDialects[resolved.driver]
     const pairs: string[] = []
 
     for (const [key, value] of Object.entries(this.fields)) {
-      const keyPlaceholder = `${resolved.bindings.create(key)}${keySuffix}`
+      const keyPlaceholder = `${resolved.bindings.create(key)}${keyCast}`
       pairs.push(`${keyPlaceholder}, ${this.buildValueSql(value, resolved)}`)
     }
 
-    const functionName =
-      resolved.driver === 'postgresql' ? 'json_build_object' : 'JSON_OBJECT'
     const sql = `${functionName}(${pairs.join(', ')})`
     return [sql, resolved.bindings.getBindParameters()]
   }

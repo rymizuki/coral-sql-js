@@ -635,6 +635,19 @@ describe('JSON functions', () => {
       sqliteBuilder = new SQLBuilder({ driver: 'sqlite' }) as unknown as SQLBuilderPort
     })
 
+    describe('json_object() function with SQLite driver', () => {
+      it('SELECT JSON_OBJECT(?, `id`) FROM `users`', () => {
+        const [sql, bindings] = sqliteBuilder
+          .from('users')
+          .column(json_object({ id: 'id' }))
+          .toSQL()
+        expect(sql).to.be.eql(
+          'SELECT\n  JSON_OBJECT(?, `id`)\nFROM\n  `users`'
+        )
+        expect(bindings).to.be.eql(['id'])
+      })
+    })
+
     describe('json_array_aggregate() function with SQLite driver', () => {
       it('SELECT json_group_array(`name`) FROM `users`', () => {
         const [sql, bindings] = sqliteBuilder
